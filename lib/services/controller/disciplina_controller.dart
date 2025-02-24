@@ -76,7 +76,7 @@ class DisciplinaController {
     if (_disciplinaBox.isOpen) {
       try {
         var disciplina = _disciplinaBox.values.toList();
-       
+
         return disciplina[0].descricao.toString();
       } catch (e) {
         print(e);
@@ -85,6 +85,29 @@ class DisciplinaController {
     } else {
       print('Box não inicializado');
       return 'Box não inicializado';
+    }
+  }
+
+  Future<String> getDisciplinaDescricao({required String? disciplinaId}) async {
+    if (disciplinaId == null || disciplinaId.isEmpty) {
+      return "SEM DISCIPLINA";
+    }
+
+    if (!_disciplinaBox.isOpen) {
+      print('Box não inicializado');
+      return 'Box não inicializado';
+    }
+
+    try {
+      var disciplina = _disciplinaBox.values.firstWhere(
+        (d) => d.id?.toString() == disciplinaId,
+        orElse: () => Disciplina.vazia(),
+      );
+
+      return disciplina?.descricao?.toString() ?? 'Disciplina não encontrada';
+    } catch (e) {
+      print('Erro ao buscar disciplina: $e');
+      return 'Erro ao buscar disciplina';
     }
   }
 }

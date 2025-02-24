@@ -8,6 +8,7 @@ import '../services/controller/disciplina_aula_controller.dart';
 import '../services/controller/disciplina_controller.dart';
 import '../services/controller/horario_controller.dart';
 import 'disciplina_aula_model.dart';
+import 'disciplina_model.dart';
 import 'serie_model.dart';
 
 class Aula {
@@ -174,9 +175,10 @@ class Aula {
     DisciplinaController disciplinaController = DisciplinaController();
 
     await disciplinaController.init();
+    List<Disciplina> disciplina = disciplinaController.getAllDisciplinas();
 
-    final descricao =
-        await disciplinaController.getDisciplinaId(id: disciplinaId);
+    final descricao = await disciplinaController.getDisciplinaDescricao(
+        disciplinaId: disciplinaIdString);
     return descricao;
   }
 

@@ -210,8 +210,8 @@ class AulasOfflineSincronizarService {
       // // ignore: avoid_print
       // print("aula: $aulaMap");
       try {
-        //print('response.statusCode: ${response.statusCode.toString()}');
-        //print('---->: ${response.body.toString()}');
+        print('response.statusCode: ${response.statusCode.toString()}');
+        print('---->: ${response.body.toString()}');
 
         if (response.statusCode == 200) {
           final decodedResponse = jsonDecode(response.body);

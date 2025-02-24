@@ -49,6 +49,18 @@ class Disciplina {
     data = [];
   }
 
+  factory Disciplina.vazia() {
+    return Disciplina(
+      id: '',
+      codigo: '',
+      descricao: 'Disciplina não encontrada',
+      idtTurmaId: '',
+      idt_id: '',
+      checkbox: false,
+      data: [],
+    );
+  }
+
   // ToString method
   @override
   String toString() {
