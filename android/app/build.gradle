@@ -1,0 +1,136 @@
+// No início do arquivo build.gradle
+import java.text.SimpleDateFormat
+import java.util.Date
+
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def getEnvVar(String key) {
+    def envFile = new File(rootDir.parentFile, ".env")
+    //println "Root dir: $rootDir"
+    //println "Looking for .env in: ${envFile.absolutePath}"
+    if (envFile.exists()) {
+        def props = new Properties()
+        envFile.withInputStream { props.load(it) }
+        def value = props.getProperty(key)
+        if (value != null && !value.isEmpty()) {
+            return value
+        } else {
+            throw new GradleException("A variável '$key' não foi encontrada ou está vazia no arquivo .env.")
+        }
+    } else {
+        throw new GradleException("O arquivo .env não foi encontrado na raiz do projeto.")
+    }
+}
+
+def getLocalProperty(String key) {
+    def localPropertiesFile = file("../../android/local.properties")   
+    if (localPropertiesFile.exists()) {
+        //println "Arquivo 'local.properties' encontrado em: ${localPropertiesFile.absolutePath}"
+        def properties = new Properties()
+        localPropertiesFile.withInputStream { properties.load(it) }
+
+        // Verifique as chaves disponíveis
+        //println "Propriedades carregadas: ${properties}"
+
+        // Verifique se estamos acessando corretamente as propriedades
+        def value = properties.getProperty(key)
+        println "Propriedade '$key' encontrada: $value"
+        return value
+    } else {
+        println "Arquivo 'local.properties' não encontrado."
+        throw new GradleException("Arquivo 'local.properties' não encontrado.")
+    }
+}
+
+android {
+    namespace = "br.com.servidorcaju.guaribas"
+    compileSdkVersion = 34
+    ndkVersion flutter.ndkVersion
+    defaultConfig {
+        applicationId = "br.com.servidorcaju.guaribas"
+        minSdkVersion = 21
+        targetSdkVersion = 34
+        versionCode 1
+        versionName "5.1.9v"
+        multiDexEnabled true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(getLocalProperty("storeFile"))
+            storePassword getLocalProperty("storePassword")
+            keyAlias getLocalProperty("keyAlias")
+            keyPassword getLocalProperty("keyPassword")
+        }
+    }
+
+
+    buildTypes {
+        // release {
+        //     signingConfig = signingConfigs.debug
+        // }
+       
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            //signingConfig signingConfigs.debug
+            // Configuração para renomear o APK gerado
+            applicationVariants.all { variant ->
+                variant.outputs.all { output ->
+                    // Pega as variáveis diretamente do arquivo .env
+                    def appName = getEnvVar("NAME_APP")
+                    def appVersion = getEnvVar("VERSAO")
+                    
+                    // Garante que ambas as variáveis foram carregadas corretamente
+                    if (appName == null || appVersion == null) {
+                        throw new GradleException("As variáveis APP_TITLE e APP_VERSION não foram encontradas no arquivo .env.")
+                    }
+
+                     
+                    appName = appName.replaceAll("\"", "")
+                    appVersion = appVersion.replaceAll("\"", "")
+
+                    def dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss")
+                    def dateStr = dateFormat.format(new Date())
+
+                    // Define o nome do arquivo APK com data e hora
+                    def apkName = "${appName}-${appVersion}-${variant.buildType.name}-${dateStr}.apk"
+
+                    // def apkName = "${appName}-${appVersion}-${variant.buildType.name}.apk"
+                    outputFileName = apkName
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Adicione a dependência do MultiDex
+    implementation 'androidx.multidex:multidex:2.0.1'
+
+    // Outras dependências
+}
+
+flutter {
+    source = "../.."
+}
