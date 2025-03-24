@@ -215,8 +215,8 @@ class _LoginPageState extends State<LoginPage> {
     // _emailController.text = '60011558369';
     // _passwordController.text = '13051972';
 
-    _emailController.text = '91710855304';
-    _passwordController.text = '25021966';
+    // _emailController.text = '91710855304';
+    // _passwordController.text = '25021966';
 
     // ignore: deprecated_member_use
     return WillPopScope(
@@ -237,17 +237,17 @@ class _LoginPageState extends State<LoginPage> {
             // Conteúdo do formulário
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 180),
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 84.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: <Widget>[
                       Image.asset(
-                        'assets/icon_notifiq_sem_fundo.png',
-                        width: 150,
-                        height: 150,
+                        'assets/logo_icons.png',
+                        width: 200,
+                        height: 200,
                       ),
-                      const SizedBox(height: 45),
+                      const SizedBox(height: 24.0),
                       Card(
                         color: AppTema.primaryWhite.withOpacity(0.3),
                         elevation: 0.0,
