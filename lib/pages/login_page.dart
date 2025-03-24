@@ -379,12 +379,12 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 70.0),
-                        child: Center(
-                          child: Text(appVerso),
-                        ),
-                      ),
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 70.0),
+                      //   child: Center(
+                      //     child: Text(appVerso),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
