@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class LoadAuth extends StatefulWidget {
   const LoadAuth({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoadAuthState createState() => _LoadAuthState();
 }
 
 class _LoadAuthState extends State<LoadAuth> {
+  String appVerso = '';
+
   @override
   void initState() {
     super.initState();
+    configuracaoEnv();
     loadAuth();
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-    //     overlays: [SystemUiOverlay.top]);
+  }
+
+  void configuracaoEnv() async {
+    appVerso = dotenv.env['VERSAO'] ?? 'Default Verso';
+    setState(() {
+      appVerso;
+    });
   }
 
   loadAuth() async {
@@ -63,6 +71,30 @@ class _LoadAuthState extends State<LoadAuth> {
                   margin: const EdgeInsets.only(top: 30),
                   child: const CircularProgressIndicator(
                     color: Color.fromARGB(255, 229, 157, 3),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            child: Row(
+              children: [
+                const Text(
+                  'Versão',
+                  style: TextStyle(
+                    color: Colors.black38,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(
+                  width: 4.0,
+                ),
+                Text(
+                  appVerso,
+                  style: const TextStyle(
+                    color: Colors.black38,
+                    fontWeight: FontWeight.bold,
                   ),
                 )
               ],

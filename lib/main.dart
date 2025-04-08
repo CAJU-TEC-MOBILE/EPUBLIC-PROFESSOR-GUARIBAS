@@ -5,7 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:professor_acesso_notifiq/configs/hive_config.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+// import 'package:sentry_flutter/sentry_flutter.dart';
 import 'help/console_log.dart';
 import 'pages/atualizacoes/atualizacoes_list_page.dart';
 import 'pages/aulas/aula__infantil_atualizar_page.dart';

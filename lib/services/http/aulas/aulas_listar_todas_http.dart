@@ -34,7 +34,7 @@ class AulasListarTodasHttp {
       
       String prefixUrl = 'notifiq-professor/aulas/todas-as-aulas/gestao-ano';
 
-      final tempoDeDuracaoEmSegundos = Duration(seconds: ApiBaseURLService.tempoDeDuracaoEmSegundos);
+      //final tempoDeDuracaoEmSegundos = Duration(seconds: ApiBaseURLService.tempoDeDuracaoEmSegundos);
 
       var url = Uri.parse(
         '${ApiBaseURLService.baseUrl}/$prefixUrl/${gestaoAtivaData['idt_id']}/${auth!.anoId.toString()}',
@@ -46,7 +46,7 @@ class AulasListarTodasHttp {
           headers: {
             'Authorization': 'Bearer ${authData['token_atual']}',
           },
-        ).timeout(tempoDeDuracaoEmSegundos);
+        ); //.timeout(tempoDeDuracaoEmSegundos);
         if(response.statusCode == 200){
             print('aulas-listar-todas-http-executar: ${response.statusCode.toString()}');
             //final Map<String, dynamic> data = jsonDecode(response.body);

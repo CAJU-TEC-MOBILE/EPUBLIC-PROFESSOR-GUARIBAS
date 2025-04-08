@@ -34,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String message = 'Erro de conexão.';
 
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -82,9 +83,31 @@ class _LoginPageState extends State<LoginPage> {
         ConfiguracaoApp configuracaoApp = ConfiguracaoApp();
         AnoSelecionadoController anoSelecionadoController =
             AnoSelecionadoController();
-        ProfessorController professorController = ProfessorController();
+           ProfessorController professorController = ProfessorController();
 
-        var response = await AuthHttp.logar(email, password);
+      var response = await AuthHttp.logar(email, password);
+
+      debugPrint('status-login: ${response.statusCode.toString()}');
+
+      if (response.statusCode != 200) {
+        enabledTextFormField = true;
+        _isLoading = false;
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+     
+        message = responseBody['error']?['message']?.toString() ?? message;
+
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          message,
+        );
+        setState(() {});
+        return;
+      }
+
+      final Map<String, dynamic> responseJson = await jsonDecode(response.body);
+
+      await professorController.init();
+      
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseJson =
@@ -379,15 +402,34 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 70.0),
-                        child: Center(
-                          child: Text(appVerso),
-                        ),
-                      ),
+                    
                     ],
                   ),
                 ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              child: Row(
+                children: [
+                  const Text(
+                    'Versão',
+                    style: TextStyle(
+                      color: Colors.black38,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 4.0,
+                  ),
+                  Text(
+                    appVerso,
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                ],
               ),
             ),
           ],

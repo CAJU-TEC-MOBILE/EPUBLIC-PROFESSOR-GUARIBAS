@@ -24,6 +24,7 @@ import '../models/serie_model.dart';
 import '../models/ano_model.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../models/tipo_aula_model.dart';
 import '../services/console_table.dart';
 
 class HiveConfig {
@@ -60,6 +61,7 @@ class HiveConfig {
     Hive.registerAdapter(ProfessorAdapter());
     Hive.registerAdapter(AnexoAdapter());
     Hive.registerAdapter(HistoricoPresencaAdapter());
+    Hive.registerAdapter(TipoAulaAdapter());
 
     await Future.wait([
       Hive.openBox('auth'),
@@ -88,7 +90,8 @@ class HiveConfig {
       Hive.openBox<AnoSelecionado>('ano_selecionado'),
       Hive.openBox<Professor>('professores'),
       Hive.openBox<Anexo>('anexos'),
-      Hive.openBox<HistoricoPresenca>('historico_presencas')
+      Hive.openBox<HistoricoPresenca>('historico_presencas'),
+      Hive.openBox<TipoAula>('tipos_aulas')
     ]);
   }
 }
