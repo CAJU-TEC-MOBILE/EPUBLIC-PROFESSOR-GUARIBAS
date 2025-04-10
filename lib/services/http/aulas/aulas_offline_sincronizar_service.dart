@@ -219,10 +219,12 @@ class AulasOfflineSincronizarService {
 
           //print('===> ${response.body.toString()}');
           await envioDeAnexo(
+            context: context,
             criadaPeloCelular: aula.criadaPeloCelular.toString(),
             aulaId: aulaId,
           );
           await envioDeSemAnexo(
+            context: context,
             criadaPeloCelular: aula.criadaPeloCelular.toString(),
             aulaId: aulaId,
           );
@@ -354,6 +356,7 @@ class AulasOfflineSincronizarService {
   }
 
   Future<void> envioDeAnexo({
+    required BuildContext context,
     required String? criadaPeloCelular,
     required String aulaId,
   }) async {
@@ -383,6 +386,7 @@ class AulasOfflineSincronizarService {
           File aulaFile = File(item.anexo.toString());
 
           final envioTask = faltas.setJustificarFalta(
+            context: context,
             matriculaId: item.id.toString(),
             aulaId: aulaId,
             observacao: '',
@@ -407,6 +411,7 @@ class AulasOfflineSincronizarService {
   }
 
   Future<void> envioDeSemAnexo({
+     required BuildContext context,
     required String? criadaPeloCelular,
     required String aulaId,
   }) async {
@@ -431,6 +436,7 @@ class AulasOfflineSincronizarService {
       for (Matricula matricula in matriculas) {
         final envioTask = faltas
             .setJustificarFalta(
+              context: context,
           matriculaId: matricula.matricula_id.toString(),
           aulaId: aulaId,
           observacao: '',

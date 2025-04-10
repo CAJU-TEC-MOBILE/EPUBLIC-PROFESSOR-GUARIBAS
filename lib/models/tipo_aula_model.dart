@@ -20,6 +20,13 @@ class TipoAula {
     );
   }
 
+  factory TipoAula.vazio() {
+    return const TipoAula(
+      id: '-1',
+      descricao: '',
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

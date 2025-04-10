@@ -64,7 +64,9 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<void> _login() async {
+  Future<void> _login(
+    BuildContext context,
+  ) async {
     setState(() {
       _isLoading = true;
       enabledTextFormField = false;
@@ -83,31 +85,31 @@ class _LoginPageState extends State<LoginPage> {
         ConfiguracaoApp configuracaoApp = ConfiguracaoApp();
         AnoSelecionadoController anoSelecionadoController =
             AnoSelecionadoController();
-           ProfessorController professorController = ProfessorController();
+        ProfessorController professorController = ProfessorController();
 
-      var response = await AuthHttp.logar(email, password);
+        var response = await AuthHttp.logar(context, email, password);
 
-      debugPrint('status-login: ${response.statusCode.toString()}');
+        debugPrint('status-login: ${response.statusCode.toString()}');
 
-      if (response.statusCode != 200) {
-        enabledTextFormField = true;
-        _isLoading = false;
-        final Map<String, dynamic> responseBody = jsonDecode(response.body);
-     
-        message = responseBody['error']?['message']?.toString() ?? message;
+        if (response.statusCode != 200) {
+          enabledTextFormField = true;
+          _isLoading = false;
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
-        CustomSnackBar.showErrorSnackBar(
-          context,
-          message,
-        );
-        setState(() {});
-        return;
-      }
+          message = responseBody['error']?['message']?.toString() ?? message;
 
-      final Map<String, dynamic> responseJson = await jsonDecode(response.body);
+          CustomSnackBar.showErrorSnackBar(
+            context,
+            message,
+          );
+          setState(() {});
+          return;
+        }
 
-      await professorController.init();
-      
+        final Map<String, dynamic> responseJson =
+            await jsonDecode(response.body);
+
+        await professorController.init();
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseJson =
@@ -181,10 +183,10 @@ class _LoginPageState extends State<LoginPage> {
           //     backgroundColor: Colors.red,
           //     icon: Icons.error_outline,
           //     iconColor: Colors.white);
-          CustomSnackBar.showErrorSnackBar(
-            context,
-            'Erro de conexão.',
-          );
+          // CustomSnackBar.showErrorSnackBar(
+          //   context,
+          //   'Erro de conexão.',
+          // );
         }
       } catch (e) {
         enabledTextFormField = true;
@@ -197,10 +199,10 @@ class _LoginPageState extends State<LoginPage> {
         //     backgroundColor: Colors.red,
         //     icon: Icons.error_outline,
         //     iconColor: Colors.white);
-        CustomSnackBar.showErrorSnackBar(
-          context,
-          'Erro de conexão.',
-        );
+        // CustomSnackBar.showErrorSnackBar(
+        //   context,
+        //   'Erro de conexão.',
+        // );
       }
     } else {
       enabledTextFormField = true;
@@ -212,10 +214,10 @@ class _LoginPageState extends State<LoginPage> {
       //     backgroundColor: Colors.red,
       //     icon: Icons.error_outline,
       //     iconColor: Colors.white);
-      CustomSnackBar.showErrorSnackBar(
-        context,
-        'Erro de conexão.',
-      );
+      // CustomSnackBar.showErrorSnackBar(
+      //   context,
+      //   'Erro de conexão.',
+      // );
     }
     setState(() {
       _isLoading = false;
@@ -368,7 +370,7 @@ class _LoginPageState extends State<LoginPage> {
                                 child: ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
-                                      _isLoading ? null : await _login();
+                                      _isLoading ? null : await _login(context);
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -402,7 +404,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                    
                     ],
                   ),
                 ),

@@ -34,7 +34,9 @@ class AtualizacoesListPage extends StatelessWidget {
                       Text(
                         itensListAtualizacoes[index].versao,
                         style: const TextStyle(
-                            fontSize: 16.0, fontWeight: FontWeight.w500),
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -43,7 +45,8 @@ class AtualizacoesListPage extends StatelessWidget {
                       title: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(itensListAtualizacoes[index].descricao,
+                          Text(
+                            itensListAtualizacoes[index].descricao,
                             // style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ],

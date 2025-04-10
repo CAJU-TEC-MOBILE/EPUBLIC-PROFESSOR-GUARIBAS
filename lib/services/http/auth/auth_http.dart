@@ -7,9 +7,11 @@ import 'package:http/http.dart' as http;
 import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
 import 'package:professor_acesso_notifiq/services/controller/professor_controller.dart';
 
+import '../../../componentes/dialogs/custom_snackbar.dart';
 import '../../../help/console_log.dart';
 import '../../../models/instrutor_model.dart';
 import '../../adapters/gestoes_service_adpater.dart';
+import '../../connectivity/internet_connectivity_service.dart';
 import '../../controller/Instrutor_controller.dart';
 import '../../controller/disciplina_controller.dart';
 import '../../directories/directories_controller.dart';
@@ -25,7 +27,22 @@ class AuthHttp {
     return authBox.get('auth');
   }
 
-  static Future<dynamic> logar(String email, String password) async {
+  static Future<dynamic> logar(
+    BuildContext context,
+    String email,
+    String password,
+  ) async {
+    bool isConnected = await InternetConnectivityService.isConnected();
+    debugPrint("isConnected: $isConnected");
+    if (!isConnected) {
+      Future.microtask(() {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Erro ao estabelecer a conexão. Verifique sua conexão com a internet.',
+        );
+      });
+      return;
+    }
     // ignore: unused_local_variable
     GestoesService gestoesService = GestoesService();
     DisciplinaController disciplinaController = DisciplinaController();
@@ -198,14 +215,15 @@ class AuthHttp {
       return http.Response('Erro: $error', 500);
     }
   }
+
   static Future<void> setTipoDeAula({required String token}) async {
     try {
       final configuracaoHttp = ConfiguracaoHttp();
       await configuracaoHttp.getTiposAulas(token: token);
     } catch (e) {
-       ConsoleLog.mensagem(
+      ConsoleLog.mensagem(
         titulo: 'error-tipo-aula',
-        mensagem:  e.toString(),
+        mensagem: e.toString(),
         tipo: 'erro',
       );
     }

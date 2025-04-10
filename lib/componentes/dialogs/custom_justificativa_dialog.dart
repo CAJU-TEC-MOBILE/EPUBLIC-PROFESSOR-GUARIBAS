@@ -191,6 +191,7 @@ class JustificativaDialog {
                   List<File> files = await directorie.getodosArquivosAnexos();
 
                   bool result = await faltas.setJustificarFalta(
+                    context: context,
                     matriculaId: matricula['matricula_id'].toString(),
                     aulaId: matricula['aula_id'].toString(),
                     observacao: '',

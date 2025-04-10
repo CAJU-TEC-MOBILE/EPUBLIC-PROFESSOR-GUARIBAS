@@ -47,18 +47,7 @@ void main() async {
     initializeDateFormatting('pt_BR', null),
     permissionManager.checkAdIdPermission()
   ]);
-  // await SentryFlutter.init(
-  //   (options) {
-  //     // options.dsn =
-  //     //     'https://21f7c06fe6a279ce2af049e261830ed2@o4507487119343616.ingest.us.sentry.io/4507645929783296';
-  //     options.dsn = '';
-  //     options.tracesSampleRate = 1.0;
-  //     options.profilesSampleRate = 1.0;
-  //   },
-  //   appRunner: () {
-  //     runApp(const InitialLoadingScreen());
-  //   },
-  // );
+ 
   runApp(const MyApp());
 }
 

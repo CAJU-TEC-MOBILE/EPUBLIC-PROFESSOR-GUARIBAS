@@ -7,6 +7,7 @@ import '../../help/console_log.dart';
 import '../../models/auth_model.dart';
 import '../../models/gestao_ativa_model.dart';
 import '../../models/professor_model.dart';
+import '../../pages/pedido_page.dart';
 import '../../pages/sobre/sobre_o_app_page.dart';
 import '../../pages/usuarioPage.dart';
 import '../../services/adapters/auth_service_adapter.dart';
@@ -153,6 +154,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const HomePage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list_alt),
+              title: const Text('Pedidos'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PedidoPage(),
                   ),
                 );
               },

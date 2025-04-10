@@ -35,11 +35,14 @@ import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../componentes/dialogs/custom_dialogs.dart';
 import '../../componentes/dropdown/custom_dropdown_experiencia.dart';
 import '../../help/data_time.dart';
+import '../../models/auth_model.dart';
 import '../../models/disciplina_aula_model.dart';
 import '../../models/disciplina_model.dart';
+import '../../services/adapters/auth_service_adapter.dart';
 import '../../services/controller/aula_controller.dart';
 import '../../services/controller/disciplina_aula_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
+import '../../services/controller/pedido_controller.dart';
 import 'listagem_aulas_page.dart';
 
 class AulaAtualizarPage extends StatefulWidget {
@@ -56,6 +59,9 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   final TextEditingController _conteudoController = TextEditingController();
   final TextEditingController _metodologiaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final pedidoController = PedidoController();
+  Auth authModel = AuthServiceAdapter().exibirAuth();
+
   bool isStatus = false;
   bool isLoading = true;
   bool isLoadigList = true;
@@ -64,7 +70,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   String? _errorText;
   String? _aula_selecionada;
   var _horario_selecionado;
-  var _etapa_selecionada; // Variável para armazenar a opção selecionada
+  var _etapa_selecionada;
   Etapa? etapa_selecionada_objeto;
   bool data_etapa_valida = true;
   DateTime? _dataSelecionada;
@@ -86,7 +92,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   String inicioPeriodoEtapa = '';
   String fimPeriodoEtapa = '';
   List<String>? semanas;
-
+  bool statusPeriudo = false;
   String statusDaAutorizacao = 'INICIO';
   List<String> tipos = [
     'Aula Normal',
@@ -109,8 +115,23 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     "Traços, sons, cores e formas",
     "Espaço, tempo, quantidades, relações e transformações",
   ];
-
+  String situacaoStatus = '';
+  String circuitoId = '';
   List<String> selectedExperiencias = [];
+
+  Future<void> _situacao() async {
+    await pedidoController.init();
+    String status =
+        await pedidoController.getTipoStatusPeloInstrutorDisciplinaTurmaID(
+      instrutorDisciplinaTurmaID:
+          gestaoAtivaModel!.instrutorDisciplinaTurma_id.toString(),
+      etapaId: _etapa_selecionada.toString(),
+      userId: authModel.id,
+      circuitoId: circuitoId,
+    );
+    // print("status: $status");
+    setState(() => situacaoStatus = status);
+  }
 
   // Define the callback function
   void _handleSelectionChanged(List<String> selecionadas) {
@@ -136,6 +157,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
 
   void initState() {
     super.initState();
+
     iniciando();
     // atualizarAutorizacoes();
     // getDisciplinas();
@@ -154,35 +176,43 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   }
 
   Future<void> iniciando() async {
-    setState(() {
-      isLoading = true;
-    });
+    try {
+      setState(() {
+        isLoading = true;
+      });
 
-    //await atualizarAutorizacoes();
+      //await atualizarAutorizacoes();
 
-    horarios_data = await _horariosBox.get('horarios');
-    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-    gestaoAtivaModel?.circuito.etapas;
-    listaDeEtapas = filtrarEtapasPorGestaoAtiva();
-    // listaFiltradaDeHorarios = filtrarListaDeObjetoPorCondicaoUnica(
-    //     lista_de_objetos: horarios_data!, condicao: gestaoAtivaModel?.turno_id);
-    listaFiltradaDeHorariosPorHorariosDaColunaDaGestao =
-        gestaoAtivaModel?.relacoesDiasHorarios;
-    listaFiltradaDeHorariosPorHorariosDaColunaDaGestao
-        ?.sort((a, b) => a.horario.descricao.compareTo(b.horario.descricao));
-    await _mostrarCalendario(context);
-    _dataSelecionada =
-        _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
-            DateTime.now());
-    await carregarDados(criadaPeloCelularId: widget.aulaLocalId);
-    await getConfiguracaoDisciplinas();
-    await getDisciplinasAula();
+      horarios_data = await _horariosBox.get('horarios');
+      gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+      gestaoAtivaModel?.circuito.etapas;
+      listaDeEtapas = filtrarEtapasPorGestaoAtiva();
+      // listaFiltradaDeHorarios = filtrarListaDeObjetoPorCondicaoUnica(
+      //     lista_de_objetos: horarios_data!, condicao: gestaoAtivaModel?.turno_id);
+      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao =
+          gestaoAtivaModel?.relacoesDiasHorarios;
+      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao
+          ?.sort((a, b) => a.horario.descricao.compareTo(b.horario.descricao));
+      await _mostrarCalendario(context);
+      _dataSelecionada =
+          _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
+              DateTime.now());
+      await carregarDados(criadaPeloCelularId: widget.aulaLocalId);
+      await getConfiguracaoDisciplinas();
+      await getDisciplinasAula();
 
-    await Future.delayed(const Duration(seconds: 3));
-    setState(() {
-      isLoading = false;
-    });
-    await gerarTextEditingController();
+      await Future.delayed(const Duration(seconds: 3));
+      setState(() {
+        isLoading = false;
+      });
+      await gerarTextEditingController();
+      _situacao();
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('error-iniciando-aula-atualização: $e');
+    }
   }
 
   Future<void> atualizarAutorizacoes() async {
@@ -227,91 +257,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       return;
     }
   }
-
-  Future<void> _salvarAula() async {
-    //print('gestaoAtivaModel?.idt_id.toString(): ${gestaoAtivaModel?.idt_id.toString()}');
-    /* var aula = Aula(
-        id: '',
-        e_aula_infantil: 0,
-        instrutor_id: gestaoAtivaModel?.idt_instrutor_id.toString(),
-        disciplina_id: gestaoAtivaModel?.idt_disciplina_id.toString(),
-        turma_id: gestaoAtivaModel?.idt_turma_id.toString(),
-        tipoDeAula: _aula_selecionada.toString(),
-        dataDaAula: corrigirDataCompletaAmericanaParaAnoMesDiaSomente(
-            dataString: _dataSelecionada.toString()),
-        horarioID: _horario_selecionado.toString(),
-        horarios_infantis: [_horario_selecionado],
-        conteudo: _conteudoController.text.toString(),
-        metodologia: _metodologiaController.text.toString(),
-        saberes_conhecimentos: '',
-        dia_da_semana: '',
-        situacao: 'Aguardando confirmação',
-        criadaPeloCelular: gerarUuidIdentificador().toString(),
-        etapa_id: _etapa_selecionada.toString(),
-        instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
-        campos_de_experiencias: selectedExperiencias.toString(),
-        //instrutorDisciplinaTurma_id: instrutorDisciplinaTurmaId.toString(),
-        eixos: '',
-        experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
-        estrategias: '',
-        recursos: '',
-        atividade_casa: '',
-        atividade_classe: '',
-        observacoes: '');
-
-    bool status =  await AulasOfflineOnlineServiceAdapter().salvar(novaAula: aula);
-    if (status != true) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        backgroundColor: AppTema.error, // Define a cor de fundo como verde
-        content: Row(
-          children: [
-            Icon(
-              Icons.check_circle,
-              color: Colors.white, // Define a cor do ícone como branco
-            ),
-            SizedBox(width: 8),
-            Text(
-              'Aula já existe para o dia ',
-              style: TextStyle(
-                color: Colors.white, // Define a cor do texto como branco
-              ),
-            ),
-          ],
-        ),
-      ));
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      backgroundColor: AppTema.success, // Define a cor de fundo como verde
-      content: Row(
-        children: [
-          Icon(
-            Icons.check_circle,
-            color: Colors.white, // Define a cor do ícone como branco
-          ),
-          SizedBox(width: 8),
-          Text(
-            'Aula criada com sucesso',
-            style: TextStyle(
-              color: Colors.white, // Define a cor do texto como branco
-            ),
-          ),
-        ],
-      ),
-    ));
-    Navigator.pushNamed(context, '/home');*/
-  }
-
-  // DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
-  //     DateTime data) {
-  //   print(int.parse(data.weekday.toString()) - 1);
-  //   print('135115531');
-  //   print(DateTime.now());
-  //   // while (data.weekday != 3) {
-  //   //   data = data.add(Duration(days: 1));
-  //   // }
-  //   return data.add(Duration(days: 2));
-  // }
 
   DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
       DateTime data) {
@@ -460,6 +405,8 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         dataFinal: etapaSelecionada.periodo_final.toString(),
       );
       setState(() {
+        _etapa_selecionada;
+        circuitoId = etapaSelecionada.circuito_nota_id.toString();
         texto1_etapa;
         texto2_etapa;
         data_etapa_valida;
@@ -681,7 +628,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         turmaId: model.idt_turma_id.toString(),
         idtId: model.idt_id.toString(),
       );
-
+      print("===> $disciplinasCarregadas");
       setState(() {
         disciplinas = disciplinasCarregadas;
       });
@@ -785,36 +732,42 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
             title: const Text('Selecione as disciplinas'),
             content: SizedBox(
               height: 300,
-              child: SingleChildScrollView(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: disciplinas.length,
-                  itemBuilder: (context, index) {
-                    return CheckboxListTile(
-                      activeColor: AppTema.primaryAmarelo,
-                      title: Text(disciplinas[index].descricao.toString()),
-                      value: disciplinas[index].checkbox,
-                      onChanged: (bool? selected) {
-                        setState(() {
-                          isLoadigList = false;
-                          var newController = TextEditingController();
-                          if (selected == true) {
-                            disciplinas[index].checkbox = true;
-                            disciplinas[index].data = null;
-                            controllers.insert(index, newController);
-                            addDisciplina(disciplinas[index]);
-                          } else {
-                            disciplinas[index].checkbox = false;
-                            disciplinas[index].data = null;
-                            selectedDisciplinas.removeWhere(
-                                (item) => item.id == disciplinas[index].id);
-                            controllers.removeAt(index);
-                            removeDisciplina(disciplinas[index]);
-                          }
-                        });
-                      },
-                    );
-                  },
+              child: Scrollbar(
+                thumbVisibility: true,
+                trackVisibility: true,
+                thickness: 8,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: disciplinas.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+
+                      return CheckboxListTile(
+                        activeColor: AppTema.primaryAmarelo,
+                        title: Text(item.descricao.toString()),
+                        value: item.checkbox,
+                        onChanged: (bool? selected) {
+                          setState(() {
+                            isLoadigList = false;
+                            var newController = TextEditingController();
+                            if (selected == true) {
+                              item.checkbox = true;
+                              item.data = null;
+                              controllers.insert(index, newController);
+                              addDisciplina(item);
+                            } else {
+                              item.checkbox = false;
+                              item.data = null;
+                              selectedDisciplinas
+                                  .removeWhere((disc) => disc.id == item.id);
+                              controllers.removeAt(index);
+                              removeDisciplina(item);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
@@ -974,8 +927,8 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       verificarSeExistemAutorizacoesParaEssaEtapaEgestao();
       await gestaoAtivaDias();
 
-      debugPrint('_etapa_selecionada: $_etapa_selecionada');
-      debugPrint('etapa_selecionada_objeto: $etapa_selecionada_objeto');
+      // debugPrint('_etapa_selecionada: $_etapa_selecionada');
+      // debugPrint('etapa_selecionada_objeto: $etapa_selecionada_objeto');
     } catch (e) {
       debugPrint(
         'Erro ao processar a seleção da etapa ($novaSelecao): $e',
@@ -983,8 +936,55 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     }
   }
 
+  void _validadePeriodoEtapa() {
+    try {
+      if (etapa_selecionada_objeto == null) {
+        return;
+      }
+      String dataAtualStr = DataTime.getDataAtualFormatoISO();
+      String dataInicialStr = etapa_selecionada_objeto!.periodo_inicial;
+      String dataFinalStr = etapa_selecionada_objeto!.periodo_final;
+
+      DateTime dataAtual = DateTime.parse(dataAtualStr);
+      DateTime dataInicial = DateTime.parse(dataInicialStr);
+      DateTime dataFinal = DateTime.parse(dataFinalStr);
+
+      if (dataAtual.isAfter(dataInicial.subtract(const Duration(days: 1))) &&
+          dataAtual.isBefore(dataFinal.add(const Duration(days: 1)))) {
+        setState(() => statusPeriudo = true);
+        return;
+      }
+      setState(() => statusPeriudo = false);
+    } catch (e) {
+      setState(() => statusPeriudo = false);
+    }
+  }
+
+  Future<bool> validatePolivalenciaHorarios(
+    BuildContext context,
+    List<int> horarioIds,
+  ) async {
+    for (var disciplina in selectedDisciplinas) {
+      for (var item in disciplina.data ?? []) {
+        for (var h in item['horarios'] ?? []) {
+          if (horarioIds.where((item) => item == h).isNotEmpty) {
+            CustomSnackBar.showInfoSnackBar(
+              context,
+              'Horário já está sendo usado pela disciplina "${disciplina.descricao}"',
+            );
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
+    _situacao();
+    _validadePeriodoEtapa();
+
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
       appBar: AppBar(
@@ -1102,8 +1102,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                           },
                                         )),
                                         _etapa_selecionada != null &&
-                                                statusDaAutorizacao !=
-                                                    'APROVADO'
+                                                situacaoStatus != 'PENDENTE'
                                             ? Container(
                                                 margin: const EdgeInsets.only(
                                                     // left: 15,
@@ -1162,7 +1161,9 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                 ),
                                               )
                                             : const SizedBox(),
-                                        etapa_selecionada_objeto != null
+                                        etapa_selecionada_objeto != null &&
+                                                situacaoStatus != 'APROVADO' &&
+                                                statusPeriudo != true
                                             ? AvisoDeRegraAutorizacoesComponente(
                                                 etapa_selecionada_objeto:
                                                     etapa_selecionada_objeto,
@@ -1172,12 +1173,22 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                     statusDaAutorizacao,
                                                 dataLogicaExpiracao:
                                                     verificarSeDataAtualEmaior(
-                                                        data:
-                                                            autorizacaoSelecionada!
-                                                                .dataExpiracao
-                                                                .toString()),
+                                                  data: autorizacaoSelecionada!
+                                                      .dataExpiracao
+                                                      .toString(),
+                                                ),
                                                 dataEtapaValida:
                                                     data_etapa_valida,
+                                                etapaId:
+                                                    etapa_selecionada_objeto !=
+                                                            null
+                                                        ? etapa_selecionada_objeto!
+                                                            .id
+                                                        : '',
+                                                instrutorDisciplinaTurmaID:
+                                                    gestaoAtivaModel!.idt_id
+                                                        .toString(),
+                                                statusPeriudo: statusPeriudo,
                                               )
                                             : const SizedBox(),
 
@@ -1187,7 +1198,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                         null) ||
                                                 (etapa_selecionada_objeto !=
                                                         null &&
-                                                    statusDaAutorizacao ==
+                                                    situacaoStatus ==
                                                         'APROVADO' &&
                                                     !verificarSeDataAtualEmaior(
                                                         data:
@@ -1820,7 +1831,14 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                                                                           selectedItemsTextStyle: const TextStyle(
                                                                                                             color: Colors.white,
                                                                                                           ),
-                                                                                                          onConfirm: (List<int> selected) {
+                                                                                                          onConfirm: (List<int> selected) async {
+                                                                                                            bool status = await validatePolivalenciaHorarios(
+                                                                                                              context,
+                                                                                                              selected,
+                                                                                                            );
+                                                                                                            if (!status) {
+                                                                                                              return;
+                                                                                                            }
                                                                                                             setState(() {
                                                                                                               horarios = selected;
                                                                                                               elemente['horarios'] = selected;

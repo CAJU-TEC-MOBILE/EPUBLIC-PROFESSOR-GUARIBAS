@@ -264,144 +264,154 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
     return WillPopScope(
       onWillPop: () async {
         Navigator.pushReplacementNamed(context, '/todasAsGestoesDoProfessor');
-        return false; // Impede a navegação para a tela anterior
+        return false;
       },
-      child: GestureDetector(
-        onHorizontalDragUpdate: (details) {
-          if (details.primaryDelta! > 0) {
-            Navigator.pushNamed(context, '/todasAsGestoesDoProfessor');
-          }
-        },
-        child: Scaffold(
-          backgroundColor: AppTema.backgroundColorApp,
-          appBar: CustomAppBar(
-            onPressedSynchronizer: () async => await iniciando(),
-          ),
-          // AppBar(
-          //   title: const Text(
-          //     'Aulas',
-          //     style: TextStyle(color: AppTema.primaryDarkBlue),
-          //   ),
-          //   iconTheme: const IconThemeData(color: AppTema.primaryDarkBlue),
-          //   centerTitle: true,
-          // ),
-          body: isLoading != true
-              ? FutureBuilder<List<Aula>>(
-                  future: Future.value(aulas_offlines),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: Text('carregando...'));
-                    } else if (snapshot.hasError) {
-                      return const Text('Erro ao carregar os dados');
-                    } else if (snapshot.data!.isNotEmpty &&
-                        snapshot.data != null) {
-                      return Column(
-                        children: [
-                          Expanded(
-                            child: RefreshIndicator(
-                              backgroundColor: AppTema.primaryWhite,
-                              color: AppTema.primaryDarkBlue,
-                              onRefresh: () async => await iniciando(),
-                              child: ListView.builder(
-                                itemCount: paginatedItems.length,
-                                itemBuilder: (context, index) {
-                                  return paginatedItems[index]
-                                              .e_aula_infantil !=
-                                          1
-                                      ? CustomFundamentalCard(
-                                          paginatedItems: paginatedItems[index],
-                                          onSync: () async {
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return CustomSyncDialog(
-                                                    onCancel: () =>
-                                                        Navigator.of(context)
-                                                            .pop(false),
-                                                    onConfirm: () async {
-                                                      await AulasOfflineSincronizarService()
-                                                          .executar(
-                                                        context,
-                                                        paginatedItems[index],
-                                                        paginatedItems[index]
-                                                            .experiencias,
-                                                        paginatedItems[index]
-                                                                .series ??
-                                                            [],
-                                                      );
-                                                      await carregarDados();
-                                                    });
-                                              },
-                                            );
-                                          },
-                                          onFrequencia: () async {
-                                            if (paginatedItems[index]
-                                                .id
-                                                .toString()
-                                                .isEmpty) {
-                                              //print('aula_id: ${paginatedItems[index].criadaPeloCelular.toString()}');
-                                              await Navigator.push(
+      child: Scaffold(
+        backgroundColor: AppTema.backgroundColorApp,
+        appBar: CustomAppBar(
+          onPressedSynchronizer: () async => await iniciando(),
+        ),
+        body: isLoading != true
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: paginatedItems.isNotEmpty
+                        ? Scrollbar(
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            thickness: 8,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: paginatedItems.map((aula) {
+                                  return aula.e_aula_infantil != 1
+                                      ? Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8.0),
+                                          child: CustomFundamentalCard(
+                                            paginatedItems: aula,
+                                            onSync: () async {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return CustomSyncDialog(
+                                                      onCancel: () =>
+                                                          Navigator.of(context)
+                                                              .pop(false),
+                                                      onConfirm: () async {
+                                                        await AulasOfflineSincronizarService()
+                                                            .executar(
+                                                          context,
+                                                          aula,
+                                                          aula.experiencias,
+                                                          aula.series ?? [],
+                                                        );
+                                                        await carregarDados();
+                                                      });
+                                                },
+                                              );
+                                            },
+                                            onFrequencia: () async {
+                                              if (aula.id.toString().isEmpty) {
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        FrequenciaOfflinePage(
+                                                      aula_id: aula
+                                                          .criadaPeloCelular
+                                                          .toString(),
+                                                      aula: aula,
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
+                                              Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) =>
-                                                      FrequenciaOfflinePage(
-                                                    aula_id:
-                                                        paginatedItems[index]
-                                                            .criadaPeloCelular
-                                                            .toString(),
-                                                    aula: paginatedItems[index],
+                                                      FrequenciaOnlinePage(
+                                                    aula_id: aula.id.toString(),
+                                                    selecionandoId:
+                                                        aula.id.toString(),
+                                                    dataDaAula: aula
+                                                                .dataDaAula !=
+                                                            null
+                                                        ? conveterDataAmericaParaBrasil(
+                                                            aula.dataDaAula,
+                                                          )
+                                                        : 'sem data',
+                                                    aula: aula,
                                                   ),
                                                 ),
                                               );
-                                              return;
-                                            }
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    FrequenciaOnlinePage(
-                                                  aula_id: paginatedItems[index]
-                                                      .id
-                                                      .toString(),
-                                                  selecionandoId:
-                                                      paginatedItems[index]
-                                                          .id
-                                                          .toString(),
-                                                  dataDaAula: paginatedItems[
-                                                                  index]
-                                                              .dataDaAula !=
-                                                          null
-                                                      ? conveterDataAmericaParaBrasil(
-                                                          paginatedItems[index]
-                                                              .dataDaAula,
-                                                        )
-                                                      : 'sem data',
-                                                  aula: paginatedItems[index],
+                                            },
+                                            onEdit: () async {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      AulaAtualizarPage(
+                                                    aulaLocalId: aula
+                                                        .criadaPeloCelular
+                                                        .toString(),
+                                                  ),
                                                 ),
-                                              ),
-                                            );
-                                          },
-                                          onEdit: () async {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    AulaAtualizarPage(
-                                                  aulaLocalId:
-                                                      paginatedItems[index]
-                                                          .criadaPeloCelular
-                                                          .toString(),
-                                                ),
-                                              ),
-                                            );
-                                          },
+                                              );
+                                            },
+                                          ),
                                         )
                                       : const SizedBox();
-                                },
+                                }).toList(),
                               ),
                             ),
+                          )
+                        : const Center(
+                            child: Text(
+                              'Sem aulas no momento',
+                              style: TextStyle(fontSize: 14),
+                            ),
                           ),
-                          Row(
+                  ),
+                ],
+              )
+            : const Center(
+                child: CircularProgressIndicator(
+                  color: AppTema.primaryAmarelo,
+                ),
+              ),
+        floatingActionButton: isLoading != true
+            ? Padding(
+                padding: EdgeInsets.only(
+                  bottom: totalPages > 1 ? 0.0 : 8.0,
+                  right: totalPages > 1 ? 0.0 : 8.0,
+                ),
+                child: FloatingActionButton(
+                  onPressed: () async => await pageAula(context),
+                  backgroundColor: AppTema.primaryDarkBlue,
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.post_add),
+                ),
+              )
+            : const SizedBox(),
+        floatingActionButtonLocation:
+            FloatingActionButtonLocation.miniEndDocked,
+        bottomNavigationBar: isLoading != true && totalPages != 0
+            ? SizedBox(
+                height: totalPages > 1 ? 68.0 : 24.0,
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('${currentPage + 1} / ${totalPages.toString()}'),
+                      ],
+                    ),
+                    totalPages > 1
+                        ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               currentPage > 0
@@ -423,90 +433,41 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.all(5),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        backgroundColor:
-                                            AppTema.primaryDarkBlue,
-                                      ),
-                                      child:
-                                          // Text('Anterior (Página ${currentPage})'),
-                                          const Icon(
-                                        Icons.arrow_circle_left,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                              const SizedBox(width: 16),
+                                  : const SizedBox(),
+                              currentPage > 0 && (currentPage + 1) < totalPages
+                                  ? const SizedBox(width: 16)
+                                  : const SizedBox(),
                               (currentPage + 1) < totalPages
-                                  ? ElevatedButton(
-                                      onPressed: nextPage,
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.all(5),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        backgroundColor:
-                                            AppTema.primaryDarkBlue,
-                                      ),
-                                      child:
-                                          // Text('Próxima (${currentPage + 2})'),
-                                          const Icon(
-                                        Icons.arrow_circle_right,
-                                        color: Colors.white,
-                                      ),
+                                  ? Column(
+                                      children: [
+                                        ElevatedButton(
+                                          onPressed: nextPage,
+                                          style: ElevatedButton.styleFrom(
+                                            padding: const EdgeInsets.all(5),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            backgroundColor:
+                                                AppTema.primaryDarkBlue,
+                                          ),
+                                          child:
+                                              // Text('Próxima (${currentPage + 2})'),
+                                              const Icon(
+                                            Icons.arrow_circle_right,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      ],
                                     )
-                                  : ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.all(5),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        backgroundColor:
-                                            AppTema.primaryDarkBlue,
-                                      ),
-                                      child: const Icon(
-                                        Icons.arrow_circle_right,
-                                        color: Colors.white,
-                                      ),
-                                    )
+                                  : const SizedBox()
                             ],
-                          ),
-                          // Text('Tela atual: ${currentPage + 1}'),
-                          // const SizedBox(
-                          //   height: 10,
-                          // ),
-                        ],
-                      );
-                    } else {
-                      return const Center(
-                        child: Text(
-                          'Sem aulas no momento.',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }
-                  },
-                )
-              : const Center(
-                  child: CircularProgressIndicator(
-                    color: AppTema.primaryAmarelo,
-                  ),
+                          )
+                        : const SizedBox(),
+                  ],
                 ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () async => await pageAula(context),
-            backgroundColor: AppTema.primaryDarkBlue,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.post_add),
-          ),
-        ),
+              )
+            : const SizedBox(),
       ),
     );
   }

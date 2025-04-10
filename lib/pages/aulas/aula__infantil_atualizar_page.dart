@@ -27,6 +27,7 @@ import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../componentes/dropdown/custom_dropdown_experiencia.dart';
 import '../../help/data_time.dart';
 import '../../services/controller/aula_controller.dart';
+import '../../services/controller/tipo_aula_controller.dart';
 
 class AulaInfantilAtualizarPage extends StatefulWidget {
   final String? aulaLocalId;
@@ -70,6 +71,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
   bool loadingPage = true;
   bool loadingBtn = false;
   var _horario_selecionado;
+  final tipoAulaController = TipoAulaController();
   // List<dynamic>? listaFiltradaDeHorarios;
   List<RelacaoDiaHorario>? listaFiltradaDeHorariosPorHorariosDaColunaDaGestao;
   List<SistemaBncc> sistemaBncc = SistemaBnccServiceAdapter().listar();
@@ -86,16 +88,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
   String fimPeriodoEtapa = '';
   List<String>? semanas;
   final _popupBuilderKey = GlobalKey<DropdownSearchState<SistemaBncc>>();
-  List<String> tipos = [
-    'Aula Normal',
-    'Aula Remota',
-    'Reposição',
-    'Aula Extra',
-    'Substituição',
-    'Aula Antecipada',
-    'Aula Extra-Atividade',
-    'Recuperação'
-  ];
+  List<String> tipos = [];
 
   List<String> experiencias = [
     "O eu, o outro e o nós",
@@ -118,6 +111,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
   void initState() {
     super.initState();
     gestaoAtivaDias();
+    getTipos();
     carregarDados(criadaPeloCelularId: widget.aulaLocalId);
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
@@ -539,6 +533,12 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
       setState(() => statusSemanas = false);
       print('Erro ao processar gestaoAtivaDias: $e');
     }
+  }
+
+  Future<void> getTipos() async {
+    await tipoAulaController.init();
+    tipos = await tipoAulaController.getDescricaoAll();
+    setState(() => tipos);
   }
 
   @override
