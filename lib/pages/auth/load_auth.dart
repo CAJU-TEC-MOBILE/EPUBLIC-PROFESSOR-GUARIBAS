@@ -71,7 +71,35 @@ class _LoadAuthState extends State<LoadAuth> {
                   child: const CircularProgressIndicator(
                     color: Color.fromARGB(255, 229, 157, 3),
                   ),
-                )
+                ),
+                const SizedBox(
+                  height: 28.0,
+                ),
+                const Center(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Versão',
+                        style: TextStyle(
+                          color: Colors.black26,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 4.0,
+                      ),
+                      Text(
+                        '5.0.10.5513',
+                        style: TextStyle(
+                          color: Colors.black26,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
