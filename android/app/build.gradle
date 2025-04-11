@@ -87,7 +87,7 @@ android {
 
     release {
             // Temporariamente usando a chave de debug para evitar erro de senha
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
 
             minifyEnabled true
             shrinkResources true

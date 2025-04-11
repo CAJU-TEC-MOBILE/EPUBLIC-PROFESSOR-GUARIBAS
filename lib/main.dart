@@ -47,7 +47,7 @@ void main() async {
     initializeDateFormatting('pt_BR', null),
     permissionManager.checkAdIdPermission()
   ]);
- 
+
   runApp(const MyApp());
 }
 
