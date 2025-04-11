@@ -32,7 +32,7 @@ class ListagemInfantilPage extends StatefulWidget {
 
 class _ListagemInfantilPageState extends State<ListagemInfantilPage> {
   List<Aula> aulas_offlines = AulasOfflinesListarServiceAdapter().executar();
-  Box _gestaoAtivaBox = Hive.box('gestao_ativa');
+  final Box _gestaoAtivaBox = Hive.box('gestao_ativa');
   Map<dynamic, dynamic>? gestao_ativa_data;
 
   final int itemsPerPage = 5;

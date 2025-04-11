@@ -17,17 +17,18 @@ class SemRelacaoDiaHorarioParaCriar extends StatelessWidget {
             : 'Criar Aula'),
       ),
       body: Container(
-          padding: EdgeInsets.only(left: 15, right: 15),
+          padding: const EdgeInsets.only(left: 15, right: 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Criação de aula indisponível ' + Emojis.noEntrySign,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              SizedBox(
+              Text('Criação de aula indisponível ${Emojis.noEntrySign}',
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(
                 height: 10,
               ),
-              Text(
+              const Text(
                 'Infelizmente não há horário(s) e dia(s) vinculado(s) a sua gestão. Por favor, entre em contato com a coordenação.',
                 style: TextStyle(fontSize: 13),
               ),

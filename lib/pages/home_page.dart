@@ -2,22 +2,17 @@ import 'dart:convert';
 
 import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/aula_totalizador_model.dart';
 import 'package:professor_acesso_notifiq/models/professor_model.dart';
-import 'package:professor_acesso_notifiq/pages/principal_page.dart';
 import 'package:professor_acesso_notifiq/pages/professor/listagem_gestoes_professor.dart';
-import 'package:professor_acesso_notifiq/pages/usuarioPage.dart';
 
 import '../componentes/card/custom_sugestao_card.dart';
 import '../componentes/dialogs/custom_snackbar.dart';
 import '../componentes/dialogs/custom_sync_dialog.dart';
 import '../componentes/drawer/custom_drawer.dart';
 import '../componentes/global/preloader.dart';
-import '../componentes/textformfield/custom_buscar_textformfield.dart';
 import '../models/ano_model.dart';
 import '../models/auth_model.dart';
 import '../models/gestao_ativa_model.dart';

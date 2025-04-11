@@ -3,11 +3,11 @@ import 'package:professor_acesso_notifiq/models/auth_model.dart';
 
 class UsuariosServiceAdapter {
   Future<void> salvar(List<dynamic> usuarios) async {
-    Box _usuariosBox = Hive.box('usuarios');
+    Box usuariosBox = Hive.box('usuarios');
 
-    _usuariosBox.put('usuarios', usuarios);
+    usuariosBox.put('usuarios', usuarios);
 
-    List<dynamic> usuariosSalvos = _usuariosBox.get('usuarios');
+    List<dynamic> usuariosSalvos = usuariosBox.get('usuarios');
     print(
         '------------SALVANDO USUÁRIOS PARA AUTORIZAÇÃO DE PEDIDOS----------------');
     print('TOTAL DE USUÁRIOS: ${usuariosSalvos.length}');
@@ -15,8 +15,8 @@ class UsuariosServiceAdapter {
   }
 
   List<Auth> listar() {
-    Box _usuariosBox = Hive.box('usuarios');
-    List<dynamic> usuariosSalvos = _usuariosBox.get('usuarios');
+    Box usuariosBox = Hive.box('usuarios');
+    List<dynamic> usuariosSalvos = usuariosBox.get('usuarios');
 
     List<Auth> usuariosListModel =
         usuariosSalvos.map((pedido) => Auth.fromJson(pedido)).toList();
@@ -25,16 +25,16 @@ class UsuariosServiceAdapter {
 
   String? getNomePeloId({required String id}) {
     try {
-      Box _usuariosBox = Hive.box('usuarios');
-      List<dynamic> usuariosSalvos = _usuariosBox.get('usuarios');
+      Box usuariosBox = Hive.box('usuarios');
+      List<dynamic> usuariosSalvos = usuariosBox.get('usuarios');
       List<Auth> usuariosListModel =
           usuariosSalvos.map((usuario) => Auth.fromJson(usuario)).toList();
       String? nome;
-      usuariosListModel.forEach((item) {
+      for (var item in usuariosListModel) {
         if (item.id.toString() == id.toString()) {
           nome = item.name.toString().toUpperCase();
         }
-      });
+      }
 
       return nome;
     } catch (e) {

@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
   final bool loading;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.backgroundColor = Colors.blue,
@@ -18,7 +18,7 @@ class CustomButton extends StatelessWidget {
     this.borderRadius = 8.0,
     this.padding = 16.0,
     this.loading = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +32,7 @@ class CustomButton extends StatelessWidget {
           ),
           padding: EdgeInsets.all(padding),
         ),
-        onPressed:
-            loading ? null : onPressed, // Desabilita o botão enquanto carrega
+        onPressed: loading ? null : onPressed,
         child: loading
             ? SizedBox(
                 height: 20,

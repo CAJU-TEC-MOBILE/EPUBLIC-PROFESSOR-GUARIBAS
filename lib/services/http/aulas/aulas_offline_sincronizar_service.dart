@@ -73,7 +73,7 @@ class AulasOfflineSincronizarService {
     dynamic isConnected = await checkInternetConnection();
     if (isConnected) {
       List<Map<String, dynamic>> faltasDaAulaJson =
-          await faltasDaAula.map((falta) => falta.toMap()).toList();
+          faltasDaAula.map((falta) => falta.toMap()).toList();
 
       List<AulaSistemaBncc> aulaSitemaBnnccDessaAula =
           await AulaSistemaBnccServiceAdapter()
@@ -129,7 +129,7 @@ class AulasOfflineSincronizarService {
             criadaPeloCelular: aula.criadaPeloCelular);
       }
 
-      if (gestaoAtivaModel!.multi_etapa == 1 &&
+      if (gestaoAtivaModel.multi_etapa == 1 &&
           gestaoAtivaModel.is_polivalencia == 1) {
         seriesExtras = await serieAulaController.getSeriesExtras(
             criadaPeloCelular: aula.criadaPeloCelular);
@@ -162,7 +162,7 @@ class AulasOfflineSincronizarService {
           'horario_inicial': '00:00:00',
           'horario_final': '00:00:00',
           'series': series.isNotEmpty ? jsonEncode(series) : jsonEncode([]),
-          'horarios_infantis': aula.horarios_infantis.length > 0
+          'horarios_infantis': aula.horarios_infantis.isNotEmpty
               ? aula.horarios_infantis.toString()
               : jsonEncode([]),
           'situacao': aula.situacao,
@@ -411,7 +411,7 @@ class AulasOfflineSincronizarService {
   }
 
   Future<void> envioDeSemAnexo({
-     required BuildContext context,
+    required BuildContext context,
     required String? criadaPeloCelular,
     required String aulaId,
   }) async {
@@ -436,7 +436,7 @@ class AulasOfflineSincronizarService {
       for (Matricula matricula in matriculas) {
         final envioTask = faltas
             .setJustificarFalta(
-              context: context,
+          context: context,
           matriculaId: matricula.matricula_id.toString(),
           aulaId: aulaId,
           observacao: '',

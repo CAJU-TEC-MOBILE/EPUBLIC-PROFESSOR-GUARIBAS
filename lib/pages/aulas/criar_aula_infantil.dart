@@ -52,7 +52,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   String? _aula_selecionada;
   bool statusSemanas = false;
   String? _diaDaSemana;
-  List<int> _horariosSelecionados = [];
+  final List<int> _horariosSelecionados = [];
   DateTime? _dataSelecionada;
   // ignore: prefer_final_fields
   Box _horariosBox = Hive.box('horarios');
@@ -138,7 +138,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
       atividade_casa: _atividadeCasaController.text,
       atividade_classe: _atividadeClasseController.text,
       campos_de_experiencias: selectedExperiencias.toString(),
-      experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
+      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
       observacoes: _observacaoController.text,
     );
 
@@ -306,31 +306,19 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
     setState(() => tipos);
   }
 
+  void handleCheckBoxState({bool updateState = true}) {
+    var selectedItem =
+        _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
+    var isAllSelected =
+        _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
+    _popupBuilderSelection =
+        selectedItem.isEmpty ? false : (isAllSelected ? true : null);
+
+    if (updateState) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    void _handleCheckBoxState({bool updateState = true}) {
-      var selectedItem =
-          _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
-      var isAllSelected =
-          _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
-      _popupBuilderSelection =
-          selectedItem.isEmpty ? false : (isAllSelected ? true : null);
-
-      if (updateState) setState(() {});
-    }
-
-    _handleCheckBoxState(updateState: false);
-    void handleCheckBoxState({bool updateState = true}) {
-      var selectedItem =
-          _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
-      var isAllSelected =
-          _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
-      _popupBuilderSelection =
-          selectedItem.isEmpty ? false : (isAllSelected ? true : null);
-
-      if (updateState) setState(() {});
-    }
-
     handleCheckBoxState(updateState: false);
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,

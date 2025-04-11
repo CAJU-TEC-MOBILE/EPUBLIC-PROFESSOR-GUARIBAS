@@ -80,9 +80,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
       Professor? professorData = await professorController.getProfessor();
 
-      if (professorData != null &&
-          professorData.id != null &&
-          professorData.nome != null) {
+      if (professorData != null) {
         setState(() {
           professor = professorData;
         });

@@ -26,7 +26,7 @@ class TipoAulaController {
 
   Future<List<TipoAula>> getAll() async {
     try {
-      final tipos = await box.values.toList();
+      final tipos = box.values.toList();
       return tipos;
     } catch (e) {
       print('error-tipo-de-aula: $e');

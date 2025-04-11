@@ -24,10 +24,10 @@ class CriarAutorizacaoPage extends StatefulWidget {
   final String circuitoId;
 
   const CriarAutorizacaoPage({
-    Key? key,
+    super.key,
     this.etapa,
     required this.circuitoId,
-  }) : super(key: key);
+  });
 
   @override
   State<CriarAutorizacaoPage> createState() => _CriarAutorizacaoPageState();
@@ -150,7 +150,7 @@ class _CriarAutorizacaoPageState extends State<CriarAutorizacaoPage> {
       ),
       body: SingleChildScrollView(
         reverse: false,
-        child: Container(
+        child: SizedBox(
           width: double.infinity,
           child: Column(
             children: [
@@ -284,10 +284,11 @@ class _CriarAutorizacaoPageState extends State<CriarAutorizacaoPage> {
                               .map<DropdownMenuItem<int>>((objeto) {
                             return DropdownMenuItem<int>(
                               value: int.parse(objeto.id),
-                              child: Container(
+                              child: SizedBox(
                                 width: 200,
                                 child: Text(
-                                  '${extrairPrimeiroNome(objeto.name.toUpperCase())}',
+                                  extrairPrimeiroNome(
+                                      objeto.name.toUpperCase()),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),

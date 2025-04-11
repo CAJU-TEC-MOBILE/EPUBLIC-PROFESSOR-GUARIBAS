@@ -7,14 +7,14 @@ class JustificativasServiceAdapter {
 
     await apagarTudo();
 
-    justificativas.forEach((justificativaJson) {
+    for (var justificativaJson in justificativas) {
       Justificativa justificativa = Justificativa.fromJson(justificativaJson);
       box.add(justificativa);
-    });
+    }
 
     List<Justificativa> data = box.values.toList();
     print('------------TODAS AS JUSTIFICATIVAS SALVAS-----------');
-    print('TOTAL DE JUSTIFICATIVAS: ' + data.length.toString());
+    print('TOTAL DE JUSTIFICATIVAS: ${data.length}');
   }
 
   Future<List<Justificativa>> listar() async {

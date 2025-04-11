@@ -27,21 +27,20 @@ class AulaController {
     }
   }
 
-
-Future<Aula?> getAulaPeloCriadaPeloCelular({required String criadaPeloCelular}) async {
-  try {
-    return _aulaBox.values.cast<Aula?>().firstWhere(
-      (aula) => aula?.criadaPeloCelular.toString() == criadaPeloCelular.toString(),
-      orElse: () => null,
-    );
-  } catch (e) {
-    print("Error getting Aula created via mobile: $e");
-    return null;
+  Future<Aula?> getAulaPeloCriadaPeloCelular(
+      {required String criadaPeloCelular}) async {
+    try {
+      return _aulaBox.values.cast<Aula?>().firstWhere(
+            (aula) =>
+                aula?.criadaPeloCelular.toString() ==
+                criadaPeloCelular.toString(),
+            orElse: () => null,
+          );
+    } catch (e) {
+      print("Error getting Aula created via mobile: $e");
+      return null;
+    }
   }
-}
-
-
-
 
   Future<void> addAula(Aula aula) async {
     await _aulaBox.add(aula);
@@ -142,16 +141,12 @@ Future<Aula?> getAulaPeloCriadaPeloCelular({required String criadaPeloCelular}) 
         final updatedAula = _aulaBox.values
             .where((aula) => aula.criadaPeloCelular == criadaPeloCelular)
             .first;
-        if (updatedAula != null) {
-          print('---DADOS ATUALIZADOS DA AULA---');
-          print('Instrutor ID: ${updatedAula.instrutor_id}');
-          print('Disciplina ID: ${updatedAula.disciplina_id}');
-          print('Turma ID: ${updatedAula.turma_id}');
-          print('Tipo de Aula: ${updatedAula.tipoDeAula}');
-          print('Data da Aula: ${updatedAula.dataDaAula}');
-        } else {
-          print('Nenhuma aula encontrada após a atualização.');
-        }
+        print('---DADOS ATUALIZADOS DA AULA---');
+        print('Instrutor ID: ${updatedAula.instrutor_id}');
+        print('Disciplina ID: ${updatedAula.disciplina_id}');
+        print('Turma ID: ${updatedAula.turma_id}');
+        print('Tipo de Aula: ${updatedAula.tipoDeAula}');
+        print('Data da Aula: ${updatedAula.dataDaAula}');
 
         return true;
       } else {
@@ -165,31 +160,31 @@ Future<Aula?> getAulaPeloCriadaPeloCelular({required String criadaPeloCelular}) 
   }
 
   Future<List<int>> getAulaSeries({required String? criadaPeloCelular}) async {
-  List<int> dados = [];
+    List<int> dados = [];
 
-  print('criadaPeloCelular === $criadaPeloCelular');
+    print('criadaPeloCelular === $criadaPeloCelular');
 
-  if (criadaPeloCelular == null) {
-    return dados;
-  }
+    if (criadaPeloCelular == null) {
+      return dados;
+    }
 
-  List<Aula> aulas = _aulaBox.values
-      .where((aula) => aula.criadaPeloCelular?.toString() == criadaPeloCelular.toString())
-      .toList();
+    List<Aula> aulas = _aulaBox.values
+        .where((aula) =>
+            aula.criadaPeloCelular?.toString() == criadaPeloCelular.toString())
+        .toList();
 
-  for (Aula aula in aulas) {
-    if (aula.series != null) {
-      for (var serie in aula.series!) {
-        if (serie.serieId != null && int.tryParse(serie.serieId!) != null) {
-          dados.add(int.parse(serie.serieId!));
-        } else {
-          print('Invalid serieId: ${serie.serieId}');
+    for (Aula aula in aulas) {
+      if (aula.series != null) {
+        for (var serie in aula.series!) {
+          if (serie.serieId != null && int.tryParse(serie.serieId!) != null) {
+            dados.add(int.parse(serie.serieId!));
+          } else {
+            print('Invalid serieId: ${serie.serieId}');
+          }
         }
       }
     }
+
+    return dados;
   }
-
-  return dados;
-}
-
 }

@@ -18,6 +18,7 @@ import 'package:professor_acesso_notifiq/functions/aplicativo/data/verificar_se_
 import 'package:professor_acesso_notifiq/functions/aplicativo/gerar_uuid_identificador.dart';
 import 'package:professor_acesso_notifiq/functions/boxs/gestoes/filtrar_etapas_por_gestao_ativa.dart';
 import 'package:professor_acesso_notifiq/functions/boxs/horarios/remover_horarios_repetidos.dart';
+import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/autorizacao_model.dart';
 import 'package:professor_acesso_notifiq/models/etapa_model.dart';
@@ -77,7 +78,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   var texto1_etapa;
   var texto2_etapa;
   String cursoDescricao = '';
-  Box _horariosBox = Hive.box('horarios');
+  final Box _horariosBox = Hive.box('horarios');
   List<dynamic>? horarios_data;
   List<dynamic>? listaFiltradaDeHorarios;
   List<RelacaoDiaHorario>? listaFiltradaDeHorariosPorHorariosDaColunaDaGestao;
@@ -129,7 +130,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       userId: authModel.id,
       circuitoId: circuitoId,
     );
-    // print("status: $status");
     setState(() => situacaoStatus = status);
   }
 
@@ -155,24 +155,10 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     }
   }
 
+  @override
   void initState() {
     super.initState();
-
     iniciando();
-    // atualizarAutorizacoes();
-    // getDisciplinas();
-    // horarios_data = _horariosBox.get('horarios');
-    // gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-    // gestaoAtivaModel?.circuito.etapas;
-    // listaDeEtapas = filtrarEtapasPorGestaoAtiva();
-    // // listaFiltradaDeHorarios = filtrarListaDeObjetoPorCondicaoUnica(
-    // //     lista_de_objetos: horarios_data!, condicao: gestaoAtivaModel?.turno_id);
-    // listaFiltradaDeHorariosPorHorariosDaColunaDaGestao = gestaoAtivaModel?.relacoesDiasHorarios;
-    // listaFiltradaDeHorariosPorHorariosDaColunaDaGestao?.sort((a, b) => a.horario.descricao.compareTo(b.horario.descricao));
-    // _mostrarCalendario(context);
-    // _dataSelecionada =
-    // _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(DateTime.now());
-    // carregarDados(criadaPeloCelularId: widget.aulaLocalId);
   }
 
   Future<void> iniciando() async {
@@ -211,7 +197,11 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       setState(() {
         isLoading = false;
       });
-      print('error-iniciando-aula-atualização: $e');
+      ConsoleLog.mensagem(
+        titulo: 'error-iniciando-aula-atualização',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
     }
   }
 
@@ -262,14 +252,14 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       DateTime data) {
     if (diasParaSeremExibidosNoCalendario.isNotEmpty) {
       while (data.weekday != diasParaSeremExibidosNoCalendario[0]) {
-        data = data.add(Duration(days: 1));
+        data = data.add(const Duration(days: 1));
       }
     }
     return data;
   }
 
   Future<void> _mostrarCalendario(BuildContext context) async {
-    listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!.forEach((element) {
+    for (var element in listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!) {
       if (int.parse(element.dia.id) == 0) {
         // diasParaSeremExibidosNoCalendario?.add('monday');
         diasParaSeremExibidosNoCalendario.add(1);
@@ -298,7 +288,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         // diasParaSeremExibidosNoCalendario.add('sunday');
         diasParaSeremExibidosNoCalendario.add(7);
       }
-    });
+    }
     if (_dataSelecionada != null) {
       final DateTime? dataSelecionada = await showDatePicker(
         context: context,
@@ -307,12 +297,12 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         lastDate: DateTime(2100),
         selectableDayPredicate: (DateTime day) {
           bool diaDaSemanaParaSerExibido = false;
-          diasParaSeremExibidosNoCalendario
-              .forEach((numeroDoDIaDaSemanaComecandoPorUm) {
+          for (var numeroDoDIaDaSemanaComecandoPorUm
+              in diasParaSeremExibidosNoCalendario) {
             if (numeroDoDIaDaSemanaComecandoPorUm == day.weekday) {
               diaDaSemanaParaSerExibido = true;
             }
-          });
+          }
           return diaDaSemanaParaSerExibido;
           // return day.weekday == DateTime.tuesday || day.weekday == DateTime.thursday;
         },
@@ -456,16 +446,21 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   }
 
   void carregarHorarioSelecionada(horarioSelecionado) {
-    if (horarioSelecionado == null) {
-      print('Horário não selecionada.');
-      return;
+    try {
+      if (horarioSelecionado == null) {
+        return;
+      }
+      int? horarioSelecionadoId = int.tryParse(horarioSelecionado);
+      setState(() {
+        _horario_selecionado = horarioSelecionadoId;
+      });
+    } catch (e) {
+      ConsoleLog.mensagem(
+        titulo: 'gerarTextEditingController',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
     }
-    int? horarioSelecionadoId = int.tryParse(horarioSelecionado);
-    setState(() {
-      _horario_selecionado = horarioSelecionadoId;
-    });
-
-    print('Data selecionada: $horarioSelecionado');
   }
 
   void carregarConteudoSelecionada(String? conteudo) {
@@ -506,7 +501,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
 
   Future<bool> atualizarAula() async {
     try {
-      const DURATION_DELAY = Duration(seconds: 3);
+      const durationDelay = Duration(seconds: 3);
 
       CustomDialogs.showLoadingDialog(context,
           show: true, message: 'Aguardando...');
@@ -581,7 +576,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         disciplina: selectedDisciplinas,
       );
 
-      await Future.delayed(DURATION_DELAY);
+      await Future.delayed(durationDelay);
 
       CustomDialogs.showLoadingDialog(context, show: false);
       setState(() => isStatus = false);
@@ -597,12 +592,14 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         'Aula atualizada com sucesso',
       );
       Navigator.pushNamed(context, '/index-fundamental');
-      //Navigator.pop(context);
-      //Navigator.pop(context);
 
       return true;
     } catch (e) {
-      print('error-atualizar-aula: $e');
+      ConsoleLog.mensagem(
+        titulo: 'error-atualizar-aula',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
       return false;
     }
   }
@@ -628,12 +625,9 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         turmaId: model.idt_turma_id.toString(),
         idtId: model.idt_id.toString(),
       );
-      print("===> $disciplinasCarregadas");
       setState(() {
         disciplinas = disciplinasCarregadas;
       });
-
-      //debugPrint('Disciplinas carregadas com sucesso: $disciplinasCarregadas');
     } catch (e, stacktrace) {
       debugPrint('Error ao carregar as disciplinas: $e');
       debugPrint('Stacktrace: $stacktrace');
@@ -668,23 +662,18 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       controllers.clear();
       for (final disciplina in disciplinas) {
         for (final aula in aulasCarregadas) {
-          //debugPrint('DATA: ${aula.data.toString()}');
-
           if (aula.id == disciplina.id) {
             List<dynamic> items = [];
 
-            // Inicializar 'disciplina.data' uma única vez se for nulo
             disciplina.data ??= [];
 
-            aula.data.forEach((item) {
-              // Certifique-se de que 'horarios' existe antes de adicionar
+            for (var item in aula.data) {
               if (item['horarios'] != null) {
                 items.addAll(item['horarios']);
               }
-            });
+            }
 
             setState(() {
-              // Atualizar os dados da disciplina com os horários encontrados
               disciplina.data = items;
             });
 
@@ -711,10 +700,8 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         }
       }
 
-      //debugPrint('Disciplinas selecionadas carregadas com sucesso: $selectedDisciplinas');
       setState(() {
         selectedDisciplinas;
-        //disciplinas = selectedDisciplinas;
       });
     } catch (e, stacktrace) {
       debugPrint('Error ao carregar disciplinas selecionadas: $e');
@@ -752,17 +739,22 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                             var newController = TextEditingController();
                             if (selected == true) {
                               item.checkbox = true;
-                              item.data = null;
+                              item.data ??= [];
+                              item.data!.add({
+                                'conteudo': '',
+                                'metodologia': '',
+                                'horarios': []
+                              });
                               controllers.insert(index, newController);
-                              addDisciplina(item);
-                            } else {
-                              item.checkbox = false;
-                              item.data = null;
-                              selectedDisciplinas
-                                  .removeWhere((disc) => disc.id == item.id);
-                              controllers.removeAt(index);
-                              removeDisciplina(item);
+                              _addDisciplina(item);
+                              return;
                             }
+                            item.checkbox = false;
+                            item.data ??= [];
+                            // selectedDisciplinas
+                            //     .removeWhere((disc) => disc.id == item.id);
+                            // controllers.removeAt(index);
+                            _removeDisciplina(item);
                           });
                         },
                       );
@@ -786,10 +778,10 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                   setState(() {
                     selectedDisciplinas.clear();
                     // print(selectedDisciplinas);
-                    disciplinas.forEach((item) {
+                    for (var item in disciplinas) {
                       item.checkbox = false;
                       item.data = [];
-                    });
+                    }
                   });
                   Navigator.of(context).pop(false);
                 },
@@ -822,40 +814,57 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   }
 
   Future<void> gerarTextEditingController() async {
-    debugPrint('=== gerar-text-editing-controller ==');
-    setState(() {
-      isLoadigList = true;
-    });
-    await Future.delayed(const Duration(seconds: 3));
-    if (selectedDisciplinas.isEmpty) {
-      return;
-    }
+    try {
+      setState(() {
+        isLoadigList = true;
+      });
+      await Future.delayed(const Duration(seconds: 3));
+      if (selectedDisciplinas.isEmpty) {
+        return;
+      }
 
-    // Limpa os controladores existentes para evitar duplicatas ao regenerar os controladores
-    controllers.clear();
+      controllers.clear();
 
-    // Itera sobre cada disciplina selecionada
-    for (final disc in selectedDisciplinas) {
-      // Verifica se 'disc.data' não é nulo antes de iterar
-      if (disc.data != null) {
-        // Itera sobre cada item de 'disc.data'
-        for (final item in disc.data!) {
-          debugPrint(item['conteudo']);
-          final controller =
-              TextEditingController(text: item['conteudo'] ?? '');
-          controllers.add(controller);
+      for (final disc in selectedDisciplinas) {
+        if (disc.data != null) {
+          for (final item in disc.data!) {
+            debugPrint(item['conteudo']);
+            final controller =
+                TextEditingController(text: item['conteudo'] ?? '');
+            controllers.add(controller);
+          }
         }
       }
+
+      setState(() {
+        //print(controllers);
+        controllers;
+      });
+
+      setState(() {
+        isLoadigList = false;
+      });
+    } catch (e) {
+      ConsoleLog.mensagem(
+        titulo: 'gerarTextEditingController',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
     }
+  }
 
-    setState(() {
-      //print(controllers);
-      controllers;
-    });
+  void _addDisciplina(Disciplina disciplinaDetails) {
+    try {
+      selectedDisciplinas.add(disciplinaDetails);
 
-    setState(() {
-      isLoadigList = false;
-    });
+      setState(() => selectedDisciplinas);
+    } catch (e) {
+      ConsoleLog.mensagem(
+        titulo: 'add-disciplina',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
+    }
   }
 
   void addDisciplina(Disciplina disciplinaDetails) {
@@ -873,6 +882,21 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     setState(() {});
   }
 
+  void _removeDisciplina(Disciplina disciplinaDetails) {
+    try {
+      disciplinaDetails.data = [];
+      selectedDisciplinas
+          .removeWhere((disciplina) => disciplina.id == disciplinaDetails.id);
+      setState(() => selectedDisciplinas);
+    } catch (e) {
+      ConsoleLog.mensagem(
+        titulo: 'add-disciplina',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
+    }
+  }
+
   void removeDisciplina(Disciplina disciplinaDetails) {
     disciplinaDetails.data = [];
     selectedDisciplinas
@@ -881,10 +905,10 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   }
 
   Future<void> iniciarDisiplinas() async {
-    disciplinas.forEach((item) {
+    for (var item in disciplinas) {
       item.checkbox = false;
       item.data = [];
-    });
+    }
     setState(() {});
   }
 
@@ -919,16 +943,13 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         fimPeriodoEtapa = etapaSelecionada.periodo_final.toString();
 
         data_etapa_valida = verificarSeDataAtualEstaEntreDuasDatas(
-          dataInicial: inicioPeriodoEtapa!,
-          dataFinal: fimPeriodoEtapa!,
+          dataInicial: inicioPeriodoEtapa,
+          dataFinal: fimPeriodoEtapa,
         );
       });
 
       verificarSeExistemAutorizacoesParaEssaEtapaEgestao();
       await gestaoAtivaDias();
-
-      // debugPrint('_etapa_selecionada: $_etapa_selecionada');
-      // debugPrint('etapa_selecionada_objeto: $etapa_selecionada_objeto');
     } catch (e) {
       debugPrint(
         'Erro ao processar a seleção da etapa ($novaSelecao): $e',
@@ -1003,7 +1024,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                   child: isLoad == false
                       ? Form(
                           key: _formKey,
-                          child: Container(
+                          child: SizedBox(
                             width: double.infinity,
                             child: Card(
                               color: AppTema.primaryWhite,
@@ -1088,7 +1109,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                   scrollDirection:
                                                       Axis.horizontal,
                                                   child: Text(
-                                                    '${objeto.descricao}',
+                                                    objeto.descricao,
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                   ),
@@ -1735,6 +1756,11 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                                                                 final dataIndex = dataEntry.key;
                                                                                                 final elemente = dataEntry.value;
 
+                                                                                                if (elemente is! Map) {
+                                                                                                  print('Erro: elemento não é Map: $elemente');
+                                                                                                  return const SizedBox.shrink();
+                                                                                                }
+
                                                                                                 List<int> horarios = (elemente['horarios'] ?? []).cast<int>();
                                                                                                 final conteudo = (elemente['conteudo'] ?? '');
 
@@ -2091,18 +2117,14 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
 
   Widget _buildDisciplinaFields(
       Disciplina item, Map<String, dynamic> elemente) {
-    // Initialize content from elemente
     String conteudo = elemente['conteudo'] ?? '';
 
-    // Create TextEditingController and set the initial value
     TextEditingController conteudoController =
         TextEditingController(text: conteudo);
 
-    // Add a listener to update the data model when the user types
     conteudoController.addListener(() {
       setState(() {
-        elemente['conteudo'] =
-            conteudoController.text; // Save the input back to the map
+        elemente['conteudo'] = conteudoController.text;
       });
     });
 

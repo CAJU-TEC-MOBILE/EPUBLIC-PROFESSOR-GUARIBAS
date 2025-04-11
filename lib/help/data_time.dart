@@ -1,7 +1,3 @@
-import 'dart:ffi';
-
-import 'package:intl/intl.dart';
-
 class DataTime {
   static String diaDaSemana(String dataStr) {
     try {

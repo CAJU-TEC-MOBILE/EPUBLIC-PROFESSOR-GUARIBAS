@@ -66,7 +66,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   var texto1_etapa;
   var texto2_etapa;
   String cursoDescricao = '';
-  Box _horariosBox = Hive.box('horarios');
+  final Box _horariosBox = Hive.box('horarios');
   List<dynamic>? horarios_data;
   List<dynamic>? listaFiltradaDeHorarios;
   List<RelacaoDiaHorario>? listaFiltradaDeHorariosPorHorariosDaColunaDaGestao;
@@ -84,7 +84,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   List<Disciplina> disciplinas = [];
   List<Disciplina> selectedDisciplinas = [];
   List<dynamic> selectorData = [];
-  List<int> _horariosSelecionados = [];
+  final List<int> _horariosSelecionados = [];
   List<dynamic> horarioDaDisciplinas = [];
   String inicioPeriodoEtapa = '';
   String fimPeriodoEtapa = '';
@@ -220,7 +220,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   }
 
   Future<void> _salvarAula() async {
-     
     print("TOTAL: ${selectedDisciplinas.length.toString()}");
     if (selectedDisciplinas.isEmpty && gestaoAtivaModel!.is_polivalencia == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -269,7 +268,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       recursos: '',
       atividade_casa: '',
       atividade_classe: '',
-      experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
+      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
       observacoes: '',
     );
     bool status = await AulasOfflineOnlineServiceAdapter().salvar(
@@ -306,14 +305,14 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       DateTime data) {
     if (diasParaSeremExibidosNoCalendario.isNotEmpty) {
       while (data.weekday != diasParaSeremExibidosNoCalendario[0]) {
-        data = data.add(Duration(days: 1));
+        data = data.add(const Duration(days: 1));
       }
     }
     return data;
   }
 
   Future<void> _mostrarCalendario(BuildContext context) async {
-    listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!.forEach((element) {
+    for (var element in listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!) {
       if (int.parse(element.dia.id) == 0) {
         // diasParaSeremExibidosNoCalendario?.add('monday');
         diasParaSeremExibidosNoCalendario.add(1);
@@ -342,7 +341,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
         // diasParaSeremExibidosNoCalendario.add('sunday');
         diasParaSeremExibidosNoCalendario.add(7);
       }
-    });
+    }
     if (_dataSelecionada != null) {
       final DateTime? dataSelecionada = await showDatePicker(
         context: context,
@@ -351,12 +350,12 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
         lastDate: DateTime(2100),
         selectableDayPredicate: (DateTime day) {
           bool diaDaSemanaParaSerExibido = false;
-          diasParaSeremExibidosNoCalendario
-              .forEach((numeroDoDIaDaSemanaComecandoPorUm) {
+          for (var numeroDoDIaDaSemanaComecandoPorUm
+              in diasParaSeremExibidosNoCalendario) {
             if (numeroDoDIaDaSemanaComecandoPorUm == day.weekday) {
               diaDaSemanaParaSerExibido = true;
             }
-          });
+          }
           return diaDaSemanaParaSerExibido;
           // return day.weekday == DateTime.tuesday || day.weekday == DateTime.thursday;
         },
@@ -495,10 +494,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   }
 
   Future<void> iniciarDisiplinas() async {
-    disciplinas.forEach((item) {
+    for (var item in disciplinas) {
       item.checkbox = false;
       item.data = [];
-    });
+    }
 
     setState(() {});
   }
@@ -529,8 +528,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
         fimPeriodoEtapa = etapaSelecionada.periodo_final.toString();
 
         data_etapa_valida = verificarSeDataAtualEstaEntreDuasDatas(
-          dataInicial: inicioPeriodoEtapa!,
-          dataFinal: fimPeriodoEtapa!,
+          dataInicial: inicioPeriodoEtapa,
+          dataFinal: fimPeriodoEtapa,
         );
       });
 
@@ -594,7 +593,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
           : SingleChildScrollView(
               child: Form(
                 key: _formKey,
-                child: Container(
+                child: SizedBox(
                   width: double.infinity,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -668,7 +667,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: Text(
-                                        '${objeto.descricao}',
+                                        objeto.descricao,
                                         style: const TextStyle(
                                             color: AppTema.primaryDarkBlue),
                                         overflow: TextOverflow.ellipsis,
@@ -1157,7 +1156,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             ),
                                                           ),
                                                         ),
-                                                      
+
                                                         selectedDisciplinas
                                                                 .isNotEmpty
                                                             ? Card(

@@ -17,7 +17,7 @@ class FaltasDaAulaOnlineListarHttp {
     // final tempoDeDuracaoEmSegundos =
     //     Duration(seconds: ApiBaseURLService.tempoDeDuracaoEmSegundos);
     var url = Uri.parse(
-      '${ApiBaseURLService.baseUrl}/${prefix_url}/${aula_id}',
+      '${ApiBaseURLService.baseUrl}/$prefix_url/$aula_id',
     );
 
     try {

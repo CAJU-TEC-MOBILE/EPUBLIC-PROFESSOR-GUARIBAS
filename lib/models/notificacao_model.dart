@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'remetente_model.dart';
 import 'destinatario_model.dart';
 
@@ -102,5 +101,6 @@ class Notificacao {
   }
 
   @override
-  int get hashCode => id.hashCode ^ remetenteId.hashCode ^ destinatarioId.hashCode;
+  int get hashCode =>
+      id.hashCode ^ remetenteId.hashCode ^ destinatarioId.hashCode;
 }

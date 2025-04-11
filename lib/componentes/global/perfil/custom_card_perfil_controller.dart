@@ -29,9 +29,6 @@ class CustomCardPerfilController {
   Future<void> fetchInformacoes() async {
     try {
       final auth = _authServiceAdapter.exibirAuth();
-      if (auth == null) {
-        throw Exception('Auth não carregada');
-      }
       authModel.value = auth;
 
       final gestaoAtiva =
@@ -49,9 +46,7 @@ class CustomCardPerfilController {
   Future<void> fetchInformacoesProfessor() async {
     try {
       final professorData = _authServiceAdapter.exibirProfessor();
-      if (professorData == null ||
-          professorData.id == null ||
-          professorData.nome == null) {
+      if (professorData.id == null) {
         debugPrint('Nenhum dado disponível para o professor.');
         return;
       }

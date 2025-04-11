@@ -1,4 +1,3 @@
-import '../../models/horario_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HorarioController {

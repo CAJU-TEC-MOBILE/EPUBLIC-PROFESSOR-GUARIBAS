@@ -118,7 +118,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
     try {
       AulaController aulaController = AulaController();
       await aulaController.init();
-      List<Aula> data = await aulaController.getAllAulas();
+      List<Aula> data = aulaController.getAllAulas();
       for (final item in data) {
         if (item.instrutorDisciplinaTurma_id == '386') {
           aulas_offlines.add(item);

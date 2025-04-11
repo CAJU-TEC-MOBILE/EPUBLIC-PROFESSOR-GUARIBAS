@@ -3,33 +3,33 @@ import 'package:professor_acesso_notifiq/models/matricula_model.dart';
 
 class MatriculasServiceAdapter {
   Future<void> salvar(List<dynamic> matriculas) async {
-    Box<Matricula> _matriculasBox = Hive.box<Matricula>('matriculas');
+    Box<Matricula> matriculasBox = Hive.box<Matricula>('matriculas');
 
     await apagarTudo();
 
-    matriculas.forEach((matriculaJson) {
+    for (var matriculaJson in matriculas) {
       Matricula matricula = Matricula.fromJson(matriculaJson);
-      _matriculasBox.add(matricula);
-    });
+      matriculasBox.add(matricula);
+    }
 
-    List<Matricula> matriculasData = _matriculasBox.values.toList();
+    List<Matricula> matriculasData = matriculasBox.values.toList();
 
     print("-----------------TODAS AS MATRÍCULAS SALVAS---------------------");
-    print('TOTAL DE MATRÍCULAS: ' + matriculasData.length.toString());
+    print('TOTAL DE MATRÍCULAS: ${matriculasData.length}');
   }
 
   Future<List<Matricula>> listar() async {
-    Box _matriculasBox = Hive.box<Matricula>('matriculas');
-    List<Matricula> matriculas = await _matriculasBox.get('matriculas');
+    Box matriculasBox = Hive.box<Matricula>('matriculas');
+    List<Matricula> matriculas = await matriculasBox.get('matriculas');
     return matriculas;
   }
 
   Future<void> apagarTudo() async {
-    Box _matriculasBox = Hive.box<Matricula>('matriculas');
-    dynamic _matriculasData = _matriculasBox.values.toList();
+    Box matriculasBox = Hive.box<Matricula>('matriculas');
+    dynamic matriculasData = matriculasBox.values.toList();
 
-    if (_matriculasData != null && _matriculasData.isNotEmpty) {
-      await _matriculasBox.clear();
+    if (matriculasData != null && matriculasData.isNotEmpty) {
+      await matriculasBox.clear();
     }
     print('---------------BOX MATRÍCULAS (CLEAR)---------------');
   }

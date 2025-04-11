@@ -82,7 +82,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
   // ignore: unused_field
   final _multiKey = GlobalKey<DropdownSearchState<SistemaBncc>>();
   // ignore: unused_field
-  bool? _popupBuilderSelection = false;
+  final bool? _popupBuilderSelection = false;
   bool statusSemanas = false;
   String inicioPeriodoEtapa = '';
   String fimPeriodoEtapa = '';
@@ -161,7 +161,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
       atividade_casa: _atividadeCasaController.text,
       atividade_classe: _atividadeClasseController.text,
       campos_de_experiencias: selectedExperiencias.toString(),
-      experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
+      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
       observacoes: _observacaoController.text,
     );
 
@@ -480,7 +480,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
       atividade_casa: _atividadeCasaController.text,
       atividade_classe: _atividadeClasseController.text,
       campos_de_experiencias: selectedExperiencias.toString(),
-      experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
+      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
       observacoes: _observacaoController.text,
     );
 

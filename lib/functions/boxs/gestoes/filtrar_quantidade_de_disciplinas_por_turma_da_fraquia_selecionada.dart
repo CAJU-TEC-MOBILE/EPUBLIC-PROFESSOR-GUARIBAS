@@ -4,9 +4,9 @@ import 'package:collection/collection.dart';
 
 List<dynamic> filtrarQuantidadeDeDisciplinasPorTurmaDaFraquiaSelecionada(
     {required bool todasAsFranquias}) {
-  Box _gestaoAtivaBox = Hive.box('gestao_ativa');
+  Box gestaoAtivaBox = Hive.box('gestao_ativa');
 
-  Map<dynamic, dynamic> _gestaoAtivaData = _gestaoAtivaBox.get('gestao_ativa');
+  Map<dynamic, dynamic> gestaoAtivaData = gestaoAtivaBox.get('gestao_ativa');
   List<dynamic> gestoesDeTodasAsFranquias = GestoesService().listar();
 
   List<dynamic> gestoesPorFranquias = [];
@@ -17,7 +17,7 @@ List<dynamic> filtrarQuantidadeDeDisciplinasPorTurmaDaFraquiaSelecionada(
       var gestao = gestoesList[j];
 
       if (!todasAsFranquias) {
-        if (_gestaoAtivaData['configuracao_id'].toString() ==
+        if (gestaoAtivaData['configuracao_id'].toString() ==
             gestao['configuracao_id'].toString()) {
           gestoesPorFranquias.add(gestao);
         }

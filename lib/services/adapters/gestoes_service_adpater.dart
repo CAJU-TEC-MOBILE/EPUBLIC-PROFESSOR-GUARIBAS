@@ -216,17 +216,17 @@ class GestoesService {
   }
 
   Future<void> salvarGestoesBox(List<dynamic> gestoes) async {
-    var _gestoesBox = Hive.box('gestoes');
+    var gestoesBox = Hive.box('gestoes');
 
     // Check if the box contains 'gestoes' and ensure it's not null
-    var storedGestoes = _gestoesBox.get('gestoes');
+    var storedGestoes = gestoesBox.get('gestoes');
 
     if (storedGestoes != null && storedGestoes.length > 0) {
-      await _gestoesBox.clear();
+      await gestoesBox.clear();
       print('---------------BOX GESTÕES (CLEAR)--------------');
     }
 
-    await _gestoesBox.put('gestoes', gestoes);
+    await gestoesBox.put('gestoes', gestoes);
   }
 
   void removerDadosAuth() {

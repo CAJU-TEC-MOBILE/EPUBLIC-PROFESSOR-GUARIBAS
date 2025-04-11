@@ -12,13 +12,11 @@ import 'package:professor_acesso_notifiq/services/adapters/pedidos_service_adapt
 import 'package:professor_acesso_notifiq/services/adapters/sistema_bncc_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/usuarios_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/http/auth/auth_http.dart';
-import 'package:professor_acesso_notifiq/services/widgets/snackbar_service_widget.dart';
 
 import '../componentes/dialogs/custom_snackbar.dart';
 import '../services/adapters/gestoes_service_adpater.dart';
 import '../services/configuracao/configuracao_app.dart';
 import '../services/controller/ano_selecionado_controller.dart';
-import '../services/controller/horario_configuracao_controller.dart';
 import '../services/controller/professor_controller.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
 
@@ -240,8 +238,8 @@ class _LoginPageState extends State<LoginPage> {
     // _emailController.text = '60011558369';
     // _passwordController.text = '13051972';
 
-    _emailController.text = '91710855304';
-    _passwordController.text = '25021966';
+    // _emailController.text = '91710855304';
+    // _passwordController.text = '25021966';
 
     // ignore: deprecated_member_use
     return WillPopScope(

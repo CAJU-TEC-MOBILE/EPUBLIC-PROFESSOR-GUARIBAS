@@ -123,10 +123,6 @@ class HorarioConfiguracaoController {
       orElse: () => HorarioConfiguracao.vazio(),
     );
 
-    if (horarioEncontrado != null) {
-      return horarioEncontrado.descricao.toString();
-    } else {
-      return 'Horário com ID $horarioId não encontrado.';
-    }
+    return horarioEncontrado.descricao.toString();
   }
 }

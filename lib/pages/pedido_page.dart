@@ -34,7 +34,7 @@ class _PedidoPageState extends State<PedidoPage> {
       setState(() => pedidos.clear());
       await Future.delayed(const Duration(seconds: 3));
       await pedidoController.init();
-      pedidos = await pedidoController.getPeloUserId(userId: authModel.id);
+      pedidos = pedidoController.getPeloUserId(userId: authModel.id);
       setState(() {});
     } catch (e) {
       debugPrint('error-pedido: $e');
@@ -190,7 +190,8 @@ class _PedidoPageState extends State<PedidoPage> {
                                     return const Text('Erro ao carregar');
                                   } else if (!snapshot.hasData ||
                                       snapshot.data!.isEmpty) {
-                                    return const Text('Descrição não encontrada');
+                                    return const Text(
+                                        'Descrição não encontrada');
                                   }
                                   return Text(snapshot.data!);
                                 },

@@ -12,14 +12,14 @@ class CustomMultiSelectSerieDropdown extends StatefulWidget {
   final Function(List<Serie>) onConfirm;
 
   const CustomMultiSelectSerieDropdown({
-    Key? key,
+    super.key,
     required this.items,
     required this.onConfirm,
     this.initialSelectedIds = const [],
     this.title = "Selecione as opções",
     this.buttonText = "Selecionar",
     this.initialSelectedSeries = const [],
-  }) : super(key: key);
+  });
 
   @override
   _CustomMultiSelectSerieDropdownState createState() =>

@@ -3,19 +3,19 @@ import 'package:professor_acesso_notifiq/models/autorizacao_model.dart';
 
 class AutorizacoesServiceAdapter {
   Future<void> salvar(List<dynamic> autorizacoes) async {
-    Box _autorizacoesBox = Hive.box('autorizacoes');
+    Box autorizacoesBox = Hive.box('autorizacoes');
 
-    _autorizacoesBox.put('autorizacoes', autorizacoes);
+    autorizacoesBox.put('autorizacoes', autorizacoes);
 
-    List<dynamic> autorizacoesSalvos = _autorizacoesBox.get('autorizacoes');
+    List<dynamic> autorizacoesSalvos = autorizacoesBox.get('autorizacoes');
     print('------------SALVANDO AUTORIZAÇÕES----------------');
     print('TOTAL DE AUTORIZAÇÕES: ${autorizacoesSalvos.length}');
     listar();
   }
 
   List<Autorizacao> listar() {
-    Box _autorizacoesBox = Hive.box('autorizacoes');
-    List<dynamic> autorizacoesSalvos = _autorizacoesBox.get('autorizacoes');
+    Box autorizacoesBox = Hive.box('autorizacoes');
+    List<dynamic> autorizacoesSalvos = autorizacoesBox.get('autorizacoes');
 
     List<Autorizacao> autorizacoesListModel = autorizacoesSalvos
         .map((pedido) => Autorizacao.fromJson(pedido))

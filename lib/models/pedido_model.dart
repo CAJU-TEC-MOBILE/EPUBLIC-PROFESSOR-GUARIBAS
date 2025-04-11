@@ -91,10 +91,10 @@ class Pedido {
   factory Pedido.fromMap(Map<String, dynamic> map) {
     return Pedido(
       id: map['id'].toString(),
-      descricao: map['descricao'] != null ? map['descricao'].toString() : null,
+      descricao: map['descricao']?.toString(),
       solicitante_id: map['solicitante_id'].toString(),
       avaliador_id: map['avaliador_id'].toString(),
-      etapa_id: map['etapa_id'] != null ? map['etapa_id'].toString() : null,
+      etapa_id: map['etapa_id']?.toString(),
       situacao: map['situacao'].toString(),
       validade: map['validade'].toString(),
       pedido_id: map['pedido_id'].toString(),
@@ -102,12 +102,9 @@ class Pedido {
       observacao: map['observacao'].toString(),
       data_expiracao: map['data_expiracao'].toString(),
       data: map['data'].toString(),
-      user_id: map['user_id'] != null ? map['user_id'].toString() : null,
-      data_fim_etapa: map['data_fim_etapa'] != null
-          ? map['data_fim_etapa'].toString()
-          : null,
-      circuito_id:
-          map['circuito_id'] != null ? map['circuito_id'].toString() : null,
+      user_id: map['user_id']?.toString(),
+      data_fim_etapa: map['data_fim_etapa']?.toString(),
+      circuito_id: map['circuito_id']?.toString(),
     );
   }
 
@@ -211,8 +208,7 @@ class Pedido {
 
   Future<String>? get avaliador async {
     final UusuariosServiceAdapter = UsuariosServiceAdapter();
-    String? nome =
-        await UusuariosServiceAdapter.getNomePeloId(id: avaliador_id);
+    String? nome = UusuariosServiceAdapter.getNomePeloId(id: avaliador_id);
     return nome ?? '';
   }
 

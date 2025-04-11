@@ -6,19 +6,19 @@ import 'package:professor_acesso_notifiq/services/adapters/regras_logicas/pedido
 
 class PedidosServiceAdapter {
   Future<void> salvar(List<dynamic> pedidos) async {
-    Box _pedidosBox = Hive.box('pedidos');
+    Box pedidosBox = Hive.box('pedidos');
 
-    _pedidosBox.put(
+    pedidosBox.put(
         'pedidos', PedidosSalvarRegraLogica().executar(pedidos: pedidos));
 
-    List<dynamic> pedidosSalvos = _pedidosBox.get('pedidos');
+    List<dynamic> pedidosSalvos = pedidosBox.get('pedidos');
     print('------------SALVANDO PEDIDOS----------------');
     print('TOTAL DE PEDIDOS: ${pedidosSalvos.length}');
   }
 
   Future<List<Pedido>> listar() async {
-    Box _pedidosBox = await Hive.box('pedidos');
-    List<dynamic> pedidosSalvos = await _pedidosBox.get('pedidos');
+    Box pedidosBox = Hive.box('pedidos');
+    List<dynamic> pedidosSalvos = await pedidosBox.get('pedidos');
     List<Pedido> pedidosListModel = pedidosSalvos
         .map((pedido) => Pedido.fromJson(jsonEncode(pedido)))
         .toList();
@@ -28,18 +28,18 @@ class PedidosServiceAdapter {
 
   Future<String?> getPeloId({required String id}) async {
     try {
-      Box _pedidosBox = await Hive.openBox('pedidos');
-      List<dynamic>? pedidosSalvos = _pedidosBox.get('pedidos');
+      Box pedidosBox = await Hive.openBox('pedidos');
+      List<dynamic>? pedidosSalvos = pedidosBox.get('pedidos');
 
       String? descricao;
 
       if (pedidosSalvos == null) return null;
 
-      pedidosSalvos.forEach((item) {
+      for (var item in pedidosSalvos) {
         if (item['id'].toString() == id.toString()) {
           descricao = item['descricao'].toString();
         }
-      });
+      }
 
       return descricao;
     } catch (e) {

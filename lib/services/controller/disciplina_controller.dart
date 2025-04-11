@@ -111,11 +111,11 @@ class DisciplinaController {
 
     try {
       var disciplina = _disciplinaBox.values.firstWhere(
-        (d) => d.id?.toString() == disciplinaId,
+        (d) => d.id.toString() == disciplinaId,
         orElse: () => Disciplina.vazia(),
       );
 
-      return disciplina?.descricao?.toString() ?? 'Disciplina não encontrada';
+      return disciplina.descricao.toString() ?? 'Disciplina não encontrada';
     } catch (e) {
       print('Erro ao buscar disciplina: $e');
       return 'Erro ao buscar disciplina';

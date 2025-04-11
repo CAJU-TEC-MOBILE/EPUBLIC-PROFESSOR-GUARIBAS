@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/constants/autorizacoes/autorizacoes_status_const.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/verificar_conexao_com_internet.dart';
 import 'package:professor_acesso_notifiq/models/auth_model.dart';

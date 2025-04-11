@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:professor_acesso_notifiq/services/api_base_url_service.dart'; 
-import 'dart:convert';
+import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
 
 class AnoHttp {
   Box authBox = Hive.box('auth');

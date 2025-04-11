@@ -63,7 +63,7 @@ class _GraficosPageState extends State<GraficosPage> {
     int i = 0;
     double newHeight = heightCardAtual; // Temporarily store the current height
     for (var item in lista) {
-      if (item is GestaoDisciplina && item.disciplinas != null) {
+      if (item is GestaoDisciplina) {
         for (var disciplina in item.disciplinas) {
           newHeight += 20.0;
         }
@@ -86,11 +86,7 @@ class _GraficosPageState extends State<GraficosPage> {
 
       int i = 0;
 
-      if (lista == null) {
-        return;
-      }
-
-      if (lista != null && lista.isNotEmpty) {
+      if (lista.isNotEmpty) {
         for (var item in lista) {
           if (item is Map<String, dynamic>) {
             heightCardTotal += 80.0;

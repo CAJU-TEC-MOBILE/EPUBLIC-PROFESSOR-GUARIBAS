@@ -1,11 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:professor_acesso_notifiq/models/ano_model.dart';
-import '../../../models/instrutor_model.dart';
 import '../../api_base_url_service.dart';
 import '../../controller/Instrutor_controller.dart';
 import '../../controller/ano_selecionado_controller.dart';
-import '../../controller/auth_controller.dart';
 
 class AulaTotalizadorHttp {
   final Box authBox = Hive.box('auth');

@@ -17,7 +17,7 @@ class CustomCalendarioInfantilButton extends StatefulWidget {
   final void Function(String diaSemana)? onDiaSelected;
   final String? label;
 
-  CustomCalendarioInfantilButton({
+  const CustomCalendarioInfantilButton({
     super.key,
     this.initialDate,
     required this.firstDate,
@@ -43,7 +43,7 @@ class _CustomCalendarioInfantilButtonState
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.onDataSelected ?? widget.initialDate ?? null;
+    _selectedDate = widget.onDataSelected ?? widget.initialDate;
   }
 
   DateTime _getFirstDate() {

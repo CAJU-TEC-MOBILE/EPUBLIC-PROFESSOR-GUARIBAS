@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class FaltaModelOnline {
   String id;
   String justificativa_id;

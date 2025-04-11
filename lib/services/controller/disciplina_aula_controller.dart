@@ -39,7 +39,7 @@ class DisciplinaAulaController {
         .toList();
 
     for (var disciplina in disciplinas) {
-      if (disciplina.data != null && disciplina.data.isNotEmpty) {
+      if (disciplina.data.isNotEmpty) {
         List<int> horarios = [];
         for (var item in disciplina.data) {
           if (item['horarios'] != null) {
@@ -65,7 +65,7 @@ class DisciplinaAulaController {
     List<DisciplinaAula> disciplinas = _disciplinaAulaBox.values.toList();
 
     for (var disciplina in disciplinas) {
-      if (disciplina.data != null && disciplina.data.isNotEmpty) {
+      if (disciplina.data.isNotEmpty) {
         List<int> horarios = [];
         for (var item in disciplina.data) {
           if (item['horarios'] != null) {
@@ -93,7 +93,7 @@ class DisciplinaAulaController {
         .toList();
 
     List<Map<String, dynamic>> data = [];
-      debugPrint('data: $data');
+    debugPrint('data: $data');
     // Verifica se há disciplinas
     if (disciplinas.isEmpty) {
       debugPrint(
@@ -128,7 +128,7 @@ class DisciplinaAulaController {
         .toList();
 
     for (var disciplina in disciplinas) {
-      if (disciplina.data != null && disciplina.data.isNotEmpty) {
+      if (disciplina.data.isNotEmpty) {
         for (var item in disciplina.data) {
           data.add(item['conteudo'] ?? '');
         }
@@ -183,7 +183,7 @@ class DisciplinaAulaController {
         return;
       }
 
-      final aulasParaRemover = await _disciplinaAulaBox.values.toList();
+      final aulasParaRemover = _disciplinaAulaBox.values.toList();
 
       if (aulasParaRemover.isEmpty) {
         ConsoleLog.mensagem(

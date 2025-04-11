@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
@@ -26,12 +24,11 @@ class AulasListarTodasHttp {
     final authController = AuthController();
     await authController.init();
 
-    
     if (authData != null && gestaoAtivaData != null) {
       //String prefixUrl = 'notifiq-professor/aulas/todas-as-aulas/gestao';
-      
-      Auth? auth = await authController.getAuth();  
-      
+
+      Auth? auth = await authController.getAuth();
+
       String prefixUrl = 'notifiq-professor/aulas/todas-as-aulas/gestao-ano';
 
       //final tempoDeDuracaoEmSegundos = Duration(seconds: ApiBaseURLService.tempoDeDuracaoEmSegundos);
@@ -47,13 +44,14 @@ class AulasListarTodasHttp {
             'Authorization': 'Bearer ${authData['token_atual']}',
           },
         ); //.timeout(tempoDeDuracaoEmSegundos);
-        if(response.statusCode == 200){
-            print('aulas-listar-todas-http-executar: ${response.statusCode.toString()}');
-            //final Map<String, dynamic> data = jsonDecode(response.body);
-            //print(data['aulas']);
-            //print(data['data_']);
-            //print(data['gestao']);
-            //print(data['aulas'][0]['is_polivalencia']);
+        if (response.statusCode == 200) {
+          print(
+              'aulas-listar-todas-http-executar: ${response.statusCode.toString()}');
+          //final Map<String, dynamic> data = jsonDecode(response.body);
+          //print(data['aulas']);
+          //print(data['data_']);
+          //print(data['gestao']);
+          //print(data['aulas'][0]['is_polivalencia']);
         }
         return response;
       } catch (e) {

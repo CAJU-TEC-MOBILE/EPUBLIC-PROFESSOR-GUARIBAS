@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/help/console_log.dart';
 import '../../services/connectivity/connectivity_service.dart';
 
 class ConnectionIndicator extends StatefulWidget {
@@ -35,7 +34,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
 
   @override
   void dispose() {
-    isConnectedNotifier.dispose();  
+    isConnectedNotifier.dispose();
     super.dispose();
   }
 

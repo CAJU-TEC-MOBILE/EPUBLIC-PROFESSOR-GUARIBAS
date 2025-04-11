@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/functions/boxs/gestoes/filtrar_quantidade_de_disciplinas_por_turma_da_fraquia_selecionada.dart';
 import 'package:professor_acesso_notifiq/functions/textos/extrair_apenas_texto_antes_dos_parenteses.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import '../../models/gestao_disciplina_model.dart';
 import '../../services/controller/gestao_disciplina_controller.dart';
 
 class StackedBarGraficoDisciplinasPorGestao extends StatefulWidget {
