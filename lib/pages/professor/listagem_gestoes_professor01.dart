@@ -53,7 +53,7 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
       gestoes_data = _gestoesBox.get('gestoes');
       isExpandedList = List.filled(gestoes_data?.length ?? 0, false);
     });
-    await GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+    GestaoAtivaServiceAdapter().exibirGestaoAtiva();
   }
 
   Future<List<Disciplina>> carregarDisciplinas(

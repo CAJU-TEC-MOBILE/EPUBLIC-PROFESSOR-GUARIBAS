@@ -20,6 +20,7 @@ import '../../componentes/button/custom_calendario_button.dart';
 import '../../componentes/button/custom_calendario_infantil_button.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../componentes/dropdown/custom_dropdown_experiencia.dart';
+import '../../services/controller/tipo_aula_controller.dart';
 
 class CriarAulaInfantilPage extends StatefulWidget {
   const CriarAulaInfantilPage({super.key});
@@ -45,13 +46,13 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   final TextEditingController _selecioneHorario = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _errorText;
-
+  final tipoAulaController = TipoAulaController();
   double sizedBoxHeight = 4.0;
   // ignore: non_constant_identifier_names
   String? _aula_selecionada;
   bool statusSemanas = false;
   String? _diaDaSemana;
-  List<int> _horariosSelecionados = [];
+  final List<int> _horariosSelecionados = [];
   DateTime? _dataSelecionada;
   // ignore: prefer_final_fields
   Box _horariosBox = Hive.box('horarios');
@@ -76,10 +77,9 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   bool? _popupBuilderSelection = false;
   final _popupBuilderKey = GlobalKey<DropdownSearchState<SistemaBncc>>();
   var _horario_selecionado;
-
+  List<String> tipos = [];
   List<String> selectedExperiencias = [];
 
-  // Define the callback function
   void _handleSelectionChanged(List<String> selecionadas) {
     setState(() {
       selectedExperiencias = selecionadas;
@@ -89,7 +89,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   @override
   void initState() {
     super.initState();
-
+    getTipos();
     gestaoAtivaDias();
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
@@ -138,7 +138,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
       atividade_casa: _atividadeCasaController.text,
       atividade_classe: _atividadeClasseController.text,
       campos_de_experiencias: selectedExperiencias.toString(),
-      experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
+      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
       observacoes: _observacaoController.text,
     );
 
@@ -300,31 +300,25 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
     }
   }
 
+  Future<void> getTipos() async {
+    await tipoAulaController.init();
+    tipos = await tipoAulaController.getDescricaoAll();
+    setState(() => tipos);
+  }
+
+  void handleCheckBoxState({bool updateState = true}) {
+    var selectedItem =
+        _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
+    var isAllSelected =
+        _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
+    _popupBuilderSelection =
+        selectedItem.isEmpty ? false : (isAllSelected ? true : null);
+
+    if (updateState) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    void _handleCheckBoxState({bool updateState = true}) {
-      var selectedItem =
-          _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
-      var isAllSelected =
-          _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
-      _popupBuilderSelection =
-          selectedItem.isEmpty ? false : (isAllSelected ? true : null);
-
-      if (updateState) setState(() {});
-    }
-
-    _handleCheckBoxState(updateState: false);
-    void handleCheckBoxState({bool updateState = true}) {
-      var selectedItem =
-          _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
-      var isAllSelected =
-          _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
-      _popupBuilderSelection =
-          selectedItem.isEmpty ? false : (isAllSelected ? true : null);
-
-      if (updateState) setState(() {});
-    }
-
     handleCheckBoxState(updateState: false);
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
@@ -386,16 +380,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                 color: Colors.black,
                               ),
                               dropdownColor: AppTema.primaryWhite,
-                              items: <String>[
-                                'Aula Normal',
-                                'Aula Remota',
-                                'Reposição',
-                                'Aula Extra',
-                                'Substituição',
-                                'Aula Antecipada',
-                                'Aula Extra-Atividade',
-                                'Recuperação',
-                              ].map<DropdownMenuItem<String>>(
+                              items: tipos.map<DropdownMenuItem<String>>(
                                 (String opcao) {
                                   return DropdownMenuItem<String>(
                                     value: opcao,

@@ -12,13 +12,11 @@ import 'package:professor_acesso_notifiq/services/adapters/pedidos_service_adapt
 import 'package:professor_acesso_notifiq/services/adapters/sistema_bncc_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/usuarios_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/http/auth/auth_http.dart';
-import 'package:professor_acesso_notifiq/services/widgets/snackbar_service_widget.dart';
 
 import '../componentes/dialogs/custom_snackbar.dart';
 import '../services/adapters/gestoes_service_adpater.dart';
 import '../services/configuracao/configuracao_app.dart';
 import '../services/controller/ano_selecionado_controller.dart';
-import '../services/controller/horario_configuracao_controller.dart';
 import '../services/controller/professor_controller.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
 
@@ -34,6 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String message = 'Erro de conexão.';
 
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -63,7 +62,9 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<void> _login() async {
+  Future<void> _login(
+    BuildContext context,
+  ) async {
     setState(() {
       _isLoading = true;
       enabledTextFormField = false;
@@ -84,7 +85,29 @@ class _LoginPageState extends State<LoginPage> {
             AnoSelecionadoController();
         ProfessorController professorController = ProfessorController();
 
-        var response = await AuthHttp.logar(email, password);
+        var response = await AuthHttp.logar(context, email, password);
+
+        debugPrint('status-login: ${response.statusCode.toString()}');
+
+        if (response.statusCode != 200) {
+          enabledTextFormField = true;
+          _isLoading = false;
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
+
+          message = responseBody['error']?['message']?.toString() ?? message;
+
+          CustomSnackBar.showErrorSnackBar(
+            context,
+            message,
+          );
+          setState(() {});
+          return;
+        }
+
+        final Map<String, dynamic> responseJson =
+            await jsonDecode(response.body);
+
+        await professorController.init();
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseJson =
@@ -158,10 +181,10 @@ class _LoginPageState extends State<LoginPage> {
           //     backgroundColor: Colors.red,
           //     icon: Icons.error_outline,
           //     iconColor: Colors.white);
-          CustomSnackBar.showErrorSnackBar(
-            context,
-            'Erro de conexão.',
-          );
+          // CustomSnackBar.showErrorSnackBar(
+          //   context,
+          //   'Erro de conexão.',
+          // );
         }
       } catch (e) {
         enabledTextFormField = true;
@@ -174,10 +197,10 @@ class _LoginPageState extends State<LoginPage> {
         //     backgroundColor: Colors.red,
         //     icon: Icons.error_outline,
         //     iconColor: Colors.white);
-        CustomSnackBar.showErrorSnackBar(
-          context,
-          'Erro de conexão.',
-        );
+        // CustomSnackBar.showErrorSnackBar(
+        //   context,
+        //   'Erro de conexão.',
+        // );
       }
     } else {
       enabledTextFormField = true;
@@ -189,10 +212,10 @@ class _LoginPageState extends State<LoginPage> {
       //     backgroundColor: Colors.red,
       //     icon: Icons.error_outline,
       //     iconColor: Colors.white);
-      CustomSnackBar.showErrorSnackBar(
-        context,
-        'Erro de conexão.',
-      );
+      // CustomSnackBar.showErrorSnackBar(
+      //   context,
+      //   'Erro de conexão.',
+      // );
     }
     setState(() {
       _isLoading = false;
@@ -237,17 +260,17 @@ class _LoginPageState extends State<LoginPage> {
             // Conteúdo do formulário
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 84.0),
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 180),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: <Widget>[
                       Image.asset(
-                        'assets/logo_icons.png',
-                        width: 200,
-                        height: 200,
+                        'assets/icon_notifiq_sem_fundo.png',
+                        width: 150,
+                        height: 150,
                       ),
-                      const SizedBox(height: 24.0),
+                      const SizedBox(height: 45),
                       Card(
                         color: AppTema.primaryWhite.withOpacity(0.3),
                         elevation: 0.0,
@@ -345,7 +368,7 @@ class _LoginPageState extends State<LoginPage> {
                                 child: ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
-                                      _isLoading ? null : await _login();
+                                      _isLoading ? null : await _login(context);
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -379,15 +402,33 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      // Padding(
-                      //   padding: const EdgeInsets.only(top: 70.0),
-                      //   child: Center(
-                      //     child: Text(appVerso),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              child: Row(
+                children: [
+                  const Text(
+                    'Versão',
+                    style: TextStyle(
+                      color: Colors.black38,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 4.0,
+                  ),
+                  Text(
+                    appVerso,
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                ],
               ),
             ),
           ],

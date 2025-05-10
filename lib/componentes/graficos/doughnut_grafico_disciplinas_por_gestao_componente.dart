@@ -47,9 +47,9 @@ class _DoughnutGraficoDisciplinasPorGestaoComponenteState
     int i = 0;
     data.clear();
 
-    lista.forEach((item) {
-      if (item is GestaoDisciplina && item.disciplinas != null) {
-        item.disciplinas?.forEach((disciplina) {
+    for (var item in lista) {
+      if (item is GestaoDisciplina) {
+        item.disciplinas.forEach((disciplina) {
           data.add(ChartData(
             extrairApenasTextoAntesParenteses(
                 disciplina['descricao'].toString().toUpperCase()),
@@ -59,7 +59,7 @@ class _DoughnutGraficoDisciplinasPorGestaoComponenteState
           i++;
         });
       }
-    });
+    }
 
     setState(() => load = false);
   }

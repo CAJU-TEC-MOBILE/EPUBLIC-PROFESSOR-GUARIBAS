@@ -8,11 +8,11 @@ class DisciplinaField extends StatefulWidget {
   final String returnAndovalor;
 
   const DisciplinaField({
-    Key? key,
+    super.key,
     required this.item,
     required this.elemente,
     required this.returnAndovalor,
-  }) : super(key: key);
+  });
 
   @override
   _DisciplinaFieldState createState() => _DisciplinaFieldState();
@@ -25,7 +25,8 @@ class _DisciplinaFieldState extends State<DisciplinaField> {
   void initState() {
     super.initState();
     // Inicializa o controlador com o valor atual de 'conteudo'
-    conteudoController = TextEditingController(text: widget.elemente['conteudo'] ?? '');
+    conteudoController =
+        TextEditingController(text: widget.elemente['conteudo'] ?? '');
   }
 
   @override
@@ -61,7 +62,8 @@ class _DisciplinaFieldState extends State<DisciplinaField> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String validationMessage) {
+  Widget _buildTextField(
+      TextEditingController controller, String validationMessage) {
     return Column(
       children: [
         TextFormField(
@@ -72,7 +74,8 @@ class _DisciplinaFieldState extends State<DisciplinaField> {
               borderSide: const BorderSide(color: Colors.grey),
               borderRadius: BorderRadius.circular(8.0),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
@@ -80,9 +83,7 @@ class _DisciplinaFieldState extends State<DisciplinaField> {
           onChanged: (value) {
             print('value: $value');
             widget.elemente['conteudo'] = value;
-            setState(() {
-              
-            });
+            setState(() {});
           },
           validator: (value) {
             if (value!.isEmpty) {

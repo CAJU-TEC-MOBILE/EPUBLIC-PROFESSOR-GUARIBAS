@@ -1,29 +1,28 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:professor_acesso_notifiq/models/ano_selecionado_model.dart';
-import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:professor_acesso_notifiq/models/aula_model.dart';
-import 'package:professor_acesso_notifiq/models/aula_sistema_bncc_model.dart';
-import 'package:professor_acesso_notifiq/models/aula_totalizador_model.dart';
-import 'package:professor_acesso_notifiq/models/faltas_model.dart';
-import 'package:professor_acesso_notifiq/models/historico_requencia_model.dart';
-import 'package:professor_acesso_notifiq/models/horario_model.dart';
-import 'package:professor_acesso_notifiq/models/justificativa_model.dart';
-import 'package:professor_acesso_notifiq/models/matricula_model.dart';
-import 'package:professor_acesso_notifiq/models/serie_aula_model.dart';
+import '../models/ano_selecionado_model.dart';
+import '../models/aula_model.dart';
+import '../models/aula_sistema_bncc_model.dart';
+import '../models/aula_totalizador_model.dart';
+import '../models/faltas_model.dart';
+import '../models/historico_requencia_model.dart';
+import '../models/justificativa_model.dart';
+import '../models/matricula_model.dart';
+import '../models/serie_aula_model.dart';
 import '../models/anexo_model.dart';
 import '../models/disciplina_aula_model.dart';
 import '../models/disciplina_model.dart';
 import '../models/gestao_disciplina_model.dart';
 import '../models/horario_aula_model.dart';
 import '../models/instrutor_model.dart';
+import '../models/pedido_model.dart';
 import '../models/professor_model.dart';
 import '../models/serie_model.dart';
 import '../models/ano_model.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import '../models/tipo_aula_model.dart';
 import '../services/console_table.dart';
 
 class HiveConfig {
@@ -60,6 +59,8 @@ class HiveConfig {
     Hive.registerAdapter(ProfessorAdapter());
     Hive.registerAdapter(AnexoAdapter());
     Hive.registerAdapter(HistoricoPresencaAdapter());
+    Hive.registerAdapter(TipoAulaAdapter());
+    Hive.registerAdapter(PedidoAdapter());
 
     await Future.wait([
       Hive.openBox('auth'),
@@ -88,7 +89,9 @@ class HiveConfig {
       Hive.openBox<AnoSelecionado>('ano_selecionado'),
       Hive.openBox<Professor>('professores'),
       Hive.openBox<Anexo>('anexos'),
-      Hive.openBox<HistoricoPresenca>('historico_presencas')
+      Hive.openBox<HistoricoPresenca>('historico_presencas'),
+      Hive.openBox<TipoAula>('tipos_aulas'),
+      Hive.openBox<Pedido>('pedidos_enviados'),
     ]);
   }
 }

@@ -142,7 +142,7 @@ class _FrequenciaOnlinePageState extends State<FrequenciaOnlinePage>
       _isLiked = List.generate(response.length, (_) => false);
     });
 
-    faltas.forEach((falta) {
+    for (var falta in faltas) {
       if (falta.aula_id.toString() == widget.aula_id.toString()) {
         dataFaltas!.add({
           "id": falta.id,
@@ -155,7 +155,7 @@ class _FrequenciaOnlinePageState extends State<FrequenciaOnlinePage>
         });
         frequenciesJaCriada = true;
       }
-    });
+    }
     return faltas;
   }
 
@@ -169,11 +169,11 @@ class _FrequenciaOnlinePageState extends State<FrequenciaOnlinePage>
   bool verificarSwitch(Matricula matricula) {
     bool presenca = true;
     if (frequenciesJaCriada == true) {
-      faltas.forEach((falta) {
+      for (var falta in faltas) {
         if (falta.matricula_id.toString() ==
                 matricula.matricula_id.toString() &&
             falta.aula_id.toString() == aula_id.toString()) presenca = false;
-      });
+      }
     }
     return presenca;
   }
@@ -293,7 +293,7 @@ class _FrequenciaOnlinePageState extends State<FrequenciaOnlinePage>
     justificavas = await ordenarJustificativas(justificavas);
     setState(() => justificavas);
 
-    final bool? result = await faltas.setFrequencia(
+    final bool result = await faltas.setFrequencia(
       matriculaId: matricula['matricula_id'],
       aulaId: matricula['aula_id'].toString(),
       presente: 0,

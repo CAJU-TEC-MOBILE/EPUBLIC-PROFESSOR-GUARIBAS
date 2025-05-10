@@ -25,7 +25,7 @@ import '../../services/faltas/falta_controller.dart';
 class FrequenciaOfflinePage extends StatefulWidget {
   final String aula_id;
   final Aula? aula;
-  FrequenciaOfflinePage({super.key, required this.aula_id, this.aula});
+  const FrequenciaOfflinePage({super.key, required this.aula_id, this.aula});
 
   @override
   State<FrequenciaOfflinePage> createState() => _FrequenciaOfflinePageState();
@@ -59,19 +59,19 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
 
     if (frequenciaJaCriada == true) {
       matriculas_da_gestao_da_turma_ativa.asMap().forEach((index, matricula) {
-        faltas.forEach((falta) {
+        for (var falta in faltas) {
           if (falta.matricula_id.toString() ==
                   matricula.matricula_id.toString() &&
               falta.aula_id.toString() == aula_id.toString()) {
             _isLiked[index] = false;
-            justificativas.forEach((justificativa) {
+            for (var justificativa in justificativas) {
               if (justificativa.id.toString() ==
                   falta.justificativa_id.toString()) {
                 justificavasDaMatricula[index] = int.parse(justificativa.id);
               }
-            });
+            }
           }
-        });
+        }
       });
     }
     await getAjusteMatricula();
@@ -121,11 +121,11 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
       aula_id = widget.aula_id;
       _isLiked = List.generate(response.length, (_) => false);
     });
-    faltas.forEach((falta) {
+    for (var falta in faltas) {
       if (falta.aula_id.toString() == widget.aula_id.toString()) {
         frequenciaJaCriada = true;
       }
-    });
+    }
     return faltas;
   }
 
@@ -140,11 +140,11 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
   bool verificarSwitch(Matricula matricula) {
     bool presenca = true;
     if (frequenciaJaCriada == true) {
-      faltas.forEach((falta) {
+      for (var falta in faltas) {
         if (falta.matricula_id.toString() ==
                 matricula.matricula_id.toString() &&
             falta.aula_id.toString() == aula_id.toString()) presenca = false;
-      });
+      }
     }
     return presenca;
   }
@@ -413,7 +413,7 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                     ),
                                     child: matricula.aluno_nome.length > 35
                                         ? Tooltip(
-                                            message: '${matricula.aluno_nome}',
+                                            message: matricula.aluno_nome,
                                             child: Text(
                                               '${matricula.aluno_nome.substring(0, 35).toUpperCase()}...',
                                               style: const TextStyle(

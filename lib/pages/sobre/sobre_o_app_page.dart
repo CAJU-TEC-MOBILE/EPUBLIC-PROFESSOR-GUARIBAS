@@ -31,15 +31,13 @@ class _SobreAppPageState extends State<SobreAppPage> {
                 height: 20,
               ),
               const Text(
-                'Esse aplicativo é usado juntamente com o sistema de gestão escolar E-Public, ' +
-                    'incluindo diversas tecnologias e recursos que facilitam o registro de aulas, frequência e outros recursos de forma online e offline.' +
-                    '',
+                'Esse aplicativo é usado juntamente com o sistema de gestão escolar E-Public, incluindo diversas tecnologias e recursos que facilitam o registro de aulas, frequência e outros recursos de forma online e offline.',
                 textAlign: TextAlign.justify,
               ),
               const SizedBox(
                 height: 150,
               ),
-              Text('\u{00A9} Caju Tecnologia' + ' ' + retornarDataAnoAtual())
+              Text('\u{00A9} Caju Tecnologia' ' ' + retornarDataAnoAtual())
             ],
           ),
         ),

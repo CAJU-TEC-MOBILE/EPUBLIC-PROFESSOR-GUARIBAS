@@ -77,7 +77,7 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
       }
     });
   }
- 
+
   @override
   void initState() {
     super.initState();
@@ -111,7 +111,7 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
     try {
       AulaController aulaController = AulaController();
       await aulaController.init();
-      List<Aula> data = await aulaController.getAllAulas();
+      List<Aula> data = aulaController.getAllAulas();
       for (final item in data) {
         if (item.instrutorDisciplinaTurma_id == '386') {
           aulas_offlines.add(item);
@@ -128,8 +128,9 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
   Future<void> carregarDados() async {
     try {
       gestao_ativa_data = await _gestaoAtivaBox.get('gestao_ativa');
-      List<Aula> dados = await AulasOfflineOnlineServiceAdapter().todasAsAulas(context);
-      
+      List<Aula> dados =
+          await AulasOfflineOnlineServiceAdapter().todasAsAulas(context);
+
       if (dados.isEmpty) {
         debugPrint('Nenhum dado disponível no momento');
         if (mounted) {
@@ -218,7 +219,7 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
       return [];
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final paginatedItems = getPaginatedItems();
@@ -682,7 +683,7 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
                                                                                                   );
                                                                                                 }
                                                                                               } else {
-                                                                                                return Text('Sem horário');
+                                                                                                return const Text('Sem horário');
                                                                                               }
                                                                                             },
                                                                                           );
@@ -717,7 +718,7 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
                                                                                                 return const SizedBox();
                                                                                               }
                                                                                             } else {
-                                                                                              return Text('Sem horário');
+                                                                                              return const Text('Sem horário');
                                                                                             }
                                                                                           },
                                                                                         );
@@ -730,7 +731,7 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
                                                                           ),
                                                                         ],
                                                                       );
-                                                                    }).toList(),
+                                                                    }),
                                                                   ],
                                                                 ),
                                                                 /*Text('--------------------------'),
@@ -810,21 +811,22 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
                                                                       onPressed:
                                                                           () async {
                                                                         showDialog(
-                                                                          context:  context,
-                                                                          builder:  (BuildContext context) {
+                                                                          context:
+                                                                              context,
+                                                                          builder:
+                                                                              (BuildContext context) {
                                                                             return CustomSyncDialog(
                                                                                 onCancel: () => Navigator.of(context).pop(false),
-                                                                                   onConfirm: () async {
-                                                                                     await AulasOfflineSincronizarService().executar(
-                                                                                        context,
-                                                                                        paginatedItems[index],
-                                                                                        paginatedItems[index].experiencias,
-                                                                                        paginatedItems[index].series ?? [],
-                                                                                      );
+                                                                                onConfirm: () async {
+                                                                                  await AulasOfflineSincronizarService().executar(
+                                                                                    context,
+                                                                                    paginatedItems[index],
+                                                                                    paginatedItems[index].experiencias,
+                                                                                    paginatedItems[index].series ?? [],
+                                                                                  );
 
-                                                                                      await carregarDados();
-                                                                                   }
-                                                                            );
+                                                                                  await carregarDados();
+                                                                                });
                                                                           },
                                                                         );
                                                                       },
@@ -853,8 +855,8 @@ class _ListagemAulasPageState extends State<ListagemAulasPage> {
                                                                           SizedBox(
                                                                               width: 10),
                                                                           Text(
-                                                                            'Sincronizar' +
-                                                                                ' ',
+                                                                            'Sincronizar'
+                                                                            ' ',
                                                                             style:
                                                                                 TextStyle(fontSize: 14, color: Colors.white),
                                                                           ),

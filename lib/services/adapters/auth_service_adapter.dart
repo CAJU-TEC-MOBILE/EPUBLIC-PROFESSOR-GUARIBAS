@@ -34,9 +34,6 @@ class AuthServiceAdapter {
 
     // Safely access the professor property
     final professor = authModel.professor;
-    if (professor == null) {
-      throw Exception('No professor data found');
-    }
 
     return professor;
   }

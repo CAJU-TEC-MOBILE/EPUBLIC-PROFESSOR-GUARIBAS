@@ -29,7 +29,7 @@ class ListagemAulasInfantilPage extends StatefulWidget {
 
 class _ListagemAulasInfantilPageState extends State<ListagemAulasInfantilPage> {
   List<Aula> aulas_offlines = AulasOfflinesListarServiceAdapter().executar();
-  Box _gestaoAtivaBox = Hive.box('gestao_ativa');
+  final Box _gestaoAtivaBox = Hive.box('gestao_ativa');
   Map<dynamic, dynamic>? gestao_ativa_data;
 
   // Dados da paginação ->> INÍCIO <<-
@@ -92,11 +92,10 @@ class _ListagemAulasInfantilPageState extends State<ListagemAulasInfantilPage> {
       appBar: AppBar(
         title: const Text('Aulas do Infantil'),
         iconTheme: const IconThemeData(color: AppTema.primaryDarkBlue),
- 
         centerTitle: true,
       ),
       body: RefreshIndicator(
-        color:  AppTema.primaryDarkBlue,
+        color: AppTema.primaryDarkBlue,
         onRefresh: carregarDados,
         child: FutureBuilder<List<Aula>>(
             future: Future.value(aulas_offlines),
@@ -112,158 +111,186 @@ class _ListagemAulasInfantilPageState extends State<ListagemAulasInfantilPage> {
                       child: ListView.builder(
                         itemCount: paginatedItems.length,
                         itemBuilder: (context, index) {
-                          return paginatedItems[index].e_aula_infantil == 1 ?  Card(
-                            color: AppTema.primaryWhite,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: paginatedItems[index].id.toString().isEmpty
-                                      ? const BorderSide(
-                                          color: Color.fromARGB(255, 161, 158, 158),  
-                                          width: 15.0, 
-                                        )
-                                      : const BorderSide(
-                                          color: AppTema.success,  
-                                          width: 15.0, 
-                                        ),
-                                ),
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(16.0), 
-                                  bottomRight: Radius.circular(13.0), 
-                                ),
-                              ),
-                              // padding: EdgeInsets.only(top: 10, bottom: 10),
-                              child: ExpansionTile(
-                                backgroundColor:
-                                    const Color.fromARGB(115, 218, 188, 105),
-                                textColor: AppTema.primaryDarkBlue,
-                                title: Column(
-                                  children: [
-                                    Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          //Text(paginatedItems[index].instrutorDisciplinaTurma_id.toString()),
-                                          Text(
-                                            paginatedItems[index].dataDaAula != ''
-                                                ? conveterDataAmericaParaBrasil(
-                                                    paginatedItems[index]
-                                                        .dataDaAula)
-                                                : '- - -',
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          paginatedItems[index].id.toString() ==
-                                                  ''
-                                              ? Row(
-                                                  children: [
-                                                    const Text(''),
-                                                    const SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                    Icon(
-                                                      Icons.circle,
-                                                      size: 15,
-                                                      color: Colors.grey[400],
-                                                    ),
-                                                  ],
-                                                )
-                                              : Row(
-                                                  children: [
-                                                    Text(paginatedItems[index]
-                                                        .id
-                                                        .toString()),
-                                                    const SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                    const Icon(
-                                                      Icons.circle,
-                                                      size: 15,
-                                                      color: AppTema.success,
-                                                    ),
-                                                  ],
-                                                ),
-                                        ]),
-                                    const SizedBox(
-                                      height: 5,
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 4.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          FutureBuilder<String>(
-                                            future: retornarHorarioSelecionado(
-                                                horarioID: paginatedItems[index]
-                                                    .horarioID
-                                                    .toString()), // Corrigido aqui
-                                            builder: (BuildContext context,
-                                                AsyncSnapshot<String> snapshot) {
-                                              const textStyle = TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w500);
-                            
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return const Text(
-                                                  '',
-                                                  style: textStyle,
-                                                );
-                                              } else if (snapshot.hasData &&
-                                                  snapshot.data!.isNotEmpty) {
-                                                return Text(
-                                                  snapshot.data!,
-                                                  style: textStyle.copyWith(
-                                                      color: const Color.fromARGB(
-                                                          255, 10, 10, 10)),
-                                                );
-                                              } else {
-                                                return const Text(
-                                                  'Sem horário',
-                                                  style: textStyle,
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ],
+                          return paginatedItems[index].e_aula_infantil == 1
+                              ? Card(
+                                  color: AppTema.primaryWhite,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        right: paginatedItems[index]
+                                                .id
+                                                .toString()
+                                                .isEmpty
+                                            ? const BorderSide(
+                                                color: Color.fromARGB(
+                                                    255, 161, 158, 158),
+                                                width: 15.0,
+                                              )
+                                            : const BorderSide(
+                                                color: AppTema.success,
+                                                width: 15.0,
+                                              ),
+                                      ),
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(16.0),
+                                        bottomRight: Radius.circular(13.0),
                                       ),
                                     ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      children: [
-                                        SizedBox(
-                                          width: 190,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: SituacaoAulaComponente(
-                                              situacaoAula: paginatedItems[index]
-                                                  .situacao
-                                                  .toString(),
+                                    // padding: EdgeInsets.only(top: 10, bottom: 10),
+                                    child: ExpansionTile(
+                                      backgroundColor: const Color.fromARGB(
+                                          115, 218, 188, 105),
+                                      textColor: AppTema.primaryDarkBlue,
+                                      title: Column(
+                                        children: [
+                                          Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                //Text(paginatedItems[index].instrutorDisciplinaTurma_id.toString()),
+                                                Text(
+                                                  paginatedItems[index]
+                                                              .dataDaAula !=
+                                                          ''
+                                                      ? conveterDataAmericaParaBrasil(
+                                                          paginatedItems[index]
+                                                              .dataDaAula)
+                                                      : '- - -',
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                paginatedItems[index]
+                                                            .id
+                                                            .toString() ==
+                                                        ''
+                                                    ? Row(
+                                                        children: [
+                                                          const Text(''),
+                                                          const SizedBox(
+                                                            width: 5,
+                                                          ),
+                                                          Icon(
+                                                            Icons.circle,
+                                                            size: 15,
+                                                            color: Colors
+                                                                .grey[400],
+                                                          ),
+                                                        ],
+                                                      )
+                                                    : Row(
+                                                        children: [
+                                                          Text(paginatedItems[
+                                                                  index]
+                                                              .id
+                                                              .toString()),
+                                                          const SizedBox(
+                                                            width: 5,
+                                                          ),
+                                                          const Icon(
+                                                            Icons.circle,
+                                                            size: 15,
+                                                            color:
+                                                                AppTema.success,
+                                                          ),
+                                                        ],
+                                                      ),
+                                              ]),
+                                          const SizedBox(
+                                            height: 5,
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 4.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                FutureBuilder<String>(
+                                                  future: retornarHorarioSelecionado(
+                                                      horarioID: paginatedItems[
+                                                              index]
+                                                          .horarioID
+                                                          .toString()), // Corrigido aqui
+                                                  builder:
+                                                      (BuildContext context,
+                                                          AsyncSnapshot<String>
+                                                              snapshot) {
+                                                    const textStyle = TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.black,
+                                                        fontWeight:
+                                                            FontWeight.w500);
+
+                                                    if (snapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      return const Text(
+                                                        '',
+                                                        style: textStyle,
+                                                      );
+                                                    } else if (snapshot
+                                                            .hasData &&
+                                                        snapshot
+                                                            .data!.isNotEmpty) {
+                                                      return Text(
+                                                        snapshot.data!,
+                                                        style: textStyle.copyWith(
+                                                            color: const Color
+                                                                .fromARGB(255,
+                                                                10, 10, 10)),
+                                                      );
+                                                    } else {
+                                                      return const Text(
+                                                        'Sem horário',
+                                                        style: textStyle,
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                                children: [
-                                  Container(
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(
-                                          color: Color.fromARGB(
-                                              255, 161, 158, 158), // Cor da borda
-                                          width: 1.0, // Largura da borda
-                                        ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                width: 190,
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: SituacaoAulaComponente(
+                                                    situacaoAula:
+                                                        paginatedItems[index]
+                                                            .situacao
+                                                            .toString(),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        ],
                                       ),
-                                    ),
-                                    padding: const EdgeInsets.only(
-                                        left: 15, top: 10, bottom: 5),
-                                    child: Column(
                                       children: [
-                                        /*Align(
+                                        Container(
+                                          decoration: const BoxDecoration(
+                                            border: Border(
+                                              top: BorderSide(
+                                                color: Color.fromARGB(255, 161,
+                                                    158, 158), // Cor da borda
+                                                width: 1.0, // Largura da borda
+                                              ),
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.only(
+                                              left: 15, top: 10, bottom: 5),
+                                          child: Column(
+                                            children: [
+                                              /*Align(
                                           alignment: Alignment.centerLeft,
                                           child: Container(
                                             margin:
@@ -319,351 +346,423 @@ class _ListagemAulasInfantilPageState extends State<ListagemAulasInfantilPage> {
                                             );
                                           },
                                         ),*/
-                                        const SizedBox(height: 10),
-                                        Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Column(
-                                              children: [
-                                                const Align(
-                                                  alignment: Alignment.centerLeft,
-                                                  child: Text(
-                                                    'Tipo de aula:',
-                                                    style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                              const SizedBox(height: 10),
+                                              Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Column(
+                                                    children: [
+                                                      const Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: Text(
+                                                          'Tipo de aula:',
+                                                          style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 5,
+                                                      ),
+                                                      Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: Text(
+                                                          paginatedItems[index]
+                                                              .tipoDeAula
+                                                              .toString(),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 14),
+                                                        ),
+                                                      )
+                                                    ],
+                                                  )),
+                                              const SizedBox(height: 10),
+                                              Row(
+                                                children: [
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: SizedBox(
+                                                      width: paginatedItems[
+                                                                      index]
+                                                                  .id
+                                                                  .toString() ==
+                                                              ''
+                                                          ? 120
+                                                          : 0,
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: paginatedItems[
+                                                                        index]
+                                                                    .id
+                                                                    .toString() ==
+                                                                ''
+                                                            ? ElevatedButton(
+                                                                onPressed:
+                                                                    () async {
+                                                                  showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (BuildContext
+                                                                            context) {
+                                                                      return CustomSyncDialog(
+                                                                        onCancel:
+                                                                            () =>
+                                                                                Navigator.of(context).pop(false),
+                                                                        onConfirm:
+                                                                            () async {
+                                                                          AulaController
+                                                                              aulaController =
+                                                                              AulaController();
+
+                                                                          List<String>
+                                                                              experiencia =
+                                                                              [];
+
+                                                                          await aulaController
+                                                                              .init();
+
+                                                                          List<Aula>
+                                                                              aulas =
+                                                                              await aulaController.getAulaCriadaPeloCelular(
+                                                                            criadaPeloCelular:
+                                                                                paginatedItems[index].criadaPeloCelular,
+                                                                          );
+
+                                                                          for (final item
+                                                                              in aulas) {
+                                                                            experiencia =
+                                                                                item.experiencias;
+                                                                          }
+
+                                                                          await AulasOfflineSincronizarService()
+                                                                              .executar(
+                                                                            context,
+                                                                            paginatedItems[index],
+                                                                            experiencia,
+                                                                            paginatedItems[index].series ??
+                                                                                [],
+                                                                          );
+
+                                                                          await carregarDados();
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                },
+                                                                style: ElevatedButton
+                                                                    .styleFrom(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          5),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(8),
+                                                                  ),
+                                                                  backgroundColor:
+                                                                      Colors.grey[
+                                                                          400],
+                                                                ),
+                                                                child:
+                                                                    const Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Icon(
+                                                                        Icons
+                                                                            .sync,
+                                                                        color: Colors
+                                                                            .white,
+                                                                        size:
+                                                                            18),
+                                                                    SizedBox(
+                                                                        width:
+                                                                            10),
+                                                                    Text(
+                                                                      'Sincronizar'
+                                                                      ' ',
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              14,
+                                                                          color:
+                                                                              Colors.white),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              )
+                                                            : ElevatedButton(
+                                                                onPressed:
+                                                                    () {},
+                                                                style: ElevatedButton
+                                                                    .styleFrom(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          5),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(8),
+                                                                  ),
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .green,
+                                                                ),
+                                                                child:
+                                                                    const Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .start,
+                                                                  children: [
+                                                                    Icon(
+                                                                        Icons
+                                                                            .check,
+                                                                        color: Colors
+                                                                            .white,
+                                                                        size:
+                                                                            18),
+                                                                    SizedBox(
+                                                                        width:
+                                                                            4),
+                                                                    Text(
+                                                                      'Sincronizada',
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              14,
+                                                                          color:
+                                                                              Colors.white),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Align(
-                                                  alignment: Alignment.centerLeft,
-                                                  child: Text(
-                                                    paginatedItems[index]
-                                                        .tipoDeAula
-                                                        .toString(),
-                                                    style: const TextStyle(
-                                                        fontSize: 14),
-                                                  ),
-                                                )
-                                              ],
-                                            )),
-                                        const SizedBox(height: 10),
-                                        Row(
-                                          children: [
-                                            Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: SizedBox(
-                                                width: paginatedItems[index]
-                                                            .id
-                                                            .toString() ==
-                                                        ''
-                                                    ? 120
-                                                    : 0,
-                                                child: Align(
-                                                  alignment: Alignment.centerLeft,
-                                                  child: paginatedItems[index]
+                                                  paginatedItems[index]
                                                               .id
                                                               .toString() ==
                                                           ''
-                                                      ? ElevatedButton(
-                                                          onPressed: () async {
-                                                            showDialog(
-                                                              context: context,
-                                                              builder: (BuildContext  context) {
-
-                                                                return  CustomSyncDialog(
-                                                                  onCancel: () => Navigator.of(context).pop(false),
-                                                                  onConfirm: () async {
-                                                                        AulaController aulaController = AulaController();
-                                                                        
-                                                                        List<String> experiencia = [];
-                                                                        
-                                                                        await aulaController.init();
-                                                                        
-                                                                        List<Aula> aulas = await aulaController.getAulaCriadaPeloCelular(
-                                                                            criadaPeloCelular: paginatedItems[index].criadaPeloCelular,
-                                                                        );
-                                                                        
-                                                                        for (final item in aulas) {
-                                                                          experiencia = item.experiencias;
-                                                                        }
-                                                                        
-                                                                        await AulasOfflineSincronizarService().executar(
-                                                                          context,
-                                                                          paginatedItems[index],
-                                                                          experiencia,
-                                                                          paginatedItems[index].series ?? [],
-                                                                        );
-                                                                        
-                                                                        await carregarDados();
-                                                                  },
+                                                      ? const SizedBox(
+                                                          width: 10,
+                                                        )
+                                                      : const SizedBox(),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: SizedBox(
+                                                      width: 115,
+                                                      child: paginatedItems[
+                                                                      index]
+                                                                  .id
+                                                                  .toString() ==
+                                                              ''
+                                                          ? ElevatedButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                await Navigator
+                                                                    .push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            FrequenciaOfflinePage(
+                                                                      aula_id: paginatedItems[
+                                                                              index]
+                                                                          .criadaPeloCelular
+                                                                          .toString(),
+                                                                    ),
+                                                                  ),
                                                                 );
                                                               },
-                                                            );
-                                                          },
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(5),
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8),
-                                                            ),
-                                                            backgroundColor:
-                                                                Colors.grey[400],
-                                                          ),
-                                                          child: const Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Icon(Icons.sync,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  size: 18),
-                                                              SizedBox(width: 10),
-                                                              Text(
-                                                                'Sincronizar' +
-                                                                    ' ',
-                                                                style: TextStyle(
-                                                                    fontSize: 14,
-                                                                    color: Colors
-                                                                        .white),
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(5),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8),
+                                                                ),
+                                                                backgroundColor:
+                                                                    const Color
+                                                                        .fromARGB(
+                                                                        255,
+                                                                        217,
+                                                                        168,
+                                                                        6),
                                                               ),
-                                                            ],
+                                                              child: const Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Icon(
+                                                                      Icons
+                                                                          .thumb_up,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      size: 18),
+                                                                  SizedBox(
+                                                                      width:
+                                                                          10),
+                                                                  Text(
+                                                                    'Frequência',
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                        color: Colors
+                                                                            .white),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            )
+                                                          : ElevatedButton(
+                                                              onPressed: () {
+                                                                Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            FrequenciaOnlinePage(
+                                                                      aula_id: paginatedItems[
+                                                                              index]
+                                                                          .id
+                                                                          .toString(),
+                                                                      selecionandoId:
+                                                                          paginatedItems[index]
+                                                                              .id
+                                                                              .toString(),
+                                                                      dataDaAula: paginatedItems[index].dataDaAula !=
+                                                                              null
+                                                                          ? conveterDataAmericaParaBrasil(
+                                                                              paginatedItems[index].dataDaAula)
+                                                                          : 'sem data',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .all(5),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8),
+                                                                ),
+                                                                backgroundColor:
+                                                                    AppTema
+                                                                        .success,
+                                                              ),
+                                                              child: const Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Icon(
+                                                                      Icons
+                                                                          .thumb_up,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      size: 18),
+                                                                  SizedBox(
+                                                                      width: 4),
+                                                                  Text(
+                                                                    'Frequência',
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                        color: Colors
+                                                                            .white),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                    ),
+                                                  ),
+                                                  paginatedItems[index]
+                                                              .id
+                                                              .toString() ==
+                                                          ''
+                                                      ? Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 8.0),
+                                                          child: ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              //print(paginatedItems[index].id.toString());
+                                                              //print(paginatedItems[index].criadaPeloCelular.toString());
+                                                              await Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                      builder: (context) => AulaInfantilAtualizarPage(
+                                                                          aulaLocalId: paginatedItems[index]
+                                                                              .criadaPeloCelular
+                                                                              .toString())));
+                                                            },
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(5),
+                                                              shape:
+                                                                  RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            8),
+                                                              ),
+                                                              backgroundColor:
+                                                                  AppTema
+                                                                      .primaryDarkBlue,
+                                                            ),
+                                                            child: const Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Icon(Icons.edit,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    size: 18),
+                                                              ],
+                                                            ),
                                                           ),
                                                         )
-                                                      : ElevatedButton(
-                                                          onPressed: () {},
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(5),
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8),
-                                                            ),
-                                                            backgroundColor:
-                                                                Colors.green,
-                                                          ),
-                                                          child: const Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Icon(Icons.check,
-                                                                  color: Colors
-                                                                      .white,
-                                                                  size: 18),
-                                                              SizedBox(width: 4),
-                                                              Text(
-                                                                'Sincronizada',
-                                                                style: TextStyle(
-                                                                    fontSize: 14,
-                                                                    color: Colors
-                                                                        .white),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                ),
+                                                      : const SizedBox(),
+                                                ],
                                               ),
-                                            ),
-                                            paginatedItems[index].id.toString() ==
-                                                    ''
-                                                ? const SizedBox(
-                                                    width: 10,
-                                                  )
-                                                : const SizedBox(),
-                                            Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: SizedBox(
-                                                width: 115,
-                                                child: paginatedItems[index]
-                                                            .id
-                                                            .toString() ==
-                                                        ''
-                                                    ? ElevatedButton(
-                                                        onPressed: () async {
-                                                          await Navigator.push(context,
-                                                            MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  FrequenciaOfflinePage(
-                                                                aula_id: paginatedItems[
-                                                                        index]
-                                                                    .criadaPeloCelular
-                                                                    .toString(),
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(5),
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(8),
-                                                          ),
-                                                          backgroundColor:
-                                                              const Color
-                                                                  .fromARGB(255,
-                                                                  217, 168, 6),
-                                                        ),
-                                                        child: const Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Icon(Icons.thumb_up,
-                                                                color:
-                                                                    Colors.white,
-                                                                size: 18),
-                                                            SizedBox(width: 10),
-                                                            Text(
-                                                              'Frequência',
-                                                              style: TextStyle(
-                                                                  fontSize: 14,
-                                                                  color: Colors
-                                                                      .white),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
-                                                    : ElevatedButton(
-                                                        onPressed: () {
-                                                          Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  FrequenciaOnlinePage(
-                                                                aula_id:
-                                                                    paginatedItems[
-                                                                            index]
-                                                                        .id
-                                                                        .toString(),
-                                                                selecionandoId:
-                                                                    paginatedItems[
-                                                                            index]
-                                                                        .id
-                                                                        .toString(),
-                                                                dataDaAula: paginatedItems[
-                                                                                index]
-                                                                            .dataDaAula !=
-                                                                        null
-                                                                    ? conveterDataAmericaParaBrasil(
-                                                                        paginatedItems[
-                                                                                index]
-                                                                            .dataDaAula)
-                                                                    : 'sem data',
-                                                              ),
-                                                            ),
-                                                          );
-                                                        },
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(5),
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(8),
-                                                          ),
-                                                          backgroundColor:
-                                                              AppTema.success,
-                                                        ),
-                                                        child: const Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Icon(Icons.thumb_up,
-                                                                color:
-                                                                    Colors.white,
-                                                                size: 18),
-                                                            SizedBox(width: 4),
-                                                            Text(
-                                                              'Frequência',
-                                                              style: TextStyle(
-                                                                  fontSize: 14,
-                                                                  color: Colors
-                                                                      .white),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                              ),
-                                            ),
-                                            paginatedItems[index].id.toString() ==
-                                                    ''
-                                                ? Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 8.0),
-                                                    child: ElevatedButton(
-                                                      onPressed: () async {
-                                                        //print(paginatedItems[index].id.toString());
-                                                        //print(paginatedItems[index].criadaPeloCelular.toString());
-                                                        await Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                                builder: (context) => AulaInfantilAtualizarPage(
-                                                                    aulaLocalId: paginatedItems[
-                                                                            index]
-                                                                        .criadaPeloCelular
-                                                                        .toString())));
-                                                      },
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                                5),
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8),
-                                                        ),
-                                                        backgroundColor:
-                                                            AppTema.primaryDarkBlue,
-                                                      ),
-                                                      child: const Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Icon(Icons.edit,
-                                                              color: Colors.white,
-                                                              size: 18),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  )
-                                                : const SizedBox(),
-                                          ],
-                                        ),
+                                            ],
+                                          ),
+                                        )
                                       ],
                                     ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ) : const SizedBox();
+                                  ),
+                                )
+                              : const SizedBox();
                         },
                       ),
                     ),

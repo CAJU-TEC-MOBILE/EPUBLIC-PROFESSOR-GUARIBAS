@@ -28,6 +28,7 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
   List<Ano> anos = [];
   Ano? selectedAno;
   bool loading = false;
+  @override
   void initState() {
     super.initState();
     getAll();
@@ -55,7 +56,7 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
     Auth? auth = await authController.getAuth();
 
     int authId = int.parse(auth!.id.toString());
-    int anoId = int.parse(auth!.anoId.toString());
+    int anoId = int.parse(auth.anoId.toString());
 
     await anoSelecionadoController.setAnoPorAuth(anoId: anoId);
 
@@ -142,23 +143,21 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
               setSelectedAno(ano: ano, context: context);
             },
             itemBuilder: (context) => [
-              ...anos
-                  .map(
-                    (ano) => PopupMenuItem<Ano>(
-                      value: ano,
-                      child: ListTile(
-                        title: Center(
-                          child: Text(
-                            ano.descricao,
-                            style: const TextStyle(fontSize: 12.0),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
+              ...anos.map(
+                (ano) => PopupMenuItem<Ano>(
+                  value: ano,
+                  child: ListTile(
+                    title: Center(
+                      child: Text(
+                        ano.descricao,
+                        style: const TextStyle(fontSize: 12.0),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                ),
+              ),
             ],
             constraints: const BoxConstraints(
               minWidth: 80.0,

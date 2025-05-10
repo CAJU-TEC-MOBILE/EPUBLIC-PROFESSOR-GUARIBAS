@@ -78,10 +78,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
             child: SafeArea(
               child: Stack(
                 children: [
-                  // Conteúdo da linha
                   Row(
                     children: [
-                      // Comentado: IconButton de navegação
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,18 +89,16 @@ class _CustomAppBarState extends State<CustomAppBar> {
                       const SizedBox(width: 8.0),
                     ],
                   ),
-                  // Icone de sincronização no topo com "Positioned"
                   Positioned(
                     top: 0,
-                    right: -8.0, // Adicionando um posicionamento à direita
+                    right: -8.0,
                     child: IconButton(
                       icon: const Icon(
                         Icons.sync,
                         color: Colors.black,
                         size: 25,
                       ),
-                      onPressed: widget
-                          .onPressedSynchronizer, // Usando o parâmetro aqui
+                      onPressed: widget.onPressedSynchronizer,
                     ),
                   ),
                 ],
@@ -122,7 +118,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInfoRow('Turma:', gestaoAtivaModel?.turma_descricao),
-                _buildInfoRow(
+                _buildInfoDisciplinaRow(
                   'Disciplina:',
                   gestaoAtivaModel?.is_polivalencia == 1
                       ? descricaoString
@@ -150,6 +146,33 @@ class _CustomAppBarState extends State<CustomAppBar> {
         ),
         //const SizedBox(width: 4.0),
         Expanded(
+          child: Text(
+            value ?? '...',
+            style:
+                TextStyle(color: AppTema.primaryDarkBlue, fontSize: fontText),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoDisciplinaRow(String label, String? value) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppTema.primaryDarkBlue,
+            fontSize: fontText,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        //const SizedBox(width: 4.0),
+        SizedBox(
+          width: MediaQuery.of(context).size.width / 2,
           child: Text(
             value ?? '...',
             style:

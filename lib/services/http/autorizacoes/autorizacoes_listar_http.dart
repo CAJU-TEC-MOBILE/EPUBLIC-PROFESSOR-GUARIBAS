@@ -11,7 +11,7 @@ class AutorizacoesListarHttp {
     String prefix_url =
         'notifiq-professor/autorizacoes/listar_autorizacoes_do_usuario';
     var url = Uri.parse(
-      '${ApiBaseURLService.baseUrl}/${prefix_url}',
+      '${ApiBaseURLService.baseUrl}/$prefix_url',
     );
 
     try {

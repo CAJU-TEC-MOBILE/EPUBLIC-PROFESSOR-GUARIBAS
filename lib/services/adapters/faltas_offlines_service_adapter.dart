@@ -8,7 +8,7 @@ class FaltasOfflinesServiceAdapter {
       required List<Matricula> matriculasDaTurmaAtiva,
       required List<bool?> isLiked,
       required List<dynamic> justificavasDaMatricula}) async {
-    Box<Falta> _faltasBox = Hive.box<Falta>('faltas');
+    Box<Falta> faltasBox = Hive.box<Falta>('faltas');
 
     matriculasDaTurmaAtiva.asMap().forEach((index, matricula) {
       bool salvar = true;
@@ -17,9 +17,9 @@ class FaltasOfflinesServiceAdapter {
       bool deletar_falta = false;
       int index_falta = 0;
 
-      List<Falta> _faltasData = _faltasBox.values.toList();
+      List<Falta> faltasData = faltasBox.values.toList();
 
-      _faltasData.asMap().forEach((index_falta_atual, falta) {
+      faltasData.asMap().forEach((index_falta_atual, falta) {
         if (falta.matricula_id.toString() == matricula.matricula_id &&
             falta.aula_id.toString() == criadaPeloCelular.toString()) {
           salvar = false;
@@ -39,7 +39,7 @@ class FaltasOfflinesServiceAdapter {
           salvar == false &&
           deletar_falta == false &&
           atualizar_justificativa == true) {
-        _faltasBox.putAt(
+        faltasBox.putAt(
             index_falta,
             Falta(
                 aula_id: criadaPeloCelular.toString(),
@@ -56,11 +56,11 @@ class FaltasOfflinesServiceAdapter {
           deletar_falta == true &&
           atualizar_justificativa == false &&
           isLiked[index] != false) {
-        _faltasBox.deleteAt(index_falta);
+        faltasBox.deleteAt(index_falta);
       } else {
         // CRIANDO
         if (isLiked[index] == false && salvar == true) {
-          _faltasBox.add(Falta(
+          faltasBox.add(Falta(
               aula_id: criadaPeloCelular.toString(),
               matricula_id:
                   matriculasDaTurmaAtiva[index].matricula_id.toString(),
@@ -73,25 +73,25 @@ class FaltasOfflinesServiceAdapter {
     });
 
     print("-----------------TOTAL DE FALTAS DO BOX---------------------");
-    print(_faltasBox.values.toList().length);
-    List<Falta> _faltasData = _faltasBox.values.toList();
+    print(faltasBox.values.toList().length);
+    List<Falta> faltasData = faltasBox.values.toList();
   }
 
   Future<List<Falta>> listar() async {
-    Box<Falta> _faltasBox = Hive.box<Falta>('Faltas');
-    List<Falta> _faltasData = _faltasBox.values.toList();
-    return _faltasData;
+    Box<Falta> faltasBox = Hive.box<Falta>('Faltas');
+    List<Falta> faltasData = faltasBox.values.toList();
+    return faltasData;
   }
 
   Future<List<Falta>> listarFaltasDeAulaEspecifica(
       {required String criadaPeloCelular}) async {
-    Box<Falta> _faltasBox = Hive.box<Falta>('Faltas');
-    List<Falta> _faltasData = _faltasBox.values.toList();
-    List<Falta> _faltasDataFiltro = _faltasData
+    Box<Falta> faltasBox = Hive.box<Falta>('Faltas');
+    List<Falta> faltasData = faltasBox.values.toList();
+    List<Falta> faltasDataFiltro = faltasData
         .where(
             (falta) => falta.aula_id.toString() == criadaPeloCelular.toString())
         .toList();
-    return _faltasDataFiltro;
+    return faltasDataFiltro;
   }
 
   Future<void> removerFaltasSincronizadas(List<Falta> faltas) async {
@@ -100,13 +100,13 @@ class FaltasOfflinesServiceAdapter {
     List<int> indexDeFaltasAseremRemovidasAposSincronizacao = [];
 
     faltasData.asMap().forEach((indexFalta, falta) {
-      faltas.forEach((faltaDaAula) {
+      for (var faltaDaAula in faltas) {
         if (falta.aula_id.toString() == faltaDaAula.aula_id.toString() &&
             falta.matricula_id.toString() ==
                 faltaDaAula.matricula_id.toString()) {
           indexDeFaltasAseremRemovidasAposSincronizacao.add(indexFalta);
         }
-      });
+      }
     });
 
     indexDeFaltasAseremRemovidasAposSincronizacao

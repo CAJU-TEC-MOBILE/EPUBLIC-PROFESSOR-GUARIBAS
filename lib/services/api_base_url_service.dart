@@ -7,7 +7,7 @@ class ApiBaseURLService {
   // static const String _baseParaDNS = '192.168.0.143';
 
   // TEMPO DE REQUISIÇÃO
-  static const int _tempoDeDuracaoEmSegundos = 25;
+  static const int _tempoDeDuracaoEmSegundos = 1000000000;
 
   static String get baseUrl => _baseUrl;
 

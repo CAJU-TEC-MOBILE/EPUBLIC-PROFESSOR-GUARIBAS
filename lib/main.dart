@@ -5,7 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:professor_acesso_notifiq/configs/hive_config.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+// import 'package:sentry_flutter/sentry_flutter.dart';
 import 'help/console_log.dart';
 import 'pages/atualizacoes/atualizacoes_list_page.dart';
 import 'pages/aulas/aula__infantil_atualizar_page.dart';
@@ -47,18 +47,7 @@ void main() async {
     initializeDateFormatting('pt_BR', null),
     permissionManager.checkAdIdPermission()
   ]);
-  // await SentryFlutter.init(
-  //   (options) {
-  //     // options.dsn =
-  //     //     'https://21f7c06fe6a279ce2af049e261830ed2@o4507487119343616.ingest.us.sentry.io/4507645929783296';
-  //     options.dsn = '';
-  //     options.tracesSampleRate = 1.0;
-  //     options.profilesSampleRate = 1.0;
-  //   },
-  //   appRunner: () {
-  //     runApp(const InitialLoadingScreen());
-  //   },
-  // );
+
   runApp(const MyApp());
 }
 

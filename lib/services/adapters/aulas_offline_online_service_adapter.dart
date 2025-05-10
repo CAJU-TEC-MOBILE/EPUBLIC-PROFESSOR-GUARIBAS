@@ -119,7 +119,7 @@ class AulasOfflineOnlineServiceAdapter {
               }
               //print('horariosInfantisConvertidosParaInteiro: $horariosInfantisConvertidosParaInteiro');
               // Add converted data to 'aulasFiltradasPorGestaoAtiva'
-          
+
               aulasFiltradasPorGestaoAtiva.add(
                 Aula(
                   id: aula['id'].toString(),
@@ -129,7 +129,8 @@ class AulasOfflineOnlineServiceAdapter {
                   tipoDeAula: aula['tipo_de_aula'].toString(),
                   is_polivalencia: aula['is_polivalencia'] ?? 0,
                   dataDaAula: aula['data'].toString(),
-                  disciplinas_formatted: aula['disciplinas_formatted'].toString(),
+                  disciplinas_formatted:
+                      aula['disciplinas_formatted'].toString(),
                   horarios_formatted: aula['horarios_formatted'].toString(),
                   horarios_infantis:
                       horariosInfantisConvertidosParaInteiro.isNotEmpty
@@ -180,7 +181,7 @@ class AulasOfflineOnlineServiceAdapter {
           });
         } else {
           print('Erro na requisição: ${response.statusCode}');
-          print('Erro => ' + response.body);
+          print('Erro => ${response.body}');
         }
       } else {
         // ignore: use_build_context_synchronously
@@ -233,11 +234,6 @@ class AulasOfflineOnlineServiceAdapter {
 
       if (isPolivalencia == 1 && disciplina != null) {
         for (var disc in disciplina) {
-          if (disc == null) {
-            print('Disciplina is null');
-            continue;
-          }
-
           if (disc.data == null) {
             print('Data is null for this disciplina');
             continue;
@@ -297,8 +293,8 @@ class AulasOfflineOnlineServiceAdapter {
   }
 
   void removerDadosAuth() {
-    Box _authBox = Hive.box('auth');
-    _authBox.clear(); // Remove todos os dados do Box 'auth'
+    Box authBox = Hive.box('auth');
+    authBox.clear(); // Remove todos os dados do Box 'auth'
   }
 
   Future<void> remover(Aula aula) async {
@@ -322,7 +318,8 @@ class AulasOfflineOnlineServiceAdapter {
       isPolivalencia}) async {
     try {
       AulaController aulaController = AulaController();
-      DisciplinaAulaController disciplinaAulaController = DisciplinaAulaController();
+      DisciplinaAulaController disciplinaAulaController =
+          DisciplinaAulaController();
       SerieAulaController serieAulaController = SerieAulaController();
 
       await aulaController.init();
@@ -354,8 +351,9 @@ class AulasOfflineOnlineServiceAdapter {
             criadaPeloCelular: aula.criadaPeloCelular);
       }
 
-      if(aula.multi_etapa == 1) {
-        serieAulaController.deleteSeriePeloId(criadaPeloCelularId: aula.criadaPeloCelular);
+      if (aula.multi_etapa == 1) {
+        serieAulaController.deleteSeriePeloId(
+            criadaPeloCelularId: aula.criadaPeloCelular);
       }
 
       if (isPolivalencia == 1 && disciplina != null) {

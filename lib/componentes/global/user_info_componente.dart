@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/models/auth_model.dart';
 import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';

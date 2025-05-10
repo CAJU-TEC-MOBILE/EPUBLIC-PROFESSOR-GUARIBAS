@@ -30,10 +30,6 @@ class PermissionManager {
 
   Future<void> checkAdIdPermission() async {
     final info = await MobileAds.instance.getRequestConfiguration();
-    if (info != null) {
-      print("A permissão AD_ID está disponível.");
-    } else {
-      print("A permissão AD_ID não está disponível.");
-    }
+    print("A permissão AD_ID está disponível.");
   }
 }

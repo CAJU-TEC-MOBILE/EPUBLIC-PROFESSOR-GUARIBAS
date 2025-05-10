@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:professor_acesso_notifiq/componentes/global/botao_principal_grande.dart';
 import 'package:professor_acesso_notifiq/componentes/global/user_info_componente.dart';
-import 'package:professor_acesso_notifiq/componentes/professor/dados_professor_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 
 import '../componentes/drawer/custom_drawer.dart';
@@ -73,11 +71,11 @@ class _UsuarioPageState extends State<UsuarioPage> {
       ),
       drawer: const CustomDrawer(),
       body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),  
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: SizedBox(
-            width: MediaQuery.of(context).size.width,  
+            width: MediaQuery.of(context).size.width,
             child: Stack(
               children: [
                 const UserInfoComponente(),

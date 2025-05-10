@@ -110,13 +110,13 @@ class JustificativaDialog {
     required Justificativa? justificativaSelecionada,
     required matricula,
   }) {
-    final _formKey = GlobalKey<FormState>();
-    Justificativa? _justificativaSelecionada;
-    String? _novaCategoria;
-    TimeOfDay? _horarioLembrete;
+    final formKey = GlobalKey<FormState>();
+    Justificativa? justificativaSelecionada0;
+    String? novaCategoria;
+    TimeOfDay? horarioLembrete;
 
     return Form(
-      key: _formKey,
+      key: formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -131,7 +131,7 @@ class JustificativaDialog {
             justificativas: justificativas,
             justificativaSelecionada: justificativaSelecionada,
             onChanged: (value) {
-              _justificativaSelecionada = value;
+              justificativaSelecionada0 = value;
             },
           ),
           const SizedBox(height: 16.0),
@@ -176,7 +176,7 @@ class JustificativaDialog {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
-                if (_formKey.currentState?.validate() ?? false) {
+                if (formKey.currentState?.validate() ?? false) {
                   CustomDialogs.showLoadingDialog(context, show: true);
 
                   final directorie = DirectoriesController();
@@ -191,10 +191,11 @@ class JustificativaDialog {
                   List<File> files = await directorie.getodosArquivosAnexos();
 
                   bool result = await faltas.setJustificarFalta(
+                    context: context,
                     matriculaId: matricula['matricula_id'].toString(),
                     aulaId: matricula['aula_id'].toString(),
                     observacao: '',
-                    justificativaId: _justificativaSelecionada!.id.toString(),
+                    justificativaId: justificativaSelecionada0!.id.toString(),
                     files: files,
                   );
 

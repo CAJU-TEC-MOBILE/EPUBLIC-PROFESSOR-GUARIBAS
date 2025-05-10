@@ -72,7 +72,7 @@ class Auth {
     Professor? professor,
   }) {
     return Auth(
-      id: this.id,
+      id: id,
       anoId: anoId ?? this.anoId,
       name: name ?? this.name,
       email: email ?? this.email,
