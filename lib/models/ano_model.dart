@@ -33,7 +33,7 @@ class Ano {
     return Ano(
       id: json['id'],
       descricao: json['descricao'],
-      situacao: json['situacao'],
+      situacao: json['situacao'].toString(),
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       deleteAt: json['deleteAt'],

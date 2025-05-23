@@ -56,7 +56,7 @@ android {
         applicationId = 'br.com.servidorcaju.guaribas'
         minSdkVersion = 21
         targetSdkVersion = 36
-        versionCode 11
+        versionCode 8
         versionName "5.0.10.5513"
         multiDexEnabled true
     }
@@ -88,6 +88,7 @@ android {
     release {
             // Temporariamente usando a chave de debug para evitar erro de senha
             signingConfig signingConfigs.release
+
 
             minifyEnabled true
             shrinkResources true
@@ -126,11 +127,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-
-    // Adicione a dependência do MultiDex
     implementation 'androidx.multidex:multidex:2.0.1'
-
-    // Outras dependências
+    implementation 'com.google.android.play:integrity:1.4.0'
 }
 
 flutter {

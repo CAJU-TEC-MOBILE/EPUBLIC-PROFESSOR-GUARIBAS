@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
 
         var response = await AuthHttp.logar(context, email, password);
 
-        debugPrint('status-login: ${response.statusCode.toString()}');
+        // debugPrint('status-login: ${response.statusCode.toString()}');
 
         if (response.statusCode != 200) {
           enabledTextFormField = true;
@@ -223,30 +223,23 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   configuracaoEnv();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    configuracaoEnv();
+    // _emailController.text = '77777777777';
+    // _passwordController.text = '01012000';
+  }
 
   @override
   Widget build(BuildContext context) {
     configuracaoEnv();
-    //_emailController.text = '08171188370';
-    //_passwordController.text = '02091999';
-
-    // _emailController.text = '60011558369';
-    // _passwordController.text = '13051972';
-
-    // _emailController.text = '91710855304';
-    // _passwordController.text = '25021966';
-
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         return false;
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
             Container(
