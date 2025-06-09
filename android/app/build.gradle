@@ -56,8 +56,8 @@ android {
         applicationId = 'br.com.servidorcaju.guaribas'
         minSdkVersion = 21
         targetSdkVersion = 36
-        versionCode 8
-        versionName "5.0.10.5513"
+        versionCode 9
+        versionName "5.0.10.5949"
         multiDexEnabled true
     }
 

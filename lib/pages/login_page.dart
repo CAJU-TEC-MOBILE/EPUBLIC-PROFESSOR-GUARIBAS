@@ -24,7 +24,6 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -87,8 +86,6 @@ class _LoginPageState extends State<LoginPage> {
 
         var response = await AuthHttp.logar(context, email, password);
 
-        // debugPrint('status-login: ${response.statusCode.toString()}');
-
         if (response.statusCode != 200) {
           enabledTextFormField = true;
           _isLoading = false;
@@ -142,29 +139,10 @@ class _LoginPageState extends State<LoginPage> {
             userId: responseJson['user']['id']?.toString() ?? '',
           );
 
-          // await anoSelecionadoController.setAnoPorAuth(anoId: responseJson['user']['ano_id'].toString());
-
-          // CustomSnackBar.showSuccessSnackBar(
-          //   context,
-          //   'Usuário logado com sucesso!',
-          // );
-          // ignore: use_build_context_synchronously
-          // SnackBarServiceWidget.mostrarSnackBar(context,
-          //     mensagem: 'Usuário logado com sucesso!',
-          //     backgroundColor: AppTema.success,
-          //     icon: Icons.check_circle,
-          //     iconColor: Colors.white);
-
-          // ignore: use_build_context_synchronously
           Navigator.pushNamed(context, '/home');
         } else if (response.statusCode == 401) {
           enabledTextFormField = true;
-          // ignore: use_build_context_synchronously
-          // SnackBarServiceWidget.mostrarSnackBar(context,
-          //     mensagem: 'CPF ou/e senha incorreto(s)',
-          //     backgroundColor: const Color.fromARGB(255, 219, 178, 67),
-          //     icon: Icons.error_outline,
-          //     iconColor: Colors.white);
+
           CustomSnackBar.showInfoSnackBar(
             context,
             'CPF ou/e senha incorreto(s).',
@@ -173,49 +151,15 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           enabledTextFormField = true;
           setState(() {});
-          //print('2');
-          //print(response.body);
-          // ignore: use_build_context_synchronously
-          // SnackBarServiceWidget.mostrarSnackBar(context,
-          //     mensagem: 'Erro de conexão',
-          //     backgroundColor: Colors.red,
-          //     icon: Icons.error_outline,
-          //     iconColor: Colors.white);
-          // CustomSnackBar.showErrorSnackBar(
-          //   context,
-          //   'Erro de conexão.',
-          // );
         }
       } catch (e) {
         enabledTextFormField = true;
-        //print('error-login: $e');
+
         setState(() {});
-        //print(e);
-        // ignore: use_build_context_synchronously
-        // SnackBarServiceWidget.mostrarSnackBar(context,
-        //     mensagem: 'Erro de conexão',
-        //     backgroundColor: Colors.red,
-        //     icon: Icons.error_outline,
-        //     iconColor: Colors.white);
-        // CustomSnackBar.showErrorSnackBar(
-        //   context,
-        //   'Erro de conexão.',
-        // );
       }
     } else {
       enabledTextFormField = true;
       setState(() {});
-      //print('else conected');
-      // ignore: use_build_context_synchronously
-      // SnackBarServiceWidget.mostrarSnackBar(context,
-      //     mensagem: 'Erro de conexão',
-      //     backgroundColor: Colors.red,
-      //     icon: Icons.error_outline,
-      //     iconColor: Colors.white);
-      // CustomSnackBar.showErrorSnackBar(
-      //   context,
-      //   'Erro de conexão.',
-      // );
     }
     setState(() {
       _isLoading = false;
@@ -227,8 +171,6 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     configuracaoEnv();
-    // _emailController.text = '77777777777';
-    // _passwordController.text = '01012000';
   }
 
   @override
@@ -250,7 +192,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            // Conteúdo do formulário
             SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15, top: 180),
@@ -318,8 +259,8 @@ class _LoginPageState extends State<LoginPage> {
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
-                                          ? Icons.visibility
-                                          : Icons.visibility_off,
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -379,7 +320,8 @@ class _LoginPageState extends State<LoginPage> {
                                           child: CircularProgressIndicator(
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                    Colors.white),
+                                              Colors.white,
+                                            ),
                                             strokeWidth: 2.0,
                                           ),
                                         )

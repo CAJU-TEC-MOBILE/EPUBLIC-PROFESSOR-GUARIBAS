@@ -20,6 +20,9 @@ class ProfessorHttp {
 
       Map<dynamic, dynamic>? authData = await _getAuthData();
 
+      print("prefixUrl: $prefixUrl");
+      print(authData!['token_atual']);
+
       if (authData == null || authData['token_atual'] == null) {
         throw Exception('Token not found');
       }
@@ -27,8 +30,6 @@ class ProfessorHttp {
       var url = Uri.parse(
         '${ApiBaseURLService.baseUrl}/$prefixUrl',
       );
-
-      // print(authData['token_atual']);
 
       var headers = {
         'Content-Type': 'application/json',

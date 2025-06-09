@@ -96,14 +96,14 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   bool statusPeriudo = false;
   String statusDaAutorizacao = 'INICIO';
   List<String> tipos = [
-    'Aula Normal',
-    'Aula Remota',
-    'Reposição',
-    'Aula Extra',
-    'Substituição',
-    'Aula Antecipada',
-    'Aula Extra-Atividade',
-    'Recuperação'
+    "Aula Remota",
+    "Aula Normal",
+    "Reposição",
+    "Aula Extra",
+    "Substituição",
+    "Aula Antecipada",
+    "Atividade Extra-classe",
+    "Recuperação",
   ];
   List<TextEditingController> controllers = [];
   TextEditingController controller = TextEditingController();
@@ -766,15 +766,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text(
-                  'Ok',
-                  style: TextStyle(color: AppTema.primaryDarkBlue),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
                   setState(() {
                     selectedDisciplinas.clear();
                     // print(selectedDisciplinas);
@@ -788,6 +779,17 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                 child: const Text(
                   'Limpar Seleções',
                   style: TextStyle(color: AppTema.primaryDarkBlue),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text(
+                  'Confirmar',
+                  style: TextStyle(
+                    color: AppTema.primaryDarkBlue,
+                  ),
                 ),
               ),
             ],

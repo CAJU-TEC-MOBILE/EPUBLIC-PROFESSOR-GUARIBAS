@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:professor_acesso_notifiq/componentes/autorizacoes/aviso_de_regra_autorizacoes_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
@@ -28,8 +26,6 @@ import 'package:professor_acesso_notifiq/services/adapters/autorizacoes_service.
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/regras_logicas/autorizacoes/listar_unica_autorizacao_por_etapa_e_gestao_e_ultimoItem_regra_logica.dart';
 import 'package:professor_acesso_notifiq/services/http/autorizacoes/autorizacoes_listar_http.dart';
-import 'dart:ui' as ui;
-import '../../componentes/aulas/custom_disciplina_field.dart';
 import '../../componentes/button/custom_calendario_button.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../help/data_time.dart';
@@ -443,13 +439,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text('Ok',
-                    style: TextStyle(color: AppTema.primaryDarkBlue)),
-              ),
-              TextButton(
-                onPressed: () {
                   setState(() {
                     selectedDisciplinas.clear();
                     for (var item in disciplinas) {
@@ -462,6 +451,17 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                 child: const Text(
                   'Limpar Seleções',
                   style: TextStyle(color: AppTema.primaryDarkBlue),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text(
+                  'Confirmar',
+                  style: TextStyle(
+                    color: AppTema.primaryDarkBlue,
+                  ),
                 ),
               ),
             ],

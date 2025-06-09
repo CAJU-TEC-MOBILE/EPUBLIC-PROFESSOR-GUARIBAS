@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +6,6 @@ import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/corrigir_data_completa_americana_para_ano_mes_dia_somente.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/data/retornar_dia_da_semana.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/gerar_uuid_identificador.dart';
-import 'package:professor_acesso_notifiq/functions/textos/retornar_texto_com_primeira_letra_maiuscula.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
 import 'package:professor_acesso_notifiq/models/relacao_dia_horario_model.dart';
@@ -15,12 +13,9 @@ import 'package:professor_acesso_notifiq/models/sistema_bncc_model.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aula_sistema_bncc_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:professor_acesso_notifiq/services/adapters/sistema_bncc_service_adapter.dart';
 import 'package:professor_acesso_notifiq/functions/boxs/horarios/remover_horarios_repetidos.dart';
-
-import '../../componentes/button/custom_calendario_button.dart';
 import '../../componentes/button/custom_calendario_infantil_button.dart';
 import '../../componentes/dialogs/custom_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
@@ -88,7 +83,16 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
   String fimPeriodoEtapa = '';
   List<String>? semanas;
   final _popupBuilderKey = GlobalKey<DropdownSearchState<SistemaBncc>>();
-  List<String> tipos = [];
+  List<String> tipos = [
+    "Aula Remota",
+    "Aula Normal",
+    "Reposição",
+    "Aula Extra",
+    "Substituição",
+    "Aula Antecipada",
+    "Atividade Extra-classe",
+    "Recuperação",
+  ];
 
   List<String> experiencias = [
     "O eu, o outro e o nós",
@@ -111,7 +115,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
   void initState() {
     super.initState();
     gestaoAtivaDias();
-    getTipos();
+    // getTipos();
     carregarDados(criadaPeloCelularId: widget.aulaLocalId);
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
@@ -321,7 +325,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
         for (var aula in aulas) {
           setState(() => _dataSelecionada = DateTime.tryParse(aula.dataDaAula));
           setState(() => _diaDaSemana = aula.dia_da_semana.toString());
-          debugPrint('experiencias: $experiencias');
+          // debugPrint('experiencias: $experiencias');
           carregarExperienciaSelecionada(aula.experiencias);
           carregarTipoSelecionada(aula.tipoDeAula);
           carregarDataSelecionada(aula.dataDaAula);
@@ -575,7 +579,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                               Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 child: const Text(
-                                  'Tipo de Aula',
+                                  'Tipo de aula',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.black),
                                 ),
@@ -635,7 +639,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                               Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 child: const Text(
-                                  'Data da Aula',
+                                  'Selecione uma data',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.black),
                                 ),
@@ -714,7 +718,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 10),
                                       child: const Text(
-                                        'Dia da Semana',
+                                        'Dia da semana',
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.black),
                                       ),
@@ -745,13 +749,15 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                                             margin: const EdgeInsets.only(
                                                 bottom: 10),
                                             child: const Text(
-                                              'Selecione o Horário',
+                                              'Selecione um horário',
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black),
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
                                             ),
-                                          ))
-                                      : const Text(''),
+                                          ),
+                                        )
+                                      : const SizedBox(),
                                   _aula_selecionada != 'Aula Remota'
                                       ? Container(
                                           decoration: BoxDecoration(
@@ -917,11 +923,13 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                                   const SizedBox(height: 16.0),
                                   Container(
                                     margin: const EdgeInsets.only(
-                                        bottom: 10, top: 15),
+                                      bottom: 10,
+                                      top: 15,
+                                    ),
                                     child: const Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        'Eixos Temáticos',
+                                        'Eixos temáticos',
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.black),
                                       ),
@@ -1316,7 +1324,7 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                                     child: const Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(
-                                        'Campos de Experiência',
+                                        'Campos de experiencias',
                                         style: TextStyle(
                                             fontSize: 16, color: Colors.black),
                                       ),

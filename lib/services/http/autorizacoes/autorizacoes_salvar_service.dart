@@ -33,9 +33,10 @@ class ApiSalvarAutorizacoesService {
     required String dataFimEtapa,
     required String circuitoId,
   }) async {
+    print("=========================================================");
     String dataAtual = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    final Map<String, dynamic> data = {
+    Map<String, dynamic> data = {
       'pedido_id': pedidoID,
       'instrutorDisciplinaTurma_id': instrutorDisciplinaTurmaID,
       'etapa_id': etapaID,
@@ -69,12 +70,15 @@ class ApiSalvarAutorizacoesService {
         },
         body: jsonEncode(data),
       );
+      print(data);
+      print("url: $_prefixUrl");
+      print("token: ${authModel.tokenAtual.toString()}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         var data = json.decode(response.body);
 
         final model = Pedido(
-          id: data['autorizacao']['id'].toString(),
+          id: userAprovadorID,
           descricao: '',
           avaliador_id: avaliadorId,
           situacao: AutorizacoesStatusConst.pendente,
@@ -91,9 +95,8 @@ class ApiSalvarAutorizacoesService {
           circuito_id: circuitoId,
         );
         await _envioPedido(model);
+        await _tratarResposta(context, response);
       }
-
-      await _tratarResposta(context, response);
     } catch (error) {
       hideLoading(context);
       _mostrarSnackBarErro(context, 'Ocorreu um erro inesperado');
