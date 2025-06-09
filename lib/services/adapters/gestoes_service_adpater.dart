@@ -156,7 +156,7 @@ class GestoesService {
           for (var item in gestaoList) {
             if (item['disciplinas'] != null) {
               for (var disciplina in item['disciplinas']) {
-                debugPrint("-> $disciplina");
+                // debugPrint("-> $disciplina");
                 final itemDisciplina = Disciplina(
                   id: disciplina['id'].toString(),
                   idtTurmaId: disciplina['idt_turma_id'].toString(),

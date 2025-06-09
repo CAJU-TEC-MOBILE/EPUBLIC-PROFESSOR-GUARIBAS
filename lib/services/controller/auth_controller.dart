@@ -19,7 +19,7 @@ class AuthController {
 
   Future<Auth?> getAuth() async {
     if (box.isEmpty) {
-      print('---> O Box está vazio.');
+      // print('---> O Box está vazio.');
       return null;
     }
 
@@ -60,7 +60,7 @@ class AuthController {
 
   Future<void> updateAnoId({required int anoId}) async {
     if (box.isEmpty) {
-      print('---> O Box está vazio.');
+      // print('---> O Box está vazio.');
       return;
     }
 
@@ -84,7 +84,7 @@ class AuthController {
 
   Future<Auth?> updateAuthProfessor(Professor novoProfessor) async {
     if (box.isEmpty) {
-      print('---> O Box está vazio.');
+      // print('---> O Box está vazio.');
       return null;
     }
 

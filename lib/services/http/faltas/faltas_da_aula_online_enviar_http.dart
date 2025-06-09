@@ -207,7 +207,7 @@ class FaltasDaAulaOnlineEnviarHttp {
             String fileName = path.basename(file.path);
 
             base64Files.add({'filename': fileName, 'filedata': base64String});
-            debugPrint('-> ${base64Files.first.toString()}');
+            // debugPrint('-> ${base64Files.first.toString()}');
           } catch (e) {
             print('❌ Erro ao converter arquivo ${file.path} para Base64: $e');
             CustomSnackBar.showErrorSnackBar(
