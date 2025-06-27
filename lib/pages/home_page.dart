@@ -37,35 +37,54 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool loadingCard = false;
   AnoController anoController = AnoController();
+  final authController = AuthController();
   Map<dynamic, dynamic> gestao_ativa_data = {};
 
-  Auth? authModel;
-  Professor? professor;
+  AuthModel? authModel;
+  Professor professor = Professor.vazio();
   GestaoAtiva? gestaoAtivaModel;
   AulaTotalizador? totalizadorAula;
 
   Future<void> getInformacoes() async {
-    professor = AuthServiceAdapter().exibirProfessor();
+    try {
+      await authController.init();
+      professor = await authController.authProfessorFirst();
 
-    if (professor == null) {
-      return;
+      if (professor.id == '') {
+        return;
+      }
+
+      await getDados();
+      gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+      await getHomeAula(professor: professor);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'get-informacoes',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
-
-    await getDados();
-    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-    await getHomeAula(professor: professor);
   }
 
   Future<void> realizarSincronizacaoGeral() async {
-    professor = AuthServiceAdapter().exibirProfessor();
+    try {
+      await authController.init();
+      professor = await authController.authProfessorFirst();
 
-    if (professor == null) {
-      return;
+      if (professor.id == '') {
+        return;
+      }
+
+      await getDados();
+      gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+      await getHomeAulaGeral(professor: professor);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'realizar0-sincronizacao-geral',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
-
-    await getDados();
-    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-    await getHomeAulaGeral(professor: professor);
   }
 
   @override

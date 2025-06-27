@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:professor_acesso_notifiq/models/professor_model.dart';
-import 'package:professor_acesso_notifiq/services/adapters/auth_service_adapter.dart';
-
 import '../../help/console_log.dart';
+import '../../services/controller/auth_controller.dart';
 
 class DadosProfessorComponente extends StatefulWidget {
   const DadosProfessorComponente({super.key});
@@ -13,35 +12,34 @@ class DadosProfessorComponente extends StatefulWidget {
 }
 
 class _DadosProfessorComponenteState extends State<DadosProfessorComponente> {
-  Professor? professor;
-
+  Professor professor = Professor.vazio();
+  final authController = AuthController();
   @override
   void initState() {
     super.initState();
     // carregarDados();
   }
 
-  void carregarDados() {
+  Future<void> carregarDados() async {
     try {
-      AuthServiceAdapter authService = AuthServiceAdapter();
-      Professor professorData = authService.exibirProfessor();
+      await authController.init();
+      professor = await authController.authProfessorFirst();
 
-      if (professorData.id != null) {
-        setState(() {
-          professor = professorData;
-        });
+      if (professor.id == '') {
+        setState(() => professor);
         ConsoleLog.mensagem(
           titulo: 'Sucesso: dados do professor',
           mensagem: professor.toString(),
           tipo: 'sucesso',
         );
-      } else {
-        ConsoleLog.mensagem(
-          titulo: 'Aviso',
-          mensagem: 'Nenhum dado disponível para o professor.',
-          tipo: 'aviso',
-        );
+
+        return;
       }
+      ConsoleLog.mensagem(
+        titulo: 'Aviso',
+        mensagem: 'Nenhum dado disponível para o professor.',
+        tipo: 'aviso',
+      );
     } catch (e) {
       ConsoleLog.mensagem(
         titulo: 'Erro ao carregar dados do professor',
@@ -53,7 +51,7 @@ class _DadosProfessorComponenteState extends State<DadosProfessorComponente> {
 
   @override
   Widget build(BuildContext context) {
-    return professor!.id.isNotEmpty
+    return professor.id != ''
         ? Column(
             children: [
               Container(

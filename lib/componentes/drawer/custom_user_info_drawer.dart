@@ -17,7 +17,7 @@ class CustomUserInfoDrawer extends StatefulWidget {
 }
 
 class _CustomUserInfoDrawerState extends State<CustomUserInfoDrawer> {
-  Auth? authModel;
+  AuthModel? authModel;
   GestaoAtiva? gestaoAtivaModel;
   double fontText = 16.0;
   bool isLoading = true;

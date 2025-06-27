@@ -12,7 +12,7 @@ import '../../pages/sobre/sobre_o_app_page.dart';
 import '../../pages/usuarioPage.dart';
 import '../../services/adapters/auth_service_adapter.dart';
 import '../../services/controller/professor_controller.dart';
-import '../dropdown/custom_ano_dropdown.dart';
+import '../../services/shared_preference_service.dart';
 import '../dropdown/custom_anos_dropdown.dart';
 import 'custom_user_info_drawer.dart';
 
@@ -25,7 +25,8 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  Auth? authModel;
+  final preference = SharedPreferenceService();
+  AuthModel? authModel;
   GestaoAtiva? gestaoAtivaModel;
   double fontText = 16.0;
   bool isLoading = true;
@@ -230,9 +231,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            await preference.init();
+                            await removerDadosAuth();
+                            await preference.limparDados();
                             Navigator.pushReplacementNamed(context, '/login');
-                            removerDadosAuth();
                           },
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.grey[300],

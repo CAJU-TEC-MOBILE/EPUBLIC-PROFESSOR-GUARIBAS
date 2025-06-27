@@ -22,7 +22,7 @@ class _PedidoPageState extends State<PedidoPage> {
   final pedidoController = PedidoController();
   List<Pedido> pedidos = [];
   bool status = false;
-  Auth authModel = AuthServiceAdapter().exibirAuth();
+  AuthModel authModel = AuthServiceAdapter().exibirAuth();
   final autorizacoesListarHttp = AutorizacoesListarHttp();
   @override
   void initState() {

@@ -50,14 +50,15 @@ android {
     
     namespace = 'br.com.servidorcaju.guaribas'
     compileSdkVersion = 36
-    ndkVersion = "25.1.8937393"
+    // ndkVersion = "25.1.8937393"
+    ndkVersion = "26.3.11579264"
     // ndkVersion flutter.ndkVersion
     defaultConfig {
         applicationId = 'br.com.servidorcaju.guaribas'
-        minSdkVersion = 21
+        minSdkVersion = 23
         targetSdkVersion = 36
-        versionCode 9
-        versionName "5.0.10.5949"
+        versionCode 10
+        versionName "5.0.11.5949"
         multiDexEnabled true
     }
 

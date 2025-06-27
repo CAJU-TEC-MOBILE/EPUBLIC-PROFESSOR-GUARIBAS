@@ -8,6 +8,7 @@ import 'package:professor_acesso_notifiq/services/adapters/auth_service_adapter.
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
 import '../../services/camera/camera_controller.dart';
 import '../../services/connectivity/internet_connectivity_service.dart';
+import '../../services/controller/auth_controller.dart';
 import '../../services/controller/professor_controller.dart';
 import '../../services/directories/directories_controller.dart';
 import '../../services/http/auth/auth_http.dart';
@@ -21,7 +22,7 @@ class UserInfoComponente extends StatefulWidget {
 }
 
 class _UserInfoComponenteState extends State<UserInfoComponente> {
-  Auth? authModel;
+  AuthModel? authModel;
   GestaoAtiva? gestaoAtivaModel;
   double fontText = 16.0;
   bool isLoading = true;
@@ -31,6 +32,8 @@ class _UserInfoComponenteState extends State<UserInfoComponente> {
   Professor? professor;
   File? _image;
   final CameraController _cameraController = CameraController();
+  final authController = AuthController();
+  final professorController = ProfessorController();
 
   Future<void> _getImage() async {
     DirectoriesController directoriesController = DirectoriesController();
@@ -88,12 +91,13 @@ class _UserInfoComponenteState extends State<UserInfoComponente> {
   }
 
   Future<void> getInformacoes() async {
-    final professorController = ProfessorController();
     await professorController.init();
-    authModel = AuthServiceAdapter().exibirAuth();
-    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+    await authController.init();
+
+    authModel = await authController.authFirst();
     professor = await professorController.getProfessor();
-    setState(() => professor);
+    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+
     await getUserImage();
     if (gestaoAtivaModel != null) {
       setState(() {
@@ -101,6 +105,11 @@ class _UserInfoComponenteState extends State<UserInfoComponente> {
         edgeInsetCard = 0.0;
       });
     }
+
+    setState(() {
+      professor;
+      gestaoAtivaModel;
+    });
   }
 
   @override

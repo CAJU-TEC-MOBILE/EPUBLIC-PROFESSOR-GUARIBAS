@@ -202,7 +202,7 @@ class Pedido {
   }
 
   Future<String>? get solicitante async {
-    Auth authModel = AuthServiceAdapter().exibirAuth();
+    AuthModel authModel = AuthServiceAdapter().exibirAuth();
     return authModel.name;
   }
 

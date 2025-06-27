@@ -47,7 +47,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   final TextEditingController _metodologiaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pedidoController = PedidoController();
-  Auth authModel = AuthServiceAdapter().exibirAuth();
+  AuthModel authModel = AuthServiceAdapter().exibirAuth();
 
   var _disciplinas_selecionada;
   String? _errorText;
@@ -70,9 +70,9 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   List<Etapa>? listaDeEtapas;
   Etapa? etapaSelecionada;
   GestaoAtiva? gestaoAtivaModel;
-  List<Autorizacao> autorizacoesDoUsuario =
+  List<AutorizacaoModel> autorizacoesDoUsuario =
       AutorizacoesServiceAdapter().listar();
-  Autorizacao? autorizacaoSelecionada;
+  AutorizacaoModel? autorizacaoSelecionada;
   String statusDaAutorizacao = 'INICIO';
 
   String? instrutorDisciplinaTurmaId;
@@ -99,7 +99,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       userId: authModel.id,
       circuitoId: circuitoId,
     );
-    // debugPrint("status: $status");
+
     setState(() => situacaoStatus = status);
   }
 
@@ -112,7 +112,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   void _validadePeriodoEtapa() {
     try {
       if (etapa_selecionada_objeto == null) {
-        //debugPrint("Sem etapa selecionada.");
         return;
       }
       String dataAtualStr = DataTime.getDataAtualFormatoISO();
@@ -126,10 +125,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       if (dataAtual.isAfter(dataInicial.subtract(const Duration(days: 1))) &&
           dataAtual.isBefore(dataFinal.add(const Duration(days: 1)))) {
         setState(() => statusPeriudo = true);
-        // debugPrint("A data atual está dentro do período. $statusPeriudo");
+
         return;
       }
-      // debugPrint("A data atual está FORA do período. $statusPeriudo");
+
       setState(() => statusPeriudo = false);
     } catch (e) {
       setState(() => statusPeriudo = false);
@@ -154,14 +153,13 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   void initState() {
     super.initState();
     _situacao();
-    //atualizarAutorizacoes();
+
     getDisciplinas();
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
     gestaoAtivaModel?.circuito.etapas;
     listaDeEtapas = filtrarEtapasPorGestaoAtiva();
-    // listaFiltradaDeHorarios = filtrarListaDeObjetoPorCondicaoUnica(
-    //     lista_de_objetos: horarios_data!, condicao: gestaoAtivaModel?.turno_id);
+
     listaFiltradaDeHorariosPorHorariosDaColunaDaGestao =
         gestaoAtivaModel?.relacoesDiasHorarios;
     listaFiltradaDeHorariosPorHorariosDaColunaDaGestao
@@ -235,7 +233,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       );
       return;
     }
-    //print('gestaoAtivaModel?.idt_id.toString(): ${gestaoAtivaModel?.idt_id.toString()}');
+
     var aula = Aula(
       id: '',
       e_aula_infantil: 0,
@@ -258,7 +256,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
       campos_de_experiencias: selectedExperiencias.toString(),
       is_polivalencia: gestaoAtivaModel!.is_polivalencia ?? 0,
-      //instrutorDisciplinaTurma_id: instrutorDisciplinaTurmaId.toString(),
       eixos: '',
       estrategias: '',
       recursos: '',
@@ -286,17 +283,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     Navigator.pushNamed(context, '/index-fundamental');
   }
 
-  // DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
-  //     DateTime data) {
-  //   print(int.parse(data.weekday.toString()) - 1);
-  //   print('135115531');
-  //   print(DateTime.now());
-  //   // while (data.weekday != 3) {
-  //   //   data = data.add(Duration(days: 1));
-  //   // }
-  //   return data.add(Duration(days: 2));
-  // }
-
   DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
       DateTime data) {
     if (diasParaSeremExibidosNoCalendario.isNotEmpty) {
@@ -310,31 +296,24 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   Future<void> _mostrarCalendario(BuildContext context) async {
     for (var element in listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!) {
       if (int.parse(element.dia.id) == 0) {
-        // diasParaSeremExibidosNoCalendario?.add('monday');
         diasParaSeremExibidosNoCalendario.add(1);
       }
       if (int.parse(element.dia.id) == 1) {
-        // diasParaSeremExibidosNoCalendario.add('tuesday');
         diasParaSeremExibidosNoCalendario.add(2);
       }
       if (int.parse(element.dia.id) == 2) {
-        // diasParaSeremExibidosNoCalendario.add('wednesday');
         diasParaSeremExibidosNoCalendario.add(3);
       }
       if (int.parse(element.dia.id) == 3) {
-        // diasParaSeremExibidosNoCalendario.add('thursday');
         diasParaSeremExibidosNoCalendario.add(4);
       }
       if (int.parse(element.dia.id) == 4) {
-        // diasParaSeremExibidosNoCalendario.add('friday');
         diasParaSeremExibidosNoCalendario.add(5);
       }
       if (int.parse(element.dia.id) == 5) {
-        // diasParaSeremExibidosNoCalendario.add('saturday');
         diasParaSeremExibidosNoCalendario.add(6);
       }
       if (int.parse(element.dia.id) == 6) {
-        // diasParaSeremExibidosNoCalendario.add('sunday');
         diasParaSeremExibidosNoCalendario.add(7);
       }
     }
@@ -353,7 +332,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
             }
           }
           return diaDaSemanaParaSerExibido;
-          // return day.weekday == DateTime.tuesday || day.weekday == DateTime.thursday;
         },
       );
       if (dataSelecionada != null) {
@@ -535,9 +513,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
 
       verificarSeExistemAutorizacoesParaEssaEtapaEgestao();
       await gestaoAtivaDias();
-
-      // debugPrint('_etapa_selecionada: $_etapa_selecionada');
-      // debugPrint('etapa_selecionada_objeto: $etapa_selecionada_objeto');
     } catch (e) {
       debugPrint(
         'Erro ao processar a seleção da etapa ($novaSelecao): $e',
@@ -605,7 +580,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // !! SELECIONAR A ETAPA !!
                               Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 child: const Text(
@@ -686,9 +660,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                       situacaoStatus != 'PENDENTE'
                                   ? Container(
                                       margin: const EdgeInsets.only(
-                                          // left: 15,
-                                          top: 10,
-                                          bottom: 10),
+                                          top: 10, bottom: 10),
                                       child: Card(
                                         elevation: 0.0,
                                         color: AppTema.primaryAmarelo,
@@ -769,13 +741,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                         statusPeriudo: statusPeriudo,
                                       ),
                                     )
-                                  : const SizedBox(), // aqui
-                              // Text(data_etapa_valida.toString()),
-                              // Text(etapa_selecionada_objeto.toString()),
-                              // Text(situacaoStatus.toString()),
-                              // Text(autorizacaoSelecionada.toString()),
-                              // !! CONTAINER GERAL DOS FORMULÁRIO !!
-                              ((data_etapa_valida && // !! LÓGICA PARA MOSTRAR CAMPO DE CRIAR AULA OU NÃO !!
+                                  : const SizedBox(),
+                              ((data_etapa_valida &&
                                           etapa_selecionada_objeto != null) ||
                                       (etapa_selecionada_objeto != null &&
                                           situacaoStatus == 'APROVADO' &&
@@ -867,7 +834,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                           const SizedBox(
                                             height: 5,
                                           ),
-                                          // !! SELECIONAR A DATA !!
                                           Container(
                                             margin: const EdgeInsets.only(
                                                 bottom: 10),
@@ -878,9 +844,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                   color: Colors.black),
                                             ),
                                           ),
-                                          // Text(inicioPeriodoEtapa),
-                                          // Text(fimPeriodoEtapa),
-                                          // Text(semanas.toString()),
                                           Column(
                                             children: [
                                               CustomCalendarioButton(
@@ -909,7 +872,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                         const SizedBox(
                                                           height: 16.0,
                                                         ),
-                                                        // // !! DIA DA SEMANA !!
                                                         Align(
                                                           alignment: Alignment
                                                               .centerLeft,
@@ -964,7 +926,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                       1
                                                   ? Column(
                                                       children: [
-                                                        // !! SELECIONAR UM HORÁRIO !!
                                                         _aula_selecionada !=
                                                                 'Aula Remota'
                                                             ? Align(
@@ -1090,8 +1051,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                       ],
                                                     )
                                                   : const SizedBox(),
-
-                                              // !! CONTEÚDO !!
                                               gestaoAtivaModel
                                                           ?.is_polivalencia ==
                                                       1
@@ -1137,7 +1096,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             ),
                                                           ),
                                                         ),
-                                                        //Text(selectedDisciplinas.toString()),
                                                         Container(
                                                           margin:
                                                               const EdgeInsets
@@ -1156,7 +1114,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             ),
                                                           ),
                                                         ),
-
                                                         selectedDisciplinas
                                                                 .isNotEmpty
                                                             ? Card(
@@ -1187,7 +1144,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                                                   children: [
                                                                                     _buildLabel('${item.descricao.toString()}:'),
-                                                                                    //DisciplinaField(item: item,elemente:elemente, returnAndovalor: elemente['contexto']),
                                                                                     TextFormField(
                                                                                       maxLines: 8,
                                                                                       decoration: InputDecoration(
@@ -1225,10 +1181,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                                       padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                                                                                       child: Container(
                                                                                         decoration: BoxDecoration(
-                                                                                          borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                                                                                          borderRadius: BorderRadius.circular(8.0),
                                                                                           border: Border.all(
-                                                                                            color: Colors.grey, // Custom border color
-                                                                                            width: 1.0, // Custom border width
+                                                                                            color: Colors.grey,
+                                                                                            width: 1.0,
                                                                                           ),
                                                                                         ),
                                                                                         child: MultiSelectDialogField<int>(
@@ -1241,10 +1197,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                                               )
                                                                                               .toList(),
                                                                                           listType: MultiSelectListType.CHIP,
-                                                                                          initialValue: horarios, // Use the extracted 'horarios'
+                                                                                          initialValue: horarios,
                                                                                           searchIcon: const Icon(Icons.search),
                                                                                           title: const Text('Horários'),
-                                                                                          searchHint: 'Pesquisar', // Search hint in Portuguese
+                                                                                          searchHint: 'Pesquisar',
                                                                                           cancelText: const Text(
                                                                                             'Cancelar',
                                                                                             style: TextStyle(
@@ -1263,7 +1219,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                                           buttonIcon: const Icon(Icons.arrow_drop_down),
                                                                                           selectedColor: AppTema.secondaryAmarelo,
                                                                                           selectedItemsTextStyle: const TextStyle(
-                                                                                            color: Colors.white, // Selected text color
+                                                                                            color: Colors.white,
                                                                                           ),
                                                                                           onConfirm: (List<int> selected) async {
                                                                                             bool status = await validatePolivalenciaHorarios(
@@ -1372,7 +1328,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                       ],
                                                     )
                                                   : const SizedBox(),
-                                              // !! METODOLOGIA !!
                                               Container(
                                                 margin: const EdgeInsets.only(
                                                     bottom: 10, top: 15),
@@ -1423,24 +1378,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                   ),
                                                 ),
                                               ),
-                                              /*Container(
-                                                                  margin: const EdgeInsets.only(
-                                                                      bottom: 10, top: 15),
-                                                                  child: const Align(
-                                                                    alignment:
-                                                                        Alignment.centerLeft,
-                                                                    child: Text(
-                                                                      'Campos de Experiência',
-                                                                      style: TextStyle(
-                                                                          fontSize: 16,
-                                                                          color: Colors.black),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                               CustomDropdownExperiencia(
-                                                                    onSelectionChanged:
-                                                                        _handleSelectionChanged),*/
-
                                               const SizedBox(height: 16.0),
                                               SizedBox(
                                                 width: MediaQuery.of(context)
@@ -1499,11 +1436,9 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
 
   Widget _buildDisciplinaFields(
       Disciplina item, Map<String, dynamic> elemente) {
-    // Inicializa o TextEditingController com o valor de 'conteudo'
     TextEditingController conteudoController =
         TextEditingController(text: elemente['conteudo']);
 
-    // Listen to changes in the text field and update elemente['conteudo']
     conteudoController.addListener(() {
       elemente['conteudo'] = conteudoController.text;
     });

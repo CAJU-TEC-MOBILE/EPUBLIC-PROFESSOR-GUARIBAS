@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/models/auth_model.dart';
+import '../../enums/status_console.dart';
+import '../../helpers/console_log.dart';
 import '../../models/ano_model.dart';
 import '../../pages/home_page.dart';
 import '../../services/adapters/gestao_ativa_service_adapter.dart';
@@ -35,15 +37,22 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
     getUserAno();
   }
 
-  @override
   Future<void> getAll() async {
-    AnoController anoController = AnoController();
-    await anoController.init();
-    anos = await anoController.getAll();
+    try {
+      AnoController anoController = AnoController();
+      await anoController.init();
+      anos = await anoController.getAll();
 
-    anos.sort((a, b) => b.descricao.compareTo(a.descricao));
+      anos.sort((a, b) => b.descricao!.compareTo(a.descricao.toString()));
 
-    setState(() {});
+      setState(() => anos);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'get-all',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
+    }
   }
 
   Future<void> getUserAno() async {
@@ -53,9 +62,9 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
     await anoSelecionadoController.init();
     await authController.init();
 
-    Auth? auth = await authController.getAuth();
+    AuthModel auth = await authController.authFirst();
 
-    int authId = int.parse(auth!.id.toString());
+    int authId = int.parse(auth.id.toString());
     int anoId = int.parse(auth.anoId.toString());
 
     await anoSelecionadoController.setAnoPorAuth(anoId: anoId);
@@ -138,70 +147,74 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
   @override
   Widget build(BuildContext context) {
     return loading != true
-        ? PopupMenuButton<Ano>(
-            onSelected: (Ano ano) {
-              setSelectedAno(ano: ano, context: context);
-            },
-            itemBuilder: (context) => [
-              ...anos.map(
-                (ano) => PopupMenuItem<Ano>(
-                  value: ano,
-                  child: ListTile(
-                    title: Center(
-                      child: Text(
-                        ano.descricao,
-                        style: const TextStyle(fontSize: 12.0),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+        ? Column(
+            children: [
+              PopupMenuButton<Ano>(
+                onSelected: (Ano ano) {
+                  setSelectedAno(ano: ano, context: context);
+                },
+                itemBuilder: (context) => [
+                  ...anos.map(
+                    (ano) => PopupMenuItem<Ano>(
+                      value: ano,
+                      child: ListTile(
+                        title: Center(
+                          child: Text(
+                            ano.descricao.toString(),
+                            style: const TextStyle(fontSize: 12.0),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
                       ),
                     ),
+                  ),
+                ],
+                constraints: const BoxConstraints(
+                  minWidth: 80.0,
+                  maxWidth: 100.0,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+                child: Container(
+                  width: 66.0,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTema.primaryDarkBlue),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10.0),
+                        child: Text(
+                          selectedAno?.descricao ?? 'Ano',
+                          style: const TextStyle(
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppTema.primaryDarkBlue),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          padding: const EdgeInsets.all(2.0),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 12.0,
+                          ),
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ),
             ],
-            constraints: const BoxConstraints(
-              minWidth: 80.0,
-              maxWidth: 100.0,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4.0),
-            ),
-            child: Container(
-              width: 66.0,
-              height: 30,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppTema.primaryDarkBlue),
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10.0),
-                    child: Text(
-                      selectedAno?.descricao ?? 'Ano',
-                      style: const TextStyle(
-                        fontSize: 12.0,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppTema.primaryDarkBlue),
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      padding: const EdgeInsets.all(2.0),
-                      child: const Icon(
-                        Icons.edit,
-                        size: 12.0,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
           )
         : Container(
             width: 66.0,

@@ -14,12 +14,12 @@ class UsuariosServiceAdapter {
     listar();
   }
 
-  List<Auth> listar() {
+  List<AuthModel> listar() {
     Box usuariosBox = Hive.box('usuarios');
     List<dynamic> usuariosSalvos = usuariosBox.get('usuarios');
 
-    List<Auth> usuariosListModel =
-        usuariosSalvos.map((pedido) => Auth.fromJson(pedido)).toList();
+    List<AuthModel> usuariosListModel =
+        usuariosSalvos.map((pedido) => AuthModel.fromJson(pedido)).toList();
     return usuariosListModel;
   }
 
@@ -27,8 +27,8 @@ class UsuariosServiceAdapter {
     try {
       Box usuariosBox = Hive.box('usuarios');
       List<dynamic> usuariosSalvos = usuariosBox.get('usuarios');
-      List<Auth> usuariosListModel =
-          usuariosSalvos.map((usuario) => Auth.fromJson(usuario)).toList();
+      List<AuthModel> usuariosListModel =
+          usuariosSalvos.map((usuario) => AuthModel.fromJson(usuario)).toList();
       String? nome;
       for (var item in usuariosListModel) {
         if (item.id.toString() == id.toString()) {

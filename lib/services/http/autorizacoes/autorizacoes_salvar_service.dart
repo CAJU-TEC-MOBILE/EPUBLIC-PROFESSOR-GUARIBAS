@@ -52,7 +52,7 @@ class ApiSalvarAutorizacoesService {
 
     final String url = '${ApiBaseURLService.baseUrl}/$_prefixUrl';
 
-    final Auth authModel = AuthServiceAdapter().exibirAuth();
+    final AuthModel authModel = AuthServiceAdapter().exibirAuth();
 
     try {
       final bool isConnected = await checkInternetConnection();

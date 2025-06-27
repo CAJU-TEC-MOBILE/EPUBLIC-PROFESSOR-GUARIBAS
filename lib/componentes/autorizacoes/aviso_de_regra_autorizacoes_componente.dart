@@ -10,7 +10,7 @@ import '../../services/controller/pedido_controller.dart';
 
 class AvisoDeRegraAutorizacoesComponente extends StatefulWidget {
   final Etapa? etapa_selecionada_objeto;
-  final Autorizacao? autorizacaoSelecionada;
+  final AutorizacaoModel? autorizacaoSelecionada;
   final String? statusDaAutorizacao;
   final bool dataLogicaExpiracao;
   final bool dataEtapaValida;
@@ -40,7 +40,7 @@ class _AvisoDeRegraAutorizacoesComponenteState
   final pedidoController = PedidoController();
   bool statusLiberacao = false;
   int status = 0;
-  Auth authModel = AuthServiceAdapter().exibirAuth();
+  AuthModel authModel = AuthServiceAdapter().exibirAuth();
 
   Future<void> _statusPedido() async {
     await pedidoController.init();

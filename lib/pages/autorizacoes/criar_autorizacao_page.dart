@@ -37,10 +37,10 @@ class _CriarAutorizacaoPageState extends State<CriarAutorizacaoPage> {
   final TextEditingController _obsController = TextEditingController();
 
   List<Pedido> _listaPedidos = [];
-  List<Auth> _listaAvaliadores = [];
+  List<AuthModel> _listaAvaliadores = [];
   GestaoAtiva? gestaoAtivaModel =
       GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-  Auth authModel = AuthServiceAdapter().exibirAuth();
+  AuthModel authModel = AuthServiceAdapter().exibirAuth();
   final pedidoController = PedidoController();
   var _pedidoSelecionadoID;
   var _avaliadorSelecionadoID;

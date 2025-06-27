@@ -23,14 +23,13 @@ class _CustomAnoDropdownState extends State<CustomAnoDropdown> {
   }
 
   Future<void> getAll() async {
-    
     AnoController anoController = AnoController();
 
     await anoController.init();
 
     anos = await anoController.getAll();
 
-    anos.sort((a, b) => b.descricao.compareTo(a.descricao));
+    anos.sort((a, b) => b.descricao!.compareTo(a.descricao.toString()));
 
     setState(() {});
   }
@@ -43,25 +42,29 @@ class _CustomAnoDropdownState extends State<CustomAnoDropdown> {
         borderRadius: BorderRadius.circular(5),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: DropdownButton2<Ano>(
-        hint: const Text('Ano'),
-        value: selectedAno,
-        onChanged: (Ano? newValue) {
-          setState(() {
-            selectedAno = newValue;
-          });
-        },
-        items: _buildDropdownItems(),
-        dropdownStyleData: const DropdownStyleData(
-          maxHeight: 200,
-          elevation: 1,
-          width: 70.0,
-          offset: Offset(-4, 5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
-            color: Colors.white,
+      child: Column(
+        children: [
+          DropdownButton2<Ano>(
+            hint: const Text('Ano'),
+            value: selectedAno,
+            onChanged: (Ano? newValue) {
+              setState(() {
+                selectedAno = newValue;
+              });
+            },
+            items: _buildDropdownItems(),
+            dropdownStyleData: const DropdownStyleData(
+              maxHeight: 200,
+              elevation: 1,
+              width: 70.0,
+              offset: Offset(-4, 5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(5)),
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -179,6 +179,32 @@ class Professor {
     }
   }
 
+  factory Professor.vazio() {
+    return Professor(
+      id: '',
+      userId: '',
+      nome: '',
+      email: '',
+      cpf: '',
+      codigo: '',
+      matricula: '',
+      vinculo: '',
+      dataNascimento: '',
+      corOuRaca: '',
+      municipalidade: '',
+      naturalidade: '',
+      nacionalidade: '',
+      estadualidade: '',
+      zonaResidencia: '',
+      municipioResidencia: '',
+      ufResidencia: '',
+      paisResidencia: '',
+      cep: '',
+      filiacao1: '',
+      filiacao2: '',
+      roleId: '',
+    );
+  }
   @override
   String toString() {
     return 'Professor(id: $id, userId: $userId, nome: $nome, email: $email, cpf: $cpf, codigo: $codigo, matricula: $matricula, vinculo: $vinculo, dataNascimento: $dataNascimento, corOuRaca: $corOuRaca, municipalidade: $municipalidade, naturalidade: $naturalidade, estadualidade: $estadualidade, nacionalidade: $nacionalidade, zonaResidencia: $zonaResidencia, municipioResidencia: $municipioResidencia, ufResidencia: $ufResidencia, paisResidencia: $paisResidencia, cep: $cep, filiacao1: $filiacao1, filiacao2: $filiacao2, roleId: $roleId)';

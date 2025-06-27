@@ -22,12 +22,12 @@ class AutorizacoesServiceAdapter {
     }
   }
 
-  List<Autorizacao> listar() {
+  List<AutorizacaoModel> listar() {
     Box autorizacoesBox = Hive.box('autorizacoes');
     List<dynamic> autorizacoesSalvos = autorizacoesBox.get('autorizacoes');
 
-    List<Autorizacao> autorizacoesListModel = autorizacoesSalvos
-        .map((pedido) => Autorizacao.fromJson(pedido))
+    List<AutorizacaoModel> autorizacoesListModel = autorizacoesSalvos
+        .map((pedido) => AutorizacaoModel.fromJson(pedido))
         .toList();
 
     return autorizacoesListModel;

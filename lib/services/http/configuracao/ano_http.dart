@@ -1,47 +1,31 @@
-import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
 
+import '../../shared_preference_service.dart';
+
 class AnoHttp {
-  Box authBox = Hive.box('auth');
-
-  Future<Map<dynamic, dynamic>?> _getAuthData() async {
-    return authBox.get('auth');
-  }
-
   Future<http.Response> getAll() async {
-    try {
-      String prefixUrl = 'notifiq-professor/aulas/anos';
+    final preference = SharedPreferenceService();
+    String prefixUrl = 'notifiq-professor/aulas/anos';
 
-      Map<dynamic, dynamic>? authData = await _getAuthData();
+    await preference.init();
 
-      if (authData == null || authData['token_atual'] == null) {
-        throw Exception('Token not found');
-      }
+    String? token = await preference.getToken();
 
-      var url = Uri.parse(
-        '${ApiBaseURLService.baseUrl}/$prefixUrl',
-      );
+    final url = Uri.parse(
+      '${ApiBaseURLService.baseUrl}/$prefixUrl',
+    );
 
-      var headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${authData['token_atual']}',
-      };
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
 
-      var response = await http.get(
-        url,
-        headers: headers,
-      );
+    final response = await http.get(
+      url,
+      headers: headers,
+    );
 
-      if (response.statusCode != 200) {
-        throw Exception('Failed to update: ${response.statusCode}');
-      }
-
-      return response;
-    } catch (e) {
-      debugPrint('Error: $e');
-      rethrow;
-    }
+    return response;
   }
 }

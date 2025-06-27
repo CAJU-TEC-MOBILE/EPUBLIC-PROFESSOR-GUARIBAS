@@ -1,24 +1,10 @@
-import 'dart:convert';
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/functions/aplicativo/verificar_conexao_com_internet.dart';
-import 'package:professor_acesso_notifiq/services/adapters/autorizacoes_service.dart';
-import 'package:professor_acesso_notifiq/services/adapters/justificativas_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/adapters/matriculas_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/adapters/pedidos_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/adapters/sistema_bncc_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/adapters/usuarios_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/http/auth/auth_http.dart';
-
-import '../componentes/dialogs/custom_snackbar.dart';
-import '../services/adapters/gestoes_service_adpater.dart';
-import '../services/configuracao/configuracao_app.dart';
-import '../services/controller/ano_selecionado_controller.dart';
-import '../services/controller/professor_controller.dart';
-import '../services/http/gestoes/gestoes_disciplinas_http.dart';
+import 'package:provider/provider.dart';
+import '../constants/app_tema.dart';
+import '../providers/auth_provider.dart';
+import '../utils/validador.dart';
+import '../wigets/custom_passwordfield.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,156 +14,32 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String message = 'Erro de conexão.';
-
-  bool _obscurePassword = true;
-  bool _isLoading = false;
-  bool enabledTextFormField = true;
   String appVerso = '';
-
-  final _authBox = Hive.box('auth');
-  final _gestoesBox = Hive.box('gestoes');
-  final _horariosBox = Hive.box('horarios');
-
-  Future<void> _salvarAuthBox(Map<String, dynamic> auth) async {
-    _authBox.put('auth', auth);
-  }
-
-  Future<void> _salvarGestoesBox(List<dynamic> gestoes) async {
-    _gestoesBox.put('gestoes', gestoes);
-  }
-
-  Future<void> _salvarHorariosBox(List<dynamic> horarios) async {
-    _horariosBox.put('horarios', horarios);
-  }
-
-  void configuracaoEnv() async {
-    appVerso = dotenv.env['VERSAO'] ?? 'Default Verso';
-    setState(() {
-      appVerso;
-    });
-  }
-
-  Future<void> _login(
-    BuildContext context,
-  ) async {
-    setState(() {
-      _isLoading = true;
-      enabledTextFormField = false;
-      // _emailController.text = '77777777777';
-      // _passwordController.text = '01012000';
-    });
-
-    await Future.delayed(const Duration(seconds: 3));
-
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    dynamic isConnected = await checkInternetConnection();
-    if (isConnected) {
-      try {
-        GestoesService gestoesService = GestoesService();
-        GestaoDisciplinaHttp gestaoDisciplinaHttp = GestaoDisciplinaHttp();
-        ConfiguracaoApp configuracaoApp = ConfiguracaoApp();
-        AnoSelecionadoController anoSelecionadoController =
-            AnoSelecionadoController();
-        ProfessorController professorController = ProfessorController();
-
-        var response = await AuthHttp.logar(context, email, password);
-
-        if (response.statusCode != 200) {
-          enabledTextFormField = true;
-          _isLoading = false;
-          final Map<String, dynamic> responseBody = jsonDecode(response.body);
-
-          message = responseBody['error']?['message']?.toString() ?? message;
-
-          CustomSnackBar.showErrorSnackBar(
-            context,
-            message,
-          );
-          setState(() {});
-          return;
-        }
-
-        final Map<String, dynamic> responseJson =
-            await jsonDecode(response.body);
-
-        await professorController.init();
-
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> responseJson =
-              await jsonDecode(response.body);
-          await professorController.init();
-          await professorController.create(responseJson['user']['professor']);
-          await _salvarAuthBox(responseJson['user'] ?? {});
-          await _salvarGestoesBox(responseJson['gestoes'] ?? []);
-          await _salvarHorariosBox(responseJson['horarios'] ?? []);
-          await MatriculasServiceAdapter()
-              .salvar(responseJson['matriculas'] ?? []);
-          await JustificativasServiceAdapter()
-              .salvar(responseJson['justificativas'] ?? []);
-          await PedidosServiceAdapter()
-              .salvar(responseJson['pedidos_para_autorizacao'] ?? []);
-          await UsuariosServiceAdapter()
-              .salvar(responseJson['users_para_autorizacao'] ?? []);
-          await AutorizacoesServiceAdapter().salvar(
-              responseJson['autorizacoes_socilitadas_pelo_usuario'] ?? []);
-          await SistemaBnccServiceAdapter()
-              .salvar(responseJson['sistema_bncc'] ?? []);
-          await gestaoDisciplinaHttp.getGestaoDisciplinas();
-          await gestoesService.atualizarGestoesDoDispositivo(context);
-          await configuracaoApp.anos();
-          await AuthHttp.setBaixarImage(
-            professorId:
-                responseJson['user']['professor']['id']?.toString() ?? '',
-            imagemPerfil: responseJson['user']['professor']['imagem_perfil']
-                    ?.toString() ??
-                '',
-            cpf: responseJson['user']['professor']['cpf']?.toString() ?? '',
-            userId: responseJson['user']['id']?.toString() ?? '',
-          );
-
-          Navigator.pushNamed(context, '/home');
-        } else if (response.statusCode == 401) {
-          enabledTextFormField = true;
-
-          CustomSnackBar.showInfoSnackBar(
-            context,
-            'CPF ou/e senha incorreto(s).',
-          );
-          setState(() {});
-        } else {
-          enabledTextFormField = true;
-          setState(() {});
-        }
-      } catch (e) {
-        enabledTextFormField = true;
-
-        setState(() {});
-      }
-    } else {
-      enabledTextFormField = true;
-      setState(() {});
-    }
-    setState(() {
-      _isLoading = false;
-      enabledTextFormField = true;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     configuracaoEnv();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final provider = Provider.of<AuthProvider>(context, listen: false);
+      }
+    });
+    _usernameController.text = '77777777777';
+    _passwordController.text = '01012000';
+  }
+
+  Future<void> configuracaoEnv() async {
+    appVerso = dotenv.env['VERSAO'] ?? 'Default Verso';
+    setState(() => appVerso);
   }
 
   @override
   Widget build(BuildContext context) {
-    configuracaoEnv();
+    final provider = Provider.of<AuthProvider>(context, listen: false);
     return WillPopScope(
       onWillPop: () async {
         return false;
@@ -202,22 +64,22 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     children: <Widget>[
                       Image.asset(
-                        'assets/icon_notifiq_sem_fundo.png',
-                        width: 150,
-                        height: 150,
+                        'assets/logo.png',
+                        width: 250,
+                        height: 224,
                       ),
-                      const SizedBox(height: 45),
                       Card(
-                        color: AppTema.primaryWhite.withOpacity(0.3),
+                        color: AppTema.primaryWhite.withValues(alpha: 0.3),
                         elevation: 0.0,
                         child: Padding(
-                          padding: const EdgeInsets.all(14.0),
+                          padding:
+                              const EdgeInsets.only(left: 14.0, right: 14.0),
                           child: Column(
                             children: [
                               TextFormField(
                                 keyboardType: TextInputType.number,
-                                enabled: enabledTextFormField,
-                                controller: _emailController,
+                                enabled: provider.enabledTextFormField,
+                                controller: _usernameController,
                                 decoration: InputDecoration(
                                   labelText: 'CPF',
                                   prefixIcon: const Icon(Icons.person),
@@ -250,61 +112,27 @@ class _LoginPageState extends State<LoginPage> {
                                 },
                               ),
                               const SizedBox(height: 16.0),
-                              TextFormField(
-                                keyboardType: TextInputType.number,
-                                enabled: enabledTextFormField,
+                              CustomPasswordField(
+                                key: const Key('senha_field'),
                                 controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  labelText: 'Senha',
-                                  prefixIcon: const Icon(Icons.lock),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  labelStyle: const TextStyle(
-                                    color: AppTema.primaryDarkBlue,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(
-                                      color: AppTema.primaryAmarelo,
-                                      width: 2.0,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors.grey,
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return 'Por favor, insira uma senha, por favor';
-                                  }
-                                  return null;
-                                },
+                                labelText: 'Senha',
+                                prefixIcon: Icons.lock_outline,
+                                fillColor: Colors.grey.shade50,
+                                validator: (value) =>
+                                    Validador.validarPassword(value),
                               ),
                               const SizedBox(height: 16.0),
                               SizedBox(
                                 width: MediaQuery.of(context).size.width,
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    if (_formKey.currentState!.validate()) {
-                                      _isLoading ? null : await _login(context);
+                                    if (_formKey.currentState?.validate() ??
+                                        false) {
+                                      await provider.login(
+                                        context: context,
+                                        email: _usernameController.text,
+                                        password: _passwordController.text,
+                                      );
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -315,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                   ),
-                                  child: _isLoading
+                                  child: provider.isLoading
                                       ? const SizedBox(
                                           width: 20.0,
                                           height: 20.0,
@@ -346,26 +174,29 @@ class _LoginPageState extends State<LoginPage> {
             ),
             Positioned(
               bottom: 0,
-              child: Row(
-                children: [
-                  const Text(
-                    'Versão',
-                    style: TextStyle(
-                      color: Colors.black38,
-                      fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Versão',
+                      style: TextStyle(
+                        color: Colors.black38,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 4.0,
-                  ),
-                  Text(
-                    appVerso,
-                    style: const TextStyle(
-                      color: Colors.black38,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(
+                      width: 4.0,
                     ),
-                  )
-                ],
+                    Text(
+                      appVerso,
+                      style: const TextStyle(
+                        color: Colors.black38,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
           ],

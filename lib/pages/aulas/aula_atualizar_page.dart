@@ -61,7 +61,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   final TextEditingController _metodologiaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pedidoController = PedidoController();
-  Auth authModel = AuthServiceAdapter().exibirAuth();
+  AuthModel authModel = AuthServiceAdapter().exibirAuth();
 
   bool isStatus = false;
   bool isLoading = true;
@@ -85,11 +85,11 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   List<int> diasParaSeremExibidosNoCalendario = [];
   List<Etapa>? listaDeEtapas;
   GestaoAtiva? gestaoAtivaModel;
-  List<Autorizacao> autorizacoesDoUsuario =
+  List<AutorizacaoModel> autorizacoesDoUsuario =
       AutorizacoesServiceAdapter().listar();
   List<Disciplina> disciplinas = [];
   List<Disciplina> selectedDisciplinas = [];
-  Autorizacao? autorizacaoSelecionada;
+  AutorizacaoModel? autorizacaoSelecionada;
   String inicioPeriodoEtapa = '';
   String fimPeriodoEtapa = '';
   List<String>? semanas;
