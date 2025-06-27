@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/gestao_ativa_model.dart';
 import '../services/adapters/gestao_ativa_service_adapter.dart';
 import 'aulas/sem_relacao_dia_horario_para_criar_aula.dart';
 

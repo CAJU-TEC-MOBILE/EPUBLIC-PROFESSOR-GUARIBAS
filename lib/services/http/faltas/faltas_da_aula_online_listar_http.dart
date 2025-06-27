@@ -14,10 +14,10 @@ class FaltasDaAulaOnlineListarHttp {
     Map<dynamic, dynamic>? authData = await _getAuthData();
     String prefix_url = 'notifiq-professor/aulas/todas-as-faltas-online/aula';
 
-    final tempoDeDuracaoEmSegundos =
-        Duration(seconds: ApiBaseURLService.tempoDeDuracaoEmSegundos);
+    // final tempoDeDuracaoEmSegundos =
+    //     Duration(seconds: ApiBaseURLService.tempoDeDuracaoEmSegundos);
     var url = Uri.parse(
-      '${ApiBaseURLService.baseUrl}/${prefix_url}/${aula_id}',
+      '${ApiBaseURLService.baseUrl}/$prefix_url/$aula_id',
     );
 
     try {
@@ -26,7 +26,7 @@ class FaltasDaAulaOnlineListarHttp {
         headers: {
           'Authorization': 'Bearer ${authData!['token_atual']}',
         },
-      ).timeout(tempoDeDuracaoEmSegundos);
+      ); //.timeout(tempoDeDuracaoEmSegundos);
 
       return response;
     } catch (e) {

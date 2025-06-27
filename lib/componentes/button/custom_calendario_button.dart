@@ -38,7 +38,7 @@ class _CustomCalendarioButtonState extends State<CustomCalendarioButton> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.onDataSelected ?? widget.initialDate ?? null;
+    _selectedDate = widget.onDataSelected ?? widget.initialDate;
   }
 
   DateTime _getFirstDate() {

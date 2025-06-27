@@ -47,25 +47,30 @@ def getLocalProperty(String key) {
 }
 
 android {
-    namespace = "br.com.servidorcaju.guaribas"
-    compileSdkVersion = 34
-    ndkVersion flutter.ndkVersion
+    
+    namespace = 'br.com.servidorcaju.guaribas'
+    compileSdkVersion = 36
+    // ndkVersion = "25.1.8937393"
+    ndkVersion = "26.3.11579264"
+    // ndkVersion flutter.ndkVersion
     defaultConfig {
-        applicationId = "br.com.servidorcaju.guaribas"
-        minSdkVersion = 21
-        targetSdkVersion = 34
-        versionCode 2
-        versionName "5.0.10.5513"
+ 
+        applicationId = 'br.com.servidorcaju.guaribas'
+        minSdkVersion = 23
+        targetSdkVersion = 36
+        versionCode 10
+        versionName "5.0.11.5949"
+ 
         multiDexEnabled true
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     signingConfigs {
@@ -78,45 +83,46 @@ android {
     }
 
 
-    buildTypes {
-        // release {
-        //     signingConfig = signingConfigs.debug
-        // }
-       
-        release {
+   buildTypes {
+    debug {
+        signingConfig = signingConfigs.debug
+    }
+
+    release {
+            // Temporariamente usando a chave de debug para evitar erro de senha
             signingConfig signingConfigs.release
+
+
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            //signingConfig signingConfigs.debug
+
             // Configuração para renomear o APK gerado
             applicationVariants.all { variant ->
                 variant.outputs.all { output ->
                     // Pega as variáveis diretamente do arquivo .env
                     def appName = getEnvVar("NAME_APP")
                     def appVersion = getEnvVar("VERSAO")
-                    
+
                     // Garante que ambas as variáveis foram carregadas corretamente
                     if (appName == null || appVersion == null) {
                         throw new GradleException("As variáveis APP_TITLE e APP_VERSION não foram encontradas no arquivo .env.")
                     }
 
-                     
                     appName = appName.replaceAll("\"", "")
                     appVersion = appVersion.replaceAll("\"", "")
 
                     def dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss")
                     def dateStr = dateFormat.format(new Date())
 
-                    // Define o nome do arquivo APK com data e hora
                     def apkName = "${appName}-${appVersion}-${variant.buildType.name}-${dateStr}.apk"
-
-                    // def apkName = "${appName}-${appVersion}-${variant.buildType.name}.apk"
                     outputFileName = apkName
+                    println "outputFileName: $outputFileName"
                 }
             }
         }
     }
+
 }
 
 dependencies {
@@ -124,11 +130,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-
-    // Adicione a dependência do MultiDex
     implementation 'androidx.multidex:multidex:2.0.1'
-
-    // Outras dependências
+    implementation 'com.google.android.play:integrity:1.4.0'
 }
 
 flutter {

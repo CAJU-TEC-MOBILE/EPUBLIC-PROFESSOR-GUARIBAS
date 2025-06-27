@@ -2,19 +2,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 class Ano {
   int id;
-  String descricao;
-  String situacao;
-  String? createdAt;
-  String? updatedAt;
-  String? deleteAt;
+  String? descricao;
+  String? situacao;
 
   Ano({
     required this.id,
-    required this.descricao,
-    required this.situacao,
-    this.createdAt,
-    this.updatedAt,
-    this.deleteAt,
+    this.descricao,
+    this.situacao,
   });
 
   // Convertendo para JSON
@@ -23,26 +17,24 @@ class Ano {
       'id': id,
       'descricao': descricao,
       'situacao': situacao,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'deleteAt': deleteAt,
     };
   }
 
   factory Ano.fromJson(Map<String, dynamic> json) {
-    return Ano(
-      id: json['id'],
-      descricao: json['descricao'],
-      situacao: json['situacao'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
-      deleteAt: json['deleteAt'],
-    );
+    try {
+      return Ano(
+        id: json['id'],
+        descricao: json['descricao'].toString(),
+        situacao: json['situacao'].toString(),
+      );
+    } catch (error) {
+      return Ano.vazio();
+    }
   }
 
   @override
   String toString() {
-    return 'Ano{id: $id, descricao: $descricao, situacao: $situacao, createdAt: $createdAt, updatedAt: $updatedAt, deleteAt: $deleteAt}';
+    return 'Ano{id: $id, descricao: $descricao, situacao: $situacao}';
   }
 
   static Ano fromMap(Map<String, dynamic> map) {
@@ -50,9 +42,6 @@ class Ano {
       id: map['id'],
       descricao: map['descricao'],
       situacao: map['situacao'],
-      createdAt: map['createdAt'],
-      updatedAt: map['updatedAt'],
-      deleteAt: map['deleteAt'],
     );
   }
 
@@ -61,10 +50,15 @@ class Ano {
       'id': id,
       'descricao': descricao,
       'situacao': situacao,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
-      'deleteAt': deleteAt,
     };
+  }
+
+  factory Ano.vazio() {
+    return Ano(
+      id: -1,
+      descricao: null,
+      situacao: null,
+    );
   }
 }
 
@@ -78,19 +72,13 @@ class AnoAdapter extends TypeAdapter<Ano> {
       id: reader.readInt(),
       descricao: reader.readString(),
       situacao: reader.readString(),
-      createdAt: reader.readString(),
-      updatedAt: reader.readString(),
-      deleteAt: reader.readString(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Ano obj) {
     writer.writeInt(obj.id);
-    writer.writeString(obj.descricao);
-    writer.writeString(obj.situacao);
-    writer.writeString(obj.createdAt ?? '');
-    writer.writeString(obj.updatedAt ?? '');
-    writer.writeString(obj.deleteAt ?? '');
+    writer.writeString(obj.descricao ?? '');
+    writer.writeString(obj.situacao ?? '');
   }
 }

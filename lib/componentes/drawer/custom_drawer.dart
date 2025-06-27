@@ -7,11 +7,12 @@ import '../../help/console_log.dart';
 import '../../models/auth_model.dart';
 import '../../models/gestao_ativa_model.dart';
 import '../../models/professor_model.dart';
+import '../../pages/pedido_page.dart';
 import '../../pages/sobre/sobre_o_app_page.dart';
 import '../../pages/usuarioPage.dart';
 import '../../services/adapters/auth_service_adapter.dart';
 import '../../services/controller/professor_controller.dart';
-import '../dropdown/custom_ano_dropdown.dart';
+import '../../services/shared_preference_service.dart';
 import '../dropdown/custom_anos_dropdown.dart';
 import 'custom_user_info_drawer.dart';
 
@@ -24,7 +25,8 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  Auth? authModel;
+  final preference = SharedPreferenceService();
+  AuthModel? authModel;
   GestaoAtiva? gestaoAtivaModel;
   double fontText = 16.0;
   bool isLoading = true;
@@ -79,9 +81,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
       Professor? professorData = await professorController.getProfessor();
 
-      if (professorData != null &&
-          professorData.id != null &&
-          professorData.nome != null) {
+      if (professorData != null) {
         setState(() {
           professor = professorData;
         });
@@ -158,6 +158,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.list_alt),
+              title: const Text('Pedidos'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PedidoPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.info),
               title: const Text('Sobre'),
               onTap: () {
@@ -219,9 +231,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            await preference.init();
+                            await removerDadosAuth();
+                            await preference.limparDados();
                             Navigator.pushReplacementNamed(context, '/login');
-                            removerDadosAuth();
                           },
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.grey[300],

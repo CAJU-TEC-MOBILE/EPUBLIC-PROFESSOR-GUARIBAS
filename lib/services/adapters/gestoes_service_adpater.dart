@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:professor_acesso_notifiq/componentes/global/preloader.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/functions/aplicativo/verificar_conexao_com_internet.dart';
 import 'package:professor_acesso_notifiq/pages/login_page.dart';
 import 'package:professor_acesso_notifiq/services/adapters/matriculas_service_adapter.dart';
 import 'package:http/http.dart' as http;
@@ -13,9 +12,10 @@ import 'dart:async';
 import 'package:professor_acesso_notifiq/services/widgets/snackbar_service_widget.dart';
 
 import '../../componentes/dialogs/custom_snackbar.dart';
+import '../../enums/status_console.dart';
+import '../../helpers/console_log.dart';
 import '../../models/disciplina_model.dart';
 import '../connectivity/internet_connectivity_service.dart';
-import '../controller/Instrutor_controller.dart';
 import '../controller/disciplina_controller.dart';
 import '../controller/horario_configuracao_controller.dart';
 
@@ -79,7 +79,6 @@ class GestoesService {
           await MatriculasServiceAdapter().salvar(responseJson['matriculas']);
         } else {
           Future.microtask(() {
-            // ignore: use_build_context_synchronously
             SnackBarServiceWidget.mostrarSnackBar(context,
                 mensagem: 'Nenhuma gestão foi encontrada',
                 backgroundColor: AppTema.primaryAmarelo,
@@ -89,14 +88,12 @@ class GestoesService {
         }
 
         Future.microtask(() {
-          // ignore: use_build_context_synchronously
           CustomSnackBar.showSuccessSnackBar(
               context, 'Gestões atualizadas com sucesso!');
         });
       } else if (response.statusCode == 401) {
         removerDadosAuth();
         Future.microtask(() {
-          // ignore: use_build_context_synchronously
           CustomSnackBar.showErrorSnackBar(context, 'Conexão expirada');
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const LoginPage()));
@@ -114,17 +111,13 @@ class GestoesService {
   }
 
   Future<void> atualizarGestoesDoDispositivo(BuildContext context) async {
-    showLoading(context);
-
-    GestoesListarComOutrosDadosHttp apiService =
-        GestoesListarComOutrosDadosHttp();
+    final apiService = GestoesListarComOutrosDadosHttp();
 
     bool isConnected = await InternetConnectivityService.isConnected();
 
     http.Response response = await apiService.todasAsGestoes();
 
     if (!isConnected) {
-      hideLoading(context);
       Future.microtask(() {
         CustomSnackBar.showErrorSnackBar(
           context,
@@ -156,7 +149,6 @@ class GestoesService {
           for (var item in gestaoList) {
             if (item['disciplinas'] != null) {
               for (var disciplina in item['disciplinas']) {
-                debugPrint("-> $disciplina");
                 final itemDisciplina = Disciplina(
                   id: disciplina['id'].toString(),
                   idtTurmaId: disciplina['idt_turma_id'].toString(),
@@ -176,7 +168,6 @@ class GestoesService {
           await MatriculasServiceAdapter().salvar(responseJson['matriculas']);
         } else {
           Future.microtask(() {
-            // ignore: use_build_context_synchronously
             SnackBarServiceWidget.mostrarSnackBar(context,
                 mensagem: 'Nenhuma gestão foi encontrada',
                 backgroundColor: AppTema.primaryAmarelo,
@@ -184,54 +175,41 @@ class GestoesService {
                 iconColor: Colors.white);
           });
         }
-
-        print('-------------ATUALIZANDO GESTÕES E MATRÍCULAS-------------');
-
-        hideLoading(context);
-        Future.microtask(() {
-          // ignore: use_build_context_synchronously
-          CustomSnackBar.showSuccessSnackBar(
-              context, 'Gestões atualizadas com sucesso!');
-        });
       } else if (response.statusCode == 401) {
         removerDadosAuth();
-        hideLoading(context);
         Future.microtask(() {
-          // ignore: use_build_context_synchronously
           CustomSnackBar.showErrorSnackBar(context, 'Conexão expirada');
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const LoginPage()));
         });
         return;
       }
-    } catch (e) {
-      hideLoading(context);
+    } catch (error) {
       Future.microtask(() {
         CustomSnackBar.showErrorSnackBar(
           context,
-          'Erro de conexão: $e',
+          error.toString(),
         );
       });
     }
   }
 
   Future<void> salvarGestoesBox(List<dynamic> gestoes) async {
-    var _gestoesBox = Hive.box('gestoes');
+    var gestoesBox = Hive.box('gestoes');
 
-    // Check if the box contains 'gestoes' and ensure it's not null
-    var storedGestoes = _gestoesBox.get('gestoes');
+    var storedGestoes = gestoesBox.get('gestoes');
 
     if (storedGestoes != null && storedGestoes.length > 0) {
-      await _gestoesBox.clear();
+      await gestoesBox.clear();
       print('---------------BOX GESTÕES (CLEAR)--------------');
     }
 
-    await _gestoesBox.put('gestoes', gestoes);
+    await gestoesBox.put('gestoes', gestoes);
   }
 
   void removerDadosAuth() {
     Box authBox = Hive.box('auth');
-    authBox.clear(); // Remove todos os dados do Box 'auth'
+    authBox.clear();
   }
 
   List<dynamic> listar() {
@@ -241,15 +219,7 @@ class GestoesService {
   }
 
   Future<void> atualizarGestoesDispositivo() async {
-    print('===== atualizarGestoesDispositivo ====');
-    // dynamic isConnected = await checkInternetConnection();
-    // if (isConnected == null || !isConnected) {
-    //   print('Erro de conexão ou valor inválido');
-    //   return;
-    // }
-
-    GestoesListarComOutrosDadosHttp apiService =
-        GestoesListarComOutrosDadosHttp();
+    final apiService = GestoesListarComOutrosDadosHttp();
 
     try {
       http.Response response = await apiService.todasAsGestoes();
@@ -266,13 +236,8 @@ class GestoesService {
         final List<dynamic> gestoesAPI = responseJson['gestoes'];
         for (var gestaoList in gestoesAPI) {
           for (var item in gestaoList) {
-            //print('--> Item: ${item}');
-
             if (item['disciplinas'] != null) {
               for (var disciplina in item['disciplinas']) {
-                // print('Disciplina ID: ${disciplina['id']}');
-                // print('Descrição: ${disciplina['descricao']}');
-                // print('idt_turma_id: ${disciplina['idt_turma_id']}');
                 final itemDisciplina = Disciplina(
                   id: disciplina['id'].toString(),
                   idtTurmaId: disciplina['idt_turma_id'].toString(),
@@ -287,8 +252,12 @@ class GestoesService {
           }
         }
       }
-    } catch (e) {
-      print('Erro ao fazer a requisição: $e');
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'auth-repository-login',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
       return;
     }
   }

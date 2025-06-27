@@ -14,7 +14,7 @@ class CustomBuscarTextFormField extends StatefulWidget {
   final VoidCallback onSearch; // Callback para ação de buscar
 
   const CustomBuscarTextFormField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     required this.hintText,
@@ -26,10 +26,11 @@ class CustomBuscarTextFormField extends StatefulWidget {
     this.validator,
     this.fetchValue,
     required this.onSearch,
-  }) : super(key: key);
+  });
 
   @override
-  State<CustomBuscarTextFormField> createState() => _CustomBuscarTextFormFieldState();
+  State<CustomBuscarTextFormField> createState() =>
+      _CustomBuscarTextFormFieldState();
 }
 
 class _CustomBuscarTextFormFieldState extends State<CustomBuscarTextFormField> {

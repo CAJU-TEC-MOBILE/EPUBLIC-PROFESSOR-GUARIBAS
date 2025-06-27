@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../../enums/status_console.dart';
+import '../../../helpers/console_log.dart';
 import '../../../models/auth_model.dart';
 import '../../../models/gestao_ativa_model.dart';
 import '../../../models/professor_model.dart';
@@ -15,8 +17,9 @@ import '../../dialogs/custom_snackbar.dart';
 class CustomCardPerfilController {
   final AuthServiceAdapter _authServiceAdapter;
   final GestaoAtivaServiceAdapter _gestaoAtivaServiceAdapter;
+  final authController = AuthController();
 
-  ValueNotifier<Auth?> authModel = ValueNotifier(null);
+  ValueNotifier<AuthModel?> authModel = ValueNotifier(null);
   ValueNotifier<GestaoAtiva?> gestaoAtivaModel = ValueNotifier(null);
   Professor? professor;
 
@@ -29,9 +32,6 @@ class CustomCardPerfilController {
   Future<void> fetchInformacoes() async {
     try {
       final auth = _authServiceAdapter.exibirAuth();
-      if (auth == null) {
-        throw Exception('Auth não carregada');
-      }
       authModel.value = auth;
 
       final gestaoAtiva =
@@ -48,15 +48,12 @@ class CustomCardPerfilController {
 
   Future<void> fetchInformacoesProfessor() async {
     try {
-      final professorData = _authServiceAdapter.exibirProfessor();
-      if (professorData == null ||
-          professorData.id == null ||
-          professorData.nome == null) {
+      await authController.init();
+      Professor professorData = await authController.authProfessorFirst();
+      if (professorData.id == '') {
         debugPrint('Nenhum dado disponível para o professor.');
         return;
       }
-
-      // debugPrint('Dados do professor carregados: ${professorData.toString()}');
     } catch (e) {
       debugPrint('Erro ao carregar dados do professor: $e');
       throw Exception('Erro ao carregar dados do professor');
@@ -64,11 +61,20 @@ class CustomCardPerfilController {
   }
 
   Future<Professor?> getProfessor() async {
-    final professorController = ProfessorController();
-    await professorController.init();
-    Professor? dataProfessor = await professorController.getProfessor();
-    professor = dataProfessor;
-    return professor;
+    try {
+      final professorController = ProfessorController();
+      await professorController.init();
+      Professor? dataProfessor = await professorController.getProfessor();
+      professor = dataProfessor;
+      return professor;
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'get-professor',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
+    }
+    return null;
   }
 
   Future<bool> fetchAtualizar(

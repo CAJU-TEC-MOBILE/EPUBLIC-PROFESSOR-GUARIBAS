@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:professor_acesso_notifiq/models/circuito_model.dart';
 import 'package:professor_acesso_notifiq/models/relacao_dia_horario_model.dart';
 

@@ -1,17 +1,12 @@
-import 'dart:convert';
 import 'dart:io';
-
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
-
 import '../../../help/console_log.dart';
 import '../../../models/instrutor_model.dart';
-import '../../adapters/gestoes_service_adpater.dart';
 import '../../controller/Instrutor_controller.dart';
-import '../../controller/disciplina_controller.dart';
 import '../../directories/directories_controller.dart';
-import '../gestoes/gestoes_listar_com_outros_dados_http.dart';
+import '../configuracao/configuracao_http.dart';
 
 class AuthHttp {
   static const String _loginEndpoint = '/login-notifiq';
@@ -22,57 +17,22 @@ class AuthHttp {
     return authBox.get('auth');
   }
 
-  static Future<dynamic> logar(String email, String password) async {
-    // ignore: unused_local_variable
-    GestoesService gestoesService = GestoesService();
-    DisciplinaController disciplinaController = DisciplinaController();
+  Future<dynamic> login({
+    required String email,
+    required String password,
+  }) async {
     final url = '${ApiBaseURLService.baseUrl}$_loginEndpoint';
 
     final response = await http.post(
       Uri.parse(url),
-      body: {'email': email, 'password': password, 'device_name': 'mobile'},
+      body: {
+        'email': email,
+        'password': password,
+        'device_name': 'mobile',
+      },
     );
 
-    try {
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final InstrutorController instrutorController = InstrutorController();
-
-        await instrutorController.init();
-        await disciplinaController.init();
-
-        await instrutorController.clear();
-        await disciplinaController.clear();
-
-        await Future.delayed(const Duration(seconds: 3));
-
-        final Map<String, dynamic> data = json.decode(response.body);
-
-        final professorData = data['user']['professor'];
-
-        final instrutor = Instrutor(
-          id: professorData['id'].toString(),
-          nome: professorData['nome'].toString(),
-          anoId: data['user']['ano_id'].toString(),
-          token: data['user']['token_atual'].toString(),
-        );
-
-        await instrutorController.addInstrutor(instrutor);
-
-        GestoesListarComOutrosDadosHttp gestoesListarComOutrosDadosHttp =
-            GestoesListarComOutrosDadosHttp();
-        await gestoesListarComOutrosDadosHttp.todasAsGestoes();
-        await gestoesService.atualizarGestoesDispositivo();
-        return response;
-      } else {
-        return {
-          'error': 'Failed to log in. Status code: ${response.statusCode}',
-          'response': response.body
-        };
-      }
-    } catch (error) {
-      print('Error: $error');
-      return error;
-    }
+    return response;
   }
 
   Future<http.Response> uploudImage(File file) async {
@@ -133,7 +93,6 @@ class AuthHttp {
         '${ApiBaseURLService.baseUrl}/notifiq-professor/autorizacoes/professor-imagem-perfil/$professorId',
       );
 
-      // Fazer a requisição HTTP GET
       var response = await http.get(
         url,
         headers: {
@@ -187,6 +146,19 @@ class AuthHttp {
       );
 
       return http.Response('Erro: $error', 500);
+    }
+  }
+
+  static Future<void> tipoDeAula() async {
+    try {
+      final configuracaoHttp = ConfiguracaoHttp();
+      await configuracaoHttp.getTiposAulas();
+    } catch (e) {
+      ConsoleLog.mensagem(
+        titulo: 'error-tipo-aula',
+        mensagem: e.toString(),
+        tipo: 'erro',
+      );
     }
   }
 }

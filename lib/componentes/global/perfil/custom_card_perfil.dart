@@ -24,7 +24,7 @@ class CustomCardPerfil extends StatefulWidget {
 }
 
 class _CustomCardPerfilState extends State<CustomCardPerfil> {
-  final TextEditingController _idController = new TextEditingController();
+  final TextEditingController _idController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _numeroCpfController = TextEditingController();
@@ -71,7 +71,7 @@ class _CustomCardPerfilState extends State<CustomCardPerfil> {
     FormatHelp formatHelp = FormatHelp();
     if (model != null) {
       _idController.text = model.id ?? '';
-      _nameController.text = model.nome?.toUpperCase() ?? '';
+      _nameController.text = model.nome.toUpperCase() ?? '';
       _emailController.text = model.email ?? '';
       _numeroCpfController.text =
           model.cpf.isNotEmpty ? formatHelp.cpfMask(model.cpf) : '';
@@ -290,6 +290,7 @@ class _CustomCardPerfilState extends State<CustomCardPerfil> {
                               if (value.length < 14) {
                                 return 'CPF deve conter 11 caracteres.';
                               }
+                              return null;
                               // if (_isDateValid(value) == false) {
                               //   return 'Data inválida.';
                               // }
@@ -324,6 +325,7 @@ class _CustomCardPerfilState extends State<CustomCardPerfil> {
                               if (_isDateValid(value) == false) {
                                 return 'Data inválida.';
                               }
+                              return null;
                             },
                             labelText: 'Data de nascimento',
                             hintText: 'Informe data de nascimento',

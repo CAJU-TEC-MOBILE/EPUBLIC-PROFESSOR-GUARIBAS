@@ -53,13 +53,24 @@ class DisciplinaController {
     required String turmaId,
     required String idtId,
   }) async {
-    // Garantir que o Hive foi inicializado
     if (_disciplinaBox.isOpen) {
       try {
-        return _disciplinaBox.values
+        final disciplinasFiltradas = _disciplinaBox.values
             .where((disciplina) =>
                 disciplina.idtTurmaId == turmaId && disciplina.idt_id == idtId)
             .toList();
+
+        final idsVistos = <String>{};
+        final disciplinasUnicas = <Disciplina>[];
+
+        for (final disciplina in disciplinasFiltradas) {
+          if (!idsVistos.contains(disciplina.id)) {
+            idsVistos.add(disciplina.id);
+            disciplinasUnicas.add(disciplina);
+          }
+        }
+
+        return disciplinasUnicas;
       } catch (e) {
         print('Erro ao buscar disciplinas: $e');
         return [];
@@ -100,11 +111,11 @@ class DisciplinaController {
 
     try {
       var disciplina = _disciplinaBox.values.firstWhere(
-        (d) => d.id?.toString() == disciplinaId,
+        (d) => d.id.toString() == disciplinaId,
         orElse: () => Disciplina.vazia(),
       );
 
-      return disciplina?.descricao?.toString() ?? 'Disciplina não encontrada';
+      return disciplina.descricao.toString() ?? 'Disciplina não encontrada';
     } catch (e) {
       print('Erro ao buscar disciplina: $e');
       return 'Erro ao buscar disciplina';

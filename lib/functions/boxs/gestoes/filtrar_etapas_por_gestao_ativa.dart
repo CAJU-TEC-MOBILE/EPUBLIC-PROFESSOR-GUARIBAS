@@ -4,10 +4,10 @@ import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_
 
 List<Etapa> filtrarEtapasPorGestaoAtiva() {
   List<Etapa> etapas = [];
-  GestaoAtiva? _gestaoAtivaModel =
+  GestaoAtiva? gestaoAtivaModel =
       GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-  if (_gestaoAtivaModel!.circuito.etapas.isNotEmpty) {
-    etapas = _gestaoAtivaModel.circuito.etapas;
+  if (gestaoAtivaModel!.circuito.etapas.isNotEmpty) {
+    etapas = gestaoAtivaModel.circuito.etapas;
     return etapas;
   }
   return etapas;

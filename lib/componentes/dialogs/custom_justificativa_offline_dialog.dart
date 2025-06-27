@@ -101,7 +101,7 @@ class JustificativaOfflineDialog {
     File arquivoSelecionado = File(caminhoDoArquivo);
 
     String idUnico = gerarUuidIdentification();
-    String destino = '$path/${idUnico}';
+    String destino = '$path/$idUnico';
 
     String? caminho = await directoriesController.saveFile(
       arquivoSelecionado,
@@ -134,13 +134,13 @@ class JustificativaOfflineDialog {
     required Justificativa? justificativaSelecionada,
     required matricula,
   }) {
-    final _formKey = GlobalKey<FormState>();
-    Justificativa? _justificativaSelecionada;
-    String? _novaCategoria;
-    TimeOfDay? _horarioLembrete;
+    final formKey = GlobalKey<FormState>();
+    Justificativa? justificativaSelecionada0;
+    String? novaCategoria;
+    TimeOfDay? horarioLembrete;
 
     return Form(
-      key: _formKey,
+      key: formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -155,7 +155,7 @@ class JustificativaOfflineDialog {
             justificativas: justificativas,
             justificativaSelecionada: justificativaSelecionada,
             onChanged: (value) {
-              _justificativaSelecionada = value;
+              justificativaSelecionada0 = value;
             },
           ),
           const SizedBox(height: 16.0),
@@ -202,24 +202,24 @@ class JustificativaOfflineDialog {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
-                if (_formKey.currentState?.validate() ?? false) {
+                if (formKey.currentState?.validate() ?? false) {
                   CustomDialogs.showLoadingDialog(context, show: true);
-                  if (_justificativaSelecionada != null) {
-                    onSustificativaSelecionado(_justificativaSelecionada);
+                  if (justificativaSelecionada0 != null) {
+                    onSustificativaSelecionado(justificativaSelecionada0);
                     CustomDialogs.showLoadingDialog(context, show: false);
                     Navigator.of(context).pop(true);
                     return;
                   }
 
                   if (justificativaSelecionada != null) {
-                    _justificativaSelecionada = justificativaSelecionada;
+                    justificativaSelecionada0 = justificativaSelecionada;
                     onSustificativaSelecionado(justificativaSelecionada);
                     CustomDialogs.showLoadingDialog(context, show: false);
                     Navigator.of(context).pop(true);
                     return;
                   }
 
-                  onSustificativaSelecionado(_justificativaSelecionada);
+                  onSustificativaSelecionado(justificativaSelecionada0);
 
                   // bool result = await faltas.setJustificarFalta(
                   //   matriculaId: matricula['matricula_id'].toString(),

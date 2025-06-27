@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:professor_acesso_notifiq/models/horario_model.dart';
 
 import '../constants/app_tema.dart';
 import '../services/controller/disciplina_aula_controller.dart';

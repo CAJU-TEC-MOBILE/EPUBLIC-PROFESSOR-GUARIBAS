@@ -1,24 +1,33 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/autorizacao_model.dart';
 
 class AutorizacoesServiceAdapter {
   Future<void> salvar(List<dynamic> autorizacoes) async {
-    Box _autorizacoesBox = Hive.box('autorizacoes');
+    try {
+      Box autorizacoesBox = Hive.box('autorizacoes');
 
-    _autorizacoesBox.put('autorizacoes', autorizacoes);
+      autorizacoesBox.put('autorizacoes', autorizacoes);
 
-    List<dynamic> autorizacoesSalvos = _autorizacoesBox.get('autorizacoes');
-    print('------------SALVANDO AUTORIZAÇÕES----------------');
-    print('TOTAL DE AUTORIZAÇÕES: ${autorizacoesSalvos.length}');
-    listar();
+      List<dynamic> autorizacoesSalvos = autorizacoesBox.get('autorizacoes');
+      print('------------SALVANDO AUTORIZAÇÕES----------------');
+      print('TOTAL DE AUTORIZAÇÕES: ${autorizacoesSalvos.length}');
+      listar();
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'autorizacoes-service-adapter',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
+    }
   }
 
-  List<Autorizacao> listar() {
-    Box _autorizacoesBox = Hive.box('autorizacoes');
-    List<dynamic> autorizacoesSalvos = _autorizacoesBox.get('autorizacoes');
+  List<AutorizacaoModel> listar() {
+    Box autorizacoesBox = Hive.box('autorizacoes');
+    List<dynamic> autorizacoesSalvos = autorizacoesBox.get('autorizacoes');
 
-    List<Autorizacao> autorizacoesListModel = autorizacoesSalvos
-        .map((pedido) => Autorizacao.fromJson(pedido))
+    List<AutorizacaoModel> autorizacoesListModel = autorizacoesSalvos
+        .map((pedido) => AutorizacaoModel.fromJson(pedido))
         .toList();
 
     return autorizacoesListModel;

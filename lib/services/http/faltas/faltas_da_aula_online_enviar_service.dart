@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:professor_acesso_notifiq/models/matricula_model.dart';
 import 'package:professor_acesso_notifiq/models/models_online/falta_model_online.dart';
 import 'dart:async';

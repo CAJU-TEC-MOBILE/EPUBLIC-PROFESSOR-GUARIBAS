@@ -6,6 +6,7 @@ import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/corrigir_data_completa_americana_para_ano_mes_dia_somente.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/data/retornar_dia_da_semana.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/gerar_uuid_identificador.dart';
+import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
 import 'package:professor_acesso_notifiq/models/relacao_dia_horario_model.dart';
@@ -20,6 +21,7 @@ import '../../componentes/button/custom_calendario_button.dart';
 import '../../componentes/button/custom_calendario_infantil_button.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../componentes/dropdown/custom_dropdown_experiencia.dart';
+import '../../services/controller/tipo_aula_controller.dart';
 
 class CriarAulaInfantilPage extends StatefulWidget {
   const CriarAulaInfantilPage({super.key});
@@ -45,13 +47,13 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   final TextEditingController _selecioneHorario = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _errorText;
-
+  final tipoAulaController = TipoAulaController();
   double sizedBoxHeight = 4.0;
   // ignore: non_constant_identifier_names
   String? _aula_selecionada;
   bool statusSemanas = false;
   String? _diaDaSemana;
-  List<int> _horariosSelecionados = [];
+  final List<int> _horariosSelecionados = [];
   DateTime? _dataSelecionada;
   // ignore: prefer_final_fields
   Box _horariosBox = Hive.box('horarios');
@@ -76,10 +78,18 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   bool? _popupBuilderSelection = false;
   final _popupBuilderKey = GlobalKey<DropdownSearchState<SistemaBncc>>();
   var _horario_selecionado;
-
+  List<String> tipos = [
+    "Aula Remota",
+    "Aula Normal",
+    "Reposição",
+    "Aula Extra",
+    "Substituição",
+    "Aula Antecipada",
+    "Atividade Extra-classe",
+    "Recuperação",
+  ];
   List<String> selectedExperiencias = [];
 
-  // Define the callback function
   void _handleSelectionChanged(List<String> selecionadas) {
     setState(() {
       selectedExperiencias = selecionadas;
@@ -89,7 +99,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   @override
   void initState() {
     super.initState();
-
+    // getTipos();
     gestaoAtivaDias();
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
@@ -138,7 +148,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
       atividade_casa: _atividadeCasaController.text,
       atividade_classe: _atividadeClasseController.text,
       campos_de_experiencias: selectedExperiencias.toString(),
-      experiencias: selectedExperiencias.length > 0 ? selectedExperiencias : [],
+      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
       observacoes: _observacaoController.text,
     );
 
@@ -300,31 +310,33 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
     }
   }
 
+  Future<void> getTipos() async {
+    try {
+      await tipoAulaController.init();
+      tipos = await tipoAulaController.getDescricaoAll();
+      setState(() => tipos);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'get-tipos',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
+    }
+  }
+
+  void handleCheckBoxState({bool updateState = true}) {
+    var selectedItem =
+        _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
+    var isAllSelected =
+        _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
+    _popupBuilderSelection =
+        selectedItem.isEmpty ? false : (isAllSelected ? true : null);
+
+    if (updateState) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    void _handleCheckBoxState({bool updateState = true}) {
-      var selectedItem =
-          _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
-      var isAllSelected =
-          _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
-      _popupBuilderSelection =
-          selectedItem.isEmpty ? false : (isAllSelected ? true : null);
-
-      if (updateState) setState(() {});
-    }
-
-    _handleCheckBoxState(updateState: false);
-    void handleCheckBoxState({bool updateState = true}) {
-      var selectedItem =
-          _popupBuilderKey.currentState?.popupGetSelectedItems ?? [];
-      var isAllSelected =
-          _popupBuilderKey.currentState?.popupIsAllItemSelected ?? false;
-      _popupBuilderSelection =
-          selectedItem.isEmpty ? false : (isAllSelected ? true : null);
-
-      if (updateState) setState(() {});
-    }
-
     handleCheckBoxState(updateState: false);
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
@@ -352,7 +364,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                         Container(
                           margin: const EdgeInsets.only(bottom: 10),
                           child: const Text(
-                            'Tipo de Aula',
+                            'Tipo de aula',
                             style: TextStyle(fontSize: 16, color: Colors.black),
                           ),
                         ),
@@ -386,16 +398,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                 color: Colors.black,
                               ),
                               dropdownColor: AppTema.primaryWhite,
-                              items: <String>[
-                                'Aula Normal',
-                                'Aula Remota',
-                                'Reposição',
-                                'Aula Extra',
-                                'Substituição',
-                                'Aula Antecipada',
-                                'Aula Extra-Atividade',
-                                'Recuperação',
-                              ].map<DropdownMenuItem<String>>(
+                              items: tipos.map<DropdownMenuItem<String>>(
                                 (String opcao) {
                                   return DropdownMenuItem<String>(
                                     value: opcao,
@@ -421,7 +424,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                         Container(
                           margin: const EdgeInsets.only(bottom: 10),
                           child: const Text(
-                            'Data da Aula',
+                            'Selecione uma data',
                             style: TextStyle(fontSize: 16, color: Colors.black),
                           ),
                         ),
@@ -504,7 +507,7 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                           margin:
                                               const EdgeInsets.only(bottom: 10),
                                           child: const Text(
-                                            'Dia da Semana',
+                                            'Dia da semana',
                                             style: TextStyle(
                                                 fontSize: 16,
                                                 color: Colors.black),
@@ -540,12 +543,14 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 10),
                                       child: const Text(
-                                        'Selecione o Horário',
+                                        'Selecione um horário',
                                         style: TextStyle(
-                                            fontSize: 16, color: Colors.black),
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                        ),
                                       ),
                                     ))
-                                : const Text(''),
+                                : const SizedBox(),
                             _aula_selecionada != 'Aula Remota'
                                 ? Column(
                                     children: [
@@ -613,81 +618,6 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                     ],
                                   )
                                 : const SizedBox(),
-
-                            // !! SABERES E CONHECIMENTOS!!
-
-                            /*Container(
-                                margin:
-                                    const EdgeInsets.only(bottom: 10, top: 15),
-                                child: const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Saberes e Conhecimentos',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.black),
-                                  ),
-                                )),
-                            TextFormField(
-                              controller: _saberesConhecimentosController,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Por favor, preencha o conteúdo';
-                                }
-                                return null;
-                              },
-                              maxLines:
-                                  8, // Define o número máximo de linhas que o campo de texto pode ter
-                              decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                      color: Colors.grey), // Define a cor da borda ao clicar
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical:
-                                        5), // Ajusta a altura vertical do campo de texto
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                            ),*/
-
-                            // !! METODOLOGIA !!
-                            /*Container(
-                                margin:
-                                    const EdgeInsets.only(bottom: 10, top: 15),
-                                child: const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Estratégia Didática (Metodologia)',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.black),
-                                  ),
-                                ),),
-                            TextFormField(
-                              controller: _metodologiaController,
-                              validator: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Por favor, preencha a metodologia';
-                                }
-                                return null;
-                              },
-                              maxLines: 8,
-                              decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                    color: Colors.grey,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                              ),
-                            ),*/
                             const SizedBox(height: 0.0),
                             Container(
                               margin:
@@ -695,9 +625,11 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                               child: const Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  'Eixos Temáticos',
+                                  'Eixos temáticos',
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black),
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
@@ -732,7 +664,9 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                 child: Text(
                                   'Estratégias de ensino',
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black),
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1062,14 +996,14 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                             ),
                             const SizedBox(height: 16.0),
                             Text('sistemaBncc: $sistemaBnccParaCamposDeExperiecia'),*/
-                            // !! Campos de Experiência !!
+
                             Container(
                               margin:
                                   const EdgeInsets.only(bottom: 10, top: 15),
                               child: const Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  'Campos de Experiência',
+                                  'Campos de experiencias',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.black),
                                 ),

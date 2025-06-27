@@ -6,7 +6,7 @@ class DadosGestoesComponente extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+      padding: const EdgeInsets.fromLTRB(5, 15, 5, 15),
       width: double.infinity,
       height: 200,
       child: Card(
@@ -20,14 +20,14 @@ class DadosGestoesComponente extends StatelessWidget {
             Container(
               height: 50,
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color.fromARGB(255, 217, 168, 6),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(8.0),
                   topRight: Radius.circular(8.0),
                 ),
               ),
-              child: Center(
+              child: const Center(
                 child: Text(
                   'Cabeçalho',
                   style: TextStyle(
@@ -38,8 +38,8 @@ class DadosGestoesComponente extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 10),
-            Padding(
+            const SizedBox(height: 10),
+            const Padding(
               padding: EdgeInsets.all(10),
               child: Text(
                 'Conteúdo do card',

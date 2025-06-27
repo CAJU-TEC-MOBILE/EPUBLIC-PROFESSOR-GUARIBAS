@@ -161,7 +161,7 @@ class DirectoriesController {
     String fileExtension = extension(imageFile.path);
     String fileNameWithoutExtension = fileName!.split('.').first;
     String imagePath =
-        '${imageDir.path}/${fileNameWithoutExtension}_${userId}$fileExtension';
+        '${imageDir.path}/${fileNameWithoutExtension}_$userId$fileExtension';
 
     print('imagePath: $imagePath');
 
@@ -234,6 +234,7 @@ class DirectoriesController {
         }
       }
     }
+    return null;
   }
 
   Future<void> clearImagesDirectory() async {
@@ -322,7 +323,7 @@ class DirectoriesController {
     String fileExtension = extension(imageFile.path);
     String fileNameWithoutExtension = fileName!.split('.').first;
     String imagePath =
-        '${imageDir.path}/${fileNameWithoutExtension}_${criadaPeloCelular}$fileExtension';
+        '${imageDir.path}/${fileNameWithoutExtension}_$criadaPeloCelular$fileExtension';
 
     File existingImage = File(imagePath);
 

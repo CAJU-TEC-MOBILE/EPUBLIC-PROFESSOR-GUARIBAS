@@ -7,10 +7,10 @@ class CustomMultiSelectDropdown extends StatefulWidget {
   final ValueChanged<List<Disciplina>> onConfirm;
 
   const CustomMultiSelectDropdown({
-    Key? key,
+    super.key,
     required this.data,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   @override
   _CustomMultiSelectDropdownState createState() =>
@@ -18,7 +18,7 @@ class CustomMultiSelectDropdown extends StatefulWidget {
 }
 
 class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
-  List<Disciplina> _selectedDisciplinas = [];
+  final List<Disciplina> _selectedDisciplinas = [];
   late List<bool> _isSelected;
 
   @override
@@ -36,12 +36,11 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
     _selectedDisciplinas.remove(item);
   }
 
-  // Método para limpar as seleções
   void clearSelectedDisciplinas() {
     setState(() {
       _selectedDisciplinas.clear();
-      _isSelected.fillRange(0, _isSelected.length, false); // Limpa todas as seleções
-      // Se quiser reiniciar o estado das disciplinas, você pode fazer isso aqui também.
+      _isSelected.fillRange(0, _isSelected.length, false);
+
       for (var disciplina in widget.data) {
         disciplina.checkbox = false;
       }
@@ -70,7 +69,8 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
 
   Widget _buildDropdownButton() {
     return ElevatedButton(
-      onPressed: widget.data.isEmpty ? null : () => _showMultiSelectDialog(context),
+      onPressed:
+          widget.data.isEmpty ? null : () => _showMultiSelectDialog(context),
       child: const Text('Selecione as Disciplinas dessa Aula:'),
     );
   }
@@ -95,7 +95,6 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                         _isSelected[index] = selected ?? false;
                         widget.data[index].checkbox = _isSelected[index];
 
-                        // Inicializa data se for nulo
                         if (widget.data[index].data == null) {
                           widget.data[index].data = [];
                         }
@@ -119,18 +118,18 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
             actions: [
               TextButton(
                 onPressed: () {
+                  widget.onConfirm([]);
+                  clearSelectedDisciplinas();
                   Navigator.of(context).pop(true);
-                  widget.onConfirm(_selectedDisciplinas);
                 },
-                child: const Text('OK'),
+                child: const Text('Limpar Seleções'),
               ),
               TextButton(
                 onPressed: () {
-                  widget.onConfirm([]);
-                  clearSelectedDisciplinas(); // Chama o método de limpeza
-                  Navigator.of(context).pop(true); // Fecha o diálogo
+                  Navigator.of(context).pop(true);
+                  widget.onConfirm(_selectedDisciplinas);
                 },
-                child: const Text('Limpar Seleções'),
+                child: const Text('Confirmar'),
               ),
             ],
           );

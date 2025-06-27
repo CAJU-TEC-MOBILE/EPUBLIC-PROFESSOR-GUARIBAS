@@ -1,8 +1,6 @@
 import '../../models/ano_selecionado_model.dart';
 import '../../models/ano_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../models/auth_model.dart';
-import './auth_controller.dart';
 import './ano_controller.dart';
 
 class AnoSelecionadoController {

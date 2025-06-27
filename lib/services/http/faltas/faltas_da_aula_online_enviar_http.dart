@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:professor_acesso_notifiq/models/models_online/falta_model_online.dart';
 import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
 import 'dart:async';
-
+import 'package:path/path.dart' as path;
+import '../../../componentes/dialogs/custom_snackbar.dart';
 import '../../directories/directories_controller.dart';
 
 class FaltasDaAulaOnlineEnviarHttp {
@@ -156,6 +158,7 @@ class FaltasDaAulaOnlineEnviarHttp {
   }
 
   Future<bool> setJustificarFalta({
+    required BuildContext context,
     required String aulaId,
     required String matriculaId,
     required String justificativaId,
@@ -164,49 +167,102 @@ class FaltasDaAulaOnlineEnviarHttp {
   }) async {
     try {
       final directoriesController = DirectoriesController();
-      Map<dynamic, dynamic>? authData = await _getAuthData();
+      final authData = await _getAuthData();
 
       if (authData == null || authData['token_atual'] == null) {
-        print('Erro: Dados de autenticação não disponíveis.');
+        print('❌ Erro: Token de autenticação não encontrado.');
+        CustomSnackBar.showErrorSnackBar(
+            context, 'Autenticação inválida. Faça login novamente.');
         return false;
       }
 
-      String url = '${ApiBaseURLService.baseUrl}/aulas/justificar-falta-app';
-
-      var request = http.MultipartRequest('POST', Uri.parse(url))
-        ..headers['Authorization'] = 'Bearer ${authData['token_atual']}'
-        ..fields['aula_id'] = aulaId
-        ..fields['matricula_id'] = matriculaId
-        ..fields['justificativa_id'] = justificativaId
-        ..fields['observacao'] = observacao;
-
-      if (files.isNotEmpty) {
-        var fileStream = await http.MultipartFile.fromPath(
-          'file',
-          files[0].path,
-          filename: files[0].path.split('/').last,
-        );
-        request.files.add(fileStream);
-      } else {
-        print('Nenhum arquivo selecionado para envio.');
+      if (aulaId.isEmpty || matriculaId.isEmpty || justificativaId.isEmpty) {
+        print('❌ Erro: Parâmetros obrigatórios ausentes.');
+        CustomSnackBar.showErrorSnackBar(
+            context, 'Erro ao justificar falta: dados incompletos.');
+        return false;
       }
 
-      var response = await request.send();
+      final String url =
+          '${ApiBaseURLService.baseUrl}/aulas/justificar-falta-app';
+      final Map<String, String> headers = {
+        'Authorization': 'Bearer ${authData['token_atual']}',
+        'Content-Type': 'application/json',
+      };
+      print("url: $url");
+      print("token_atual: ${authData['token_atual'].toString()}");
+
+      List<Map<String, String>> base64Files = [];
+
+      if (files.isNotEmpty) {
+        for (var file in files) {
+          if (!await file.exists()) {
+            print('⚠️ Arquivo não encontrado: ${file.path}');
+            continue;
+          }
+
+          try {
+            List<int> fileBytes = await file.readAsBytes();
+            String base64String = base64Encode(fileBytes);
+            String fileName = path.basename(file.path);
+
+            base64Files.add({'filename': fileName, 'filedata': base64String});
+            // debugPrint('-> ${base64Files.first.toString()}');
+          } catch (e) {
+            print('❌ Erro ao converter arquivo ${file.path} para Base64: $e');
+            CustomSnackBar.showErrorSnackBar(
+                context, 'Erro ao processar um dos anexos.');
+          }
+        }
+
+        print('✅ Total de arquivos convertidos: ${base64Files.length}');
+      } else {
+        print('ℹ️ Nenhum arquivo anexado.');
+      }
+
+      // Montagem do corpo da requisição
+      final Map<String, dynamic> requestBody = {
+        'aula_id': aulaId,
+        'matricula_id': matriculaId,
+        'justificativa_id': justificativaId,
+        'observacao': observacao,
+        'documento_base64':
+            base64Files.isNotEmpty ? base64Files.first['filedata'] : null,
+      };
+      print("requestBody : $requestBody");
+      print('📤 Enviando justificativa...');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
 
       await directoriesController.excluirTudoAnexos();
 
+      final responseBody = jsonDecode(response.body);
+      print(responseBody.toString());
+
       if (response.statusCode == 200) {
-        print('Sincronização bem-sucedida.');
+        print('✅ Justificativa enviada com sucesso.');
         return true;
       } else {
-        print('Erro de sincronização: ${response.statusCode}');
-        String responseBody = await response.stream.bytesToString();
-        print('Resposta do servidor: $responseBody');
+        final errorMessage = responseBody['message'] ?? 'Erro desconhecido';
+        print(
+            '❌ Erro ao enviar justificativa: ${response.statusCode} - $errorMessage');
+
+        if (errorMessage == 'Falta não encontrada.') {
+          return false;
+        }
+
+        CustomSnackBar.showErrorSnackBar(context, errorMessage);
         return false;
       }
     } catch (error, stackTrace) {
-      print('Erro durante a sincronização: $error');
-      print('Detalhes: $stackTrace');
+      print('❌ Erro inesperado durante a requisição: $error');
+      print('📜 StackTrace: $stackTrace');
+
+      CustomSnackBar.showErrorSnackBar(
+          context, 'Erro ao justificar falta. Tente novamente.');
       return false;
     }
   }

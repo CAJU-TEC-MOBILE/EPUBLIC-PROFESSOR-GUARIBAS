@@ -1,6 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../models/professor_model.dart';
-import 'auth_controller.dart';
 
 class ProfessorController {
   late Box<Professor> box;

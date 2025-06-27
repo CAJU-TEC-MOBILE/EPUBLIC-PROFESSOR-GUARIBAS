@@ -1,124 +1,88 @@
-import '../../models/auth_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
-import '../../models/professor_model.dart';
+import 'package:professor_acesso_notifiq/models/professor_model.dart';
+import '../../data/adapters/auth_adapter.dart';
+import '../../enums/status_console.dart';
+import '../../helpers/console_log.dart';
+import '../../models/auth_model.dart';
 
 class AuthController {
-  late Box box;
+  Box<AuthModel>? box;
 
   Future<void> init() async {
     await Hive.initFlutter();
 
-    box = await Hive.openBox('auth');
-  }
-
-  Future<void> getAll() async {
-    var dado = box.values.toList();
-    print('dado: $dado');
-  }
-
-  Future<Auth?> getAuth() async {
-    if (box.isEmpty) {
-      print('---> O Box está vazio.');
-      return null;
+    if (!Hive.isAdapterRegistered(AuthAdapter().typeId)) {
+      Hive.registerAdapter(AuthAdapter());
     }
 
-    final dado = box.values.first;
+    box = await Hive.openBox<AuthModel>('auths');
+  }
 
+  Future<int> clear() async {
+    if (box == null) throw Exception("AuthController not initialized");
+    return await box!.clear();
+  }
+
+  Future<void> add(AuthModel model) async {
+    if (box == null) throw Exception("AuthController not initialized");
     try {
-      if (dado is Map) {
-        final mapDado = Map<String, dynamic>.from(dado);
-        return Auth.fromMap(mapDado);
-      }
-
-      if (dado is Auth) {
-        return dado;
-      }
-
-      print('Tipo de dado inesperado: ${dado.runtimeType}');
-      return null;
-    } catch (e, stack) {
-      print('Erro ao processar o dado: $e');
-      print('Stack trace: $stack');
-      return null;
+      await box!.add(model);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'auth-add-controller',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
     }
   }
 
-  Future<void> updateName(String? name) async {
-    if (box.isEmpty) {
-      return;
+  Future<AuthModel> authFirst() async {
+    if (box == null) throw Exception("AuthController not initialized");
+    try {
+      return box!.values.first;
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'auth-authFirst-controller',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
+      return AuthModel.vazio();
     }
-
-    Auth? dado = box.values.first;
-    if (dado == null) {
-      return;
-    }
-    dado.name = name.toString();
-
-    await box.put(dado.id, dado);
   }
 
   Future<void> updateAnoId({required int anoId}) async {
-    if (box.isEmpty) {
-      print('---> O Box está vazio.');
-      return;
-    }
+    if (box == null) throw Exception("AuthController not initialized");
 
     try {
-      final dado = box.values.first;
+      final auth = box!.values.first;
 
-      if (dado is Map) {
-        final auth = Auth.fromMap(Map<String, dynamic>.from(dado));
+      final updatedAuth = auth.copyWith(anoId: anoId.toString());
 
-        final updatedAuth = auth.copyWith(anoId: anoId.toString());
+      await box!.put(auth.id, updatedAuth);
 
-        await box.put(auth.id, updatedAuth.toMap());
-        print('atualizado com sucesso.');
-      } else {
-        print('Tipo de dado inesperado: ${dado.runtimeType}');
-      }
+      print('Atualizado com sucesso.');
     } catch (e) {
-      print('Erro ao atualizar ano_id: $e');
+      ConsoleLog.mensagem(
+        titulo: 'auth-updateAnoId-controller',
+        mensagem: e.toString(),
+        tipo: StatusConsole.error,
+      );
     }
   }
 
-  Future<Auth?> updateAuthProfessor(Professor novoProfessor) async {
-    if (box.isEmpty) {
-      print('---> O Box está vazio.');
-      return null;
-    }
-
-    final dado = box.values.first;
-
-    print('Tipo de dado armazenado no box: ${dado.runtimeType}');
-
+  Future<Professor> authProfessorFirst() async {
+    if (box == null) throw Exception("AuthController not initialized");
     try {
-      if (dado is Map) {
-        final auth = Auth.fromMap(Map<String, dynamic>.from(dado));
-
-        final updatedAuth = auth.copyWith(professor: novoProfessor);
-
-        await box.put(box.keys.first, updatedAuth.toMap());
-
-        print('Auth atualizado com sucesso: $updatedAuth');
-        return updatedAuth;
-      }
-
-      if (dado is Auth) {
-        final updatedAuth = dado.copyWith(professor: novoProfessor);
-
-        await box.put(box.keys.first, updatedAuth.toMap());
-
-        print('Auth atualizado com sucesso: $updatedAuth');
-        return updatedAuth;
-      }
-      await getAll();
-      print('Dado não é do tipo Auth');
-      return null;
-    } catch (e, stack) {
-      print('Erro ao processar o dado: $e');
-      print('Stack trace: $stack');
-      return null;
+      AuthModel auth = box!.values.first;
+      Professor professor = auth.professor ?? Professor.vazio();
+      return professor;
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'auth-authFirst-controller',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
+      return Professor.vazio();
     }
   }
 }

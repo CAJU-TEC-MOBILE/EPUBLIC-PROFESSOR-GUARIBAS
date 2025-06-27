@@ -2,22 +2,17 @@ import 'dart:convert';
 
 import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/aula_totalizador_model.dart';
 import 'package:professor_acesso_notifiq/models/professor_model.dart';
-import 'package:professor_acesso_notifiq/pages/principal_page.dart';
 import 'package:professor_acesso_notifiq/pages/professor/listagem_gestoes_professor.dart';
-import 'package:professor_acesso_notifiq/pages/usuarioPage.dart';
 
 import '../componentes/card/custom_sugestao_card.dart';
 import '../componentes/dialogs/custom_snackbar.dart';
 import '../componentes/dialogs/custom_sync_dialog.dart';
 import '../componentes/drawer/custom_drawer.dart';
 import '../componentes/global/preloader.dart';
-import '../componentes/textformfield/custom_buscar_textformfield.dart';
 import '../models/ano_model.dart';
 import '../models/auth_model.dart';
 import '../models/gestao_ativa_model.dart';
@@ -42,35 +37,54 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool loadingCard = false;
   AnoController anoController = AnoController();
+  final authController = AuthController();
   Map<dynamic, dynamic> gestao_ativa_data = {};
 
-  Auth? authModel;
-  Professor? professor;
+  AuthModel? authModel;
+  Professor professor = Professor.vazio();
   GestaoAtiva? gestaoAtivaModel;
   AulaTotalizador? totalizadorAula;
 
   Future<void> getInformacoes() async {
-    professor = AuthServiceAdapter().exibirProfessor();
+    try {
+      await authController.init();
+      professor = await authController.authProfessorFirst();
 
-    if (professor == null) {
-      return;
+      if (professor.id == '') {
+        return;
+      }
+
+      await getDados();
+      gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+      await getHomeAula(professor: professor);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'get-informacoes',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
-
-    await getDados();
-    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-    await getHomeAula(professor: professor);
   }
 
   Future<void> realizarSincronizacaoGeral() async {
-    professor = AuthServiceAdapter().exibirProfessor();
+    try {
+      await authController.init();
+      professor = await authController.authProfessorFirst();
 
-    if (professor == null) {
-      return;
+      if (professor.id == '') {
+        return;
+      }
+
+      await getDados();
+      gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
+      await getHomeAulaGeral(professor: professor);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'realizar0-sincronizacao-geral',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
-
-    await getDados();
-    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-    await getHomeAulaGeral(professor: professor);
   }
 
   @override

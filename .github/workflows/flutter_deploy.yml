@@ -1,0 +1,56 @@
+name: Flutter Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Deploy Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔍 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.4' # Recomendo uma versão mais estável (em vez de 3.32.4)
+          channel: stable
+          os: linux
+
+      - name: 🧪 Flutter Doctor
+        run: flutter doctor -v
+
+      - name: 📥 Get dependencies
+        run: flutter pub get
+
+      - name: 🧱 Build Runner (se usar)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+        # Remova esta etapa se não usa build_runner
+
+      - name: 🧪 Run tests
+        run: |
+          flutter test
+          flutter test --coverage
+        env:
+          COVERAGE: true
+
+      - name: 🛠️ Build APK Release
+        run: flutter build apk --release
+
+      - name: 📁 Archive coverage (opcional)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+        # Use isso se quiser arquivar relatórios de cobertura
+
+      - name: 📤 Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk

@@ -1,5 +1,3 @@
-import 'package:professor_acesso_notifiq/models/dia_model.dart';
-
 class Horario {
   final String id;
   final String turnoID;
@@ -28,6 +26,4 @@ class Horario {
   String toString() {
     return 'Horario(id: $id, turnoID: $turnoID, descricao: $descricao, inicio: $inicio, fim: $fim)';
   }
-
-  
 }

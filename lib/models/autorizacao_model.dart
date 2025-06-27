@@ -1,36 +1,69 @@
-class Autorizacao {
-  final String id;
-  final String pedidoID;
-  final String instrutorDisciplinaTurmaID;
-  final String etapaID;
-  final String userSolicitante;
-  final String userAprovador;
-  final String observacoes;
-  final String dataExpiracao;
-  final String status;
+class AutorizacaoModel {
+  String id;
+  String pedidoId;
+  String instrutorDisciplinaTurmaId;
+  String etapaId;
+  String userSolicitante;
+  String userAprovador;
+  String observacoes;
+  String dataExpiracao;
+  String status;
+  String data;
+  String mobile;
 
-  Autorizacao(
-      {required this.id,
-      required this.pedidoID,
-      required this.instrutorDisciplinaTurmaID,
-      required this.etapaID,
-      required this.userSolicitante,
-      required this.userAprovador,
-      required this.observacoes,
-      required this.dataExpiracao,
-      required this.status});
+  AutorizacaoModel({
+    required this.id,
+    required this.pedidoId,
+    required this.instrutorDisciplinaTurmaId,
+    required this.etapaId,
+    required this.userSolicitante,
+    required this.userAprovador,
+    required this.observacoes,
+    required this.dataExpiracao,
+    required this.status,
+    required this.data,
+    required this.mobile,
+  });
 
-  factory Autorizacao.fromJson(Map<dynamic, dynamic> json) {
-    return Autorizacao(
+  factory AutorizacaoModel.fromJson(Map<dynamic, dynamic> json) {
+    try {
+      return AutorizacaoModel(
         id: json['id']?.toString() ?? '',
-        pedidoID: json['pedido_id']?.toString() ?? '',
-        instrutorDisciplinaTurmaID:
+        pedidoId: json['pedido_id']?.toString() ?? '',
+        instrutorDisciplinaTurmaId:
             json['instrutorDisciplinaTurma_id']?.toString() ?? '',
-        etapaID: json['etapa_id']?.toString() ?? '',
+        etapaId: json['etapa_id']?.toString() ?? '',
         userSolicitante: json['user_solicitante']?.toString() ?? '',
         userAprovador: json['user_aprovador']?.toString() ?? '',
         observacoes: json['observacoes']?.toString() ?? '',
         dataExpiracao: json['data_expiracao']?.toString() ?? '',
-        status: json['status']?.toString() ?? '');
+        status: json['status']?.toString() ?? '',
+        data: json['data'] ?? '',
+        mobile: json['mobile'] ?? '',
+      );
+    } catch (error) {
+      return AutorizacaoModel.vazio();
+    }
+  }
+
+  factory AutorizacaoModel.vazio() {
+    return AutorizacaoModel(
+      id: '',
+      pedidoId: '',
+      instrutorDisciplinaTurmaId: '',
+      etapaId: '',
+      userSolicitante: '',
+      userAprovador: '',
+      observacoes: '',
+      dataExpiracao: '',
+      status: '',
+      data: '',
+      mobile: '',
+    );
+  }
+
+  @override
+  String toString() {
+    return 'AutorizacaoModel(id: $id, pedidoId: $pedidoId, instrutorDisciplinaTurmaId: $instrutorDisciplinaTurmaId, etapaId: $etapaId, userSolicitante: $userSolicitante, userAprovador: $userAprovador, observacoes: $observacoes, dataExpiracao: $dataExpiracao, status: $status, data: $data, mobile: $mobile)';
   }
 }

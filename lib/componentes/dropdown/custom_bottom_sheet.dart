@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 class CustomBottomSheet extends StatelessWidget {
+  const CustomBottomSheet({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height * 0.9; // Ajuste a altura como preferir
+    final height = MediaQuery.of(context).size.height *
+        0.9; // Ajuste a altura como preferir
     final width = MediaQuery.of(context).size.width;
 
-    return Container(
+    return SizedBox(
       height: height,
       width: width,
       child: Padding(
@@ -14,11 +17,11 @@ class CustomBottomSheet extends StatelessWidget {
         child: Stack(
           children: <Widget>[
             Positioned(
-              bottom: 20,  
+              bottom: 20,
               left: 0,
               right: 0,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,  
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
                     child: const Text('Fechar'),
@@ -26,7 +29,7 @@ class CustomBottomSheet extends StatelessWidget {
                       Navigator.pop(context);
                     },
                   ),
-                  const SizedBox(width: 20), 
+                  const SizedBox(width: 20),
                   ElevatedButton(
                     child: const Text('Confirmar'),
                     onPressed: () {
