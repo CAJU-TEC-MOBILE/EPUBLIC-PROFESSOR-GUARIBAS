@@ -54,11 +54,13 @@ android {
     ndkVersion = "26.3.11579264"
     // ndkVersion flutter.ndkVersion
     defaultConfig {
+ 
         applicationId = 'br.com.servidorcaju.guaribas'
         minSdkVersion = 23
         targetSdkVersion = 36
         versionCode 10
         versionName "5.0.11.5949"
+ 
         multiDexEnabled true
     }
 
