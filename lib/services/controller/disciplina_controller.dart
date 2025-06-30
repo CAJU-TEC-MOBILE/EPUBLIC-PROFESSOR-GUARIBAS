@@ -1,8 +1,11 @@
+import 'package:dart_console/dart_console.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../enums/status_console.dart';
+import '../../helpers/console_log.dart';
 import '../../models/disciplina_model.dart';
 
 class DisciplinaController {
-  late Box<Disciplina> _disciplinaBox;
+  late Box<Disciplina> box;
 
   Future<void> init() async {
     await Hive.initFlutter();
@@ -11,40 +14,46 @@ class DisciplinaController {
       Hive.registerAdapter(DisciplinaAdapter());
     }
 
-    _disciplinaBox = await Hive.openBox<Disciplina>('disciplinas');
+    box = await Hive.openBox<Disciplina>('disciplinas');
   }
 
   Future<void> addDisciplinaLista(List<dynamic> disciplinas) async {
     for (var item in disciplinas) {
       Disciplina disciplina = Disciplina.fromJson(item);
-      await _disciplinaBox.add(disciplina);
+      await box.add(disciplina);
     }
   }
 
   List<Disciplina> getAllDisciplinas() {
-    return _disciplinaBox.values.toList();
+    return box.values.toList();
   }
 
   Future<void> close() async {
-    await _disciplinaBox.close();
+    await box.close();
   }
 
   Future<void> clear() async {
-    await _disciplinaBox.clear();
+    await box.clear();
   }
 
   Future<bool> addDisciplina(Disciplina disciplina) async {
     try {
-      if (_disciplinaBox.isOpen) {
-        await _disciplinaBox.add(disciplina);
-        print('Disciplina salva com sucesso.');
-        return true;
-      } else {
-        print('Erro ao adicionar disciplina: A caixa está fechada');
+      if (!box.isOpen) {
+        ConsoleLog.mensagem(
+          titulo: 'aisciplina-add-controller',
+          mensagem: 'Erro ao adicionar disciplina: A caixa está fechada',
+          tipo: StatusConsole.error,
+        );
         return false;
       }
-    } catch (e) {
-      print('Erro ao adicionar disciplina: $e');
+      await box.add(disciplina);
+      return true;
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'disciplina-add-controller',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
       return false;
     }
   }
@@ -53,9 +62,9 @@ class DisciplinaController {
     required String turmaId,
     required String idtId,
   }) async {
-    if (_disciplinaBox.isOpen) {
+    if (box.isOpen) {
       try {
-        final disciplinasFiltradas = _disciplinaBox.values
+        final disciplinasFiltradas = box.values
             .where((disciplina) =>
                 disciplina.idtTurmaId == turmaId && disciplina.idt_id == idtId)
             .toList();
@@ -84,9 +93,9 @@ class DisciplinaController {
   Future<String> getDisciplinaId({
     required int id,
   }) async {
-    if (_disciplinaBox.isOpen) {
+    if (box.isOpen) {
       try {
-        var disciplina = _disciplinaBox.values.toList();
+        var disciplina = box.values.toList();
 
         return disciplina[0].descricao.toString();
       } catch (e) {
@@ -104,13 +113,13 @@ class DisciplinaController {
       return "SEM DISCIPLINA";
     }
 
-    if (!_disciplinaBox.isOpen) {
+    if (!box.isOpen) {
       print('Box não inicializado');
       return 'Box não inicializado';
     }
 
     try {
-      var disciplina = _disciplinaBox.values.firstWhere(
+      var disciplina = box.values.firstWhere(
         (d) => d.id.toString() == disciplinaId,
         orElse: () => Disciplina.vazia(),
       );

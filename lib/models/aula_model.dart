@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:professor_acesso_notifiq/models/horario_model.dart';
 
 import '../constants/app_tema.dart';
+import '../services/controller/config_horario_configuracao.dart';
 import '../services/controller/disciplina_aula_controller.dart';
 import '../services/controller/disciplina_controller.dart';
 import '../services/controller/horario_controller.dart';
@@ -232,6 +234,28 @@ class Aula {
     return horariosId;
   }
 
+  Future<String> getHorario({required String horarioId}) async {
+    final configHorarioConfiguracao = ConfigHorarioConfiguracao();
+    await configHorarioConfiguracao.init();
+
+    Horario model = await configHorarioConfiguracao.horario(
+      horarioId: horarioId,
+    );
+
+    return model.descricao;
+  }
+
+  Future<String> getDescricaoHorario() async {
+    final configHorarioConfiguracao = ConfigHorarioConfiguracao();
+    await configHorarioConfiguracao.init();
+
+    Horario model = await configHorarioConfiguracao.horario(
+      horarioId: horarioID.toString(),
+    );
+
+    return model.descricao;
+  }
+
   Future<String> getHorariosAula() async {
     final disciplinaAulaController = DisciplinaAulaController();
     final horarioController = HorarioController();
@@ -261,7 +285,7 @@ class Aula {
       if (horariosId.isNotEmpty) {
         final descricoes = await Future.wait(
           horariosId.map((id) async {
-            final descricao = await horarioController.getDescricaoHorario(id);
+            final descricao = await getHorario(horarioId: id.toString());
             if (descricao.isNotEmpty) {
               return descricao.toString();
             }

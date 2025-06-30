@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:async';
@@ -31,8 +32,13 @@ import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../help/data_time.dart';
 import '../../models/auth_model.dart';
 import '../../services/adapters/auth_service_adapter.dart';
+import '../../services/controller/auth_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
 import '../../services/controller/pedido_controller.dart';
+import '../../utils/constants.dart';
+import '../../utils/datetime_utils.dart';
+import '../../wigets/custom_periodo_card.dart';
+import '../autorizacoes/criar_autorizacao_page.dart';
 
 class CriarAulaPage extends StatefulWidget {
   final String? instrutorDisciplinaTurmaId;
@@ -47,7 +53,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   final TextEditingController _metodologiaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pedidoController = PedidoController();
-  AuthModel authModel = AuthServiceAdapter().exibirAuth();
+  final authController = AuthController();
+
+  AuthModel authModel = AuthModel.vazio();
+  Etapa etapa = Etapa.vazio();
 
   var _disciplinas_selecionada;
   String? _errorText;
@@ -88,6 +97,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   String situacaoStatus = '';
   String circuitoId = '';
   bool statusPeriudo = false;
+  bool statusPeriodo = false;
 
   Future<void> _situacao() async {
     await pedidoController.init();
@@ -153,7 +163,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   void initState() {
     super.initState();
     _situacao();
-
+    _auth();
     getDisciplinas();
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
@@ -214,7 +224,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   }
 
   Future<void> _salvarAula() async {
-    print("TOTAL: ${selectedDisciplinas.length.toString()}");
     if (selectedDisciplinas.isEmpty && gestaoAtivaModel!.is_polivalencia == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -230,6 +239,13 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
             ],
           ),
         ),
+      );
+      return;
+    }
+    if (_diaDaSemana == null) {
+      CustomSnackBar.showErrorSnackBar(
+        context,
+        'Por favor, selecione uma data',
       );
       return;
     }
@@ -377,6 +393,11 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     }
   }
 
+  Future<void> _auth() async {
+    await authController.init();
+    authModel = await authController.authFirst();
+  }
+
   void _showMultiSelectDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -480,19 +501,27 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     setState(() {});
   }
 
-  Future<void> selecaoEtapa({required int? novaSelecao}) async {
+  Future<void> selecaoEtapa({required int? value}) async {
     try {
-      _etapa_selecionada = novaSelecao;
+      if (value == null) {
+        return;
+      }
+      _etapa_selecionada = value;
 
       final etapaSelecionada = listaDeEtapas?.firstWhere(
-        (e) => e.id.toString() == novaSelecao.toString(),
+        (e) => e.id.toString() == value.toString(),
       );
 
       if (etapaSelecionada == null) {
         throw Exception('Etapa selecionada não encontrada na lista de etapas.');
       }
 
+      etapa = etapaSelecionada;
+
+      await selecaoDeEtapa(etapaId: etapa.id);
+
       setState(() {
+        etapa;
         _etapa_selecionada;
         etapa_selecionada_objeto = etapaSelecionada;
 
@@ -515,7 +544,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       await gestaoAtivaDias();
     } catch (e) {
       debugPrint(
-        'Erro ao processar a seleção da etapa ($novaSelecao): $e',
+        'Erro ao processar a seleção da etapa ($value): $e',
       );
     }
   }
@@ -546,6 +575,19 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       }
     }
     return true;
+  }
+
+  Future<void> selecaoDeEtapa({required etapaId}) async {
+    etapa = listaDeEtapas!
+        .where((item) => item.id.toString() == etapaId.toString())
+        .first;
+    if (etapa.id != '') {
+      statusPeriodo = DateTimeUtils.isDataAtualNoPeriodo(
+        dataInicial: etapa.periodo_inicial,
+        dataFinal: etapa.periodo_final,
+      );
+    }
+    setState(() => statusPeriodo);
   }
 
   @override
@@ -583,7 +625,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                               Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 child: const Text(
-                                  'Selecione a etapa',
+                                  'Etapas',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black,
@@ -591,13 +633,12 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                 ),
                               ),
                               DropdownButtonFormField<int>(
-                                value: _etapa_selecionada,
                                 elevation: 1,
-                                onChanged: (int? novaSelecao) async =>
-                                    await selecaoEtapa(
-                                  novaSelecao: novaSelecao,
-                                ),
-                                focusColor: AppTema.primaryDarkBlue,
+                                onChanged: (int? value) async {
+                                  await selecaoEtapa(
+                                    value: value,
+                                  );
+                                },
                                 dropdownColor: AppTema.primaryWhite,
                                 decoration: InputDecoration(
                                   filled: true,
@@ -643,7 +684,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                       child: Text(
                                         objeto.descricao,
                                         style: const TextStyle(
-                                            color: AppTema.primaryDarkBlue),
+                                          color: AppTema.primaryDarkBlue,
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -656,90 +698,29 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                   return null;
                                 },
                               ),
-                              _etapa_selecionada != null &&
-                                      situacaoStatus != 'PENDENTE'
-                                  ? Container(
-                                      margin: const EdgeInsets.only(
-                                          top: 10, bottom: 10),
-                                      child: Card(
-                                        elevation: 0.0,
-                                        color: AppTema.primaryAmarelo,
-                                        child: Container(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              15, 15, 15, 15),
-                                          child: Column(
-                                            children: [
-                                              const Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  'Informações sobre esta etapa ',
-                                                  style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: AppTema
-                                                          .primaryDarkBlue),
-                                                ),
+                              etapa.id != ''
+                                  ? Column(
+                                      children: [
+                                        const SizedBox(height: 8.0),
+                                        CustomPeriodoCard(
+                                          etapa: etapa,
+                                          isBloqueada: statusPeriodo,
+                                          onPressed: () {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    CriarAutorizacaoPage(
+                                                        etapa: etapa,
+                                                        circuitoId:
+                                                            gestaoAtivaModel!
+                                                                .circuito_nota_id
+                                                                .toString()),
                                               ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  texto1_etapa.toString(),
-                                                  style: const TextStyle(
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                height: 3,
-                                              ),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  texto2_etapa.toString(),
-                                                  style: const TextStyle(
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                            );
+                                          },
                                         ),
-                                      ),
-                                    )
-                                  : const SizedBox(),
-                              etapa_selecionada_objeto != null &&
-                                      situacaoStatus != 'APROVADO' &&
-                                      statusPeriudo != true
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 16.0),
-                                      child: AvisoDeRegraAutorizacoesComponente(
-                                        etapa_selecionada_objeto:
-                                            etapa_selecionada_objeto,
-                                        autorizacaoSelecionada:
-                                            autorizacaoSelecionada,
-                                        statusDaAutorizacao:
-                                            statusDaAutorizacao,
-                                        dataLogicaExpiracao:
-                                            verificarSeDataAtualEmaior(
-                                          data: autorizacaoSelecionada!
-                                              .dataExpiracao
-                                              .toString(),
-                                        ),
-                                        dataEtapaValida: data_etapa_valida,
-                                        etapaId:
-                                            etapa_selecionada_objeto != null
-                                                ? etapa_selecionada_objeto!.id
-                                                : '',
-                                        instrutorDisciplinaTurmaID:
-                                            gestaoAtivaModel!.idt_id.toString(),
-                                        statusPeriudo: statusPeriudo,
-                                      ),
+                                      ],
                                     )
                                   : const SizedBox(),
                               ((data_etapa_valida &&
@@ -756,12 +737,14 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                       children: [
                                           Container(
                                             margin: const EdgeInsets.only(
-                                                bottom: 10),
+                                              bottom: 10,
+                                            ),
                                             child: const Text(
                                               'Tipo de Aula',
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black),
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
                                             ),
                                           ),
                                           InputDecorator(
@@ -780,7 +763,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                               ),
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
-                                                      horizontal: 16.0),
+                                                horizontal: 16.0,
+                                              ),
                                             ),
                                             child: DropdownButtonHideUnderline(
                                               child: DropdownButton<String>(
@@ -800,16 +784,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                   Icons.arrow_drop_down,
                                                   color: Colors.black,
                                                 ),
-                                                items: <String>[
-                                                  'Aula Normal',
-                                                  'Aula Remota',
-                                                  'Reposição',
-                                                  'Aula Extra',
-                                                  'Substituição',
-                                                  'Aula Antecipada',
-                                                  'Aula Extra-Atividade',
-                                                  'Recuperação',
-                                                ].map<DropdownMenuItem<String>>(
+                                                items: Constants.tiposDeAulas
+                                                    .map<
+                                                        DropdownMenuItem<
+                                                            String>>(
                                                   (String opcao) {
                                                     return DropdownMenuItem<
                                                         String>(
@@ -838,10 +816,11 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                             margin: const EdgeInsets.only(
                                                 bottom: 10),
                                             child: const Text(
-                                              'Data da Aula',
+                                              'Selecione uma data',
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black),
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
                                             ),
                                           ),
                                           Column(
@@ -940,7 +919,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                               10),
                                                                   child:
                                                                       const Text(
-                                                                    'Selecione o Horário',
+                                                                    'Selecione um horário',
                                                                     style: TextStyle(
                                                                         fontSize:
                                                                             16,
@@ -963,9 +942,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                     setState(() =>
                                                                         _horario_selecionado =
                                                                             novaSelecao),
-                                                                focusColor:
-                                                                    Colors
-                                                                        .black,
                                                                 decoration:
                                                                     InputDecoration(
                                                                   filled: true,

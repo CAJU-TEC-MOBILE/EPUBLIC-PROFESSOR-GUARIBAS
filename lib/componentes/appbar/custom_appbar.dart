@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-
 import '../../models/disciplina_model.dart';
 import '../../models/gestao_ativa_model.dart';
 import '../../services/adapters/gestao_ativa_service_adapter.dart';
@@ -8,15 +7,12 @@ import '../../services/controller/disciplina_controller.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   VoidCallback onPressedSynchronizer;
-
   CustomAppBar({
     super.key,
     required this.onPressedSynchronizer,
   });
-
   @override
   _CustomAppBarState createState() => _CustomAppBarState();
-
   @override
   Size get preferredSize => const Size.fromHeight(80);
 }
@@ -26,7 +22,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
   bool status = false;
   String descricaoString = '';
   List<Disciplina> disciplinas = [];
-
   @override
   void initState() {
     super.initState();
@@ -45,23 +40,19 @@ class _CustomAppBarState extends State<CustomAppBar> {
       setState(() => disciplinas = []);
       return;
     }
-
     final disciplinaController = DisciplinaController();
     await disciplinaController.init();
-
     disciplinas = await disciplinaController.getAllDisciplinasPeloTurmaId(
       turmaId: gestaoAtivaModel!.idt_turma_id.toString(),
       idtId: gestaoAtivaModel!.idt_id.toString(),
     );
-
     setState(() {
       descricaoString =
           disciplinas.map((disciplina) => disciplina.descricao).join(', ');
     });
   }
 
-  double fontText = 12.0;
-
+  double fontText = 14.0;
   @override
   Widget build(BuildContext context) {
     return status
@@ -103,28 +94,28 @@ class _CustomAppBarState extends State<CustomAppBar> {
                   ),
                 ],
               ),
-            ));
+            ),
+          );
   }
 
   List<Widget> _buildInfoRows(BuildContext context) {
     return [
       Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceBetween, // Distribui os elementos
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildButton(context),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Turma:', gestaoAtivaModel?.turma_descricao),
+                _buildInfoRow('Turma: ', gestaoAtivaModel?.turma_descricao),
                 _buildInfoDisciplinaRow(
-                  'Disciplina:',
+                  'Disciplina: ',
                   gestaoAtivaModel?.is_polivalencia == 1
                       ? descricaoString
                       : gestaoAtivaModel?.disciplina_descricao,
                 ),
-                _buildInfoRow('Professor:', gestaoAtivaModel?.instrutor_nome),
+                _buildInfoRow('Professor: ', gestaoAtivaModel?.instrutor_nome),
               ],
             ),
           ),
@@ -144,7 +135,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        //const SizedBox(width: 4.0),
         Expanded(
           child: Text(
             value ?? '...',
@@ -170,7 +160,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        //const SizedBox(width: 4.0),
         SizedBox(
           width: MediaQuery.of(context).size.width / 2,
           child: Text(
@@ -204,27 +193,27 @@ class _CustomAppBarState extends State<CustomAppBar> {
     );
   }
 
-  Widget _buildTipoRow(String label, bool? infantil) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppTema.primaryDarkBlue,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(width: 4.0),
-        Expanded(
-          child: Text(
-            infantil == true ? 'Infantil' : 'Fundamental',
-            style: const TextStyle(color: AppTema.primaryDarkBlue),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            softWrap: false,
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildTipoRow(String label, bool? infantil) {
+  //   return Row(
+  //     children: [
+  //       Text(
+  //         label,
+  //         style: const TextStyle(
+  //           color: AppTema.primaryDarkBlue,
+  //           fontWeight: FontWeight.bold,
+  //         ),
+  //       ),
+  //       const SizedBox(width: 4.0),
+  //       Expanded(
+  //         child: Text(
+  //           infantil == true ? 'Infantil' : 'Fundamental',
+  //           style: const TextStyle(color: AppTema.primaryDarkBlue),
+  //           overflow: TextOverflow.ellipsis,
+  //           maxLines: 1,
+  //           softWrap: false,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }

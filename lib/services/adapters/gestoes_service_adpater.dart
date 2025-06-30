@@ -201,7 +201,6 @@ class GestoesService {
 
     if (storedGestoes != null && storedGestoes.length > 0) {
       await gestoesBox.clear();
-      print('---------------BOX GESTÕES (CLEAR)--------------');
     }
 
     await gestoesBox.put('gestoes', gestoes);

@@ -49,4 +49,25 @@ class ConfiguracaoHttp {
       rethrow;
     }
   }
+
+  Future<http.Response> horarios() async {
+    final preference = SharedPreferenceService();
+
+    await preference.init();
+
+    String? token = await preference.getToken();
+
+    String endpoint = 'notifiq-professor/configuracao/horarios';
+
+    final uri = Uri.parse('${ApiBaseURLService.baseUrl}/$endpoint');
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final response = await http.get(uri, headers: headers);
+
+    return response;
+  }
 }

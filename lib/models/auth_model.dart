@@ -58,12 +58,12 @@ class AuthModel {
 
   factory AuthModel.vazio() {
     return AuthModel(
-      id: '-1',
-      anoId: '-1',
+      id: '',
+      anoId: '',
       name: '',
       email: '',
       situacao: '',
-      configuracaoId: '-1',
+      configuracaoId: '',
       tokenAtual: '',
       professor: Professor.vazio(),
       franquias_permitidas: [],

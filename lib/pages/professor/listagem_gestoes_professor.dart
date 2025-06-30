@@ -17,7 +17,6 @@ class ListagemGestoesProfessor extends StatefulWidget {
   const ListagemGestoesProfessor({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _ListagemGestoesProfessorState createState() =>
       _ListagemGestoesProfessorState();
 }
@@ -25,15 +24,13 @@ class ListagemGestoesProfessor extends StatefulWidget {
 class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
   final Box _gestoesBox = Hive.box('gestoes');
   final Box _gestaoAtivaBox = Hive.box('gestao_ativa');
-  // ignore: unused_field
-  // ignore: non_constant_identifier_names
+
   List<dynamic>? gestoes_data = [];
   List<GestaoAtiva>? gestaoAtivaData = [];
-  double fontSize = 16.0;
   List<Gestao>? gestoes;
   List<bool> isExpandedList = [];
-  // ignore: prefer_final_fields
-  Box _authBox = Hive.box('auth');
+  double fontSize = 16.0;
+
   @override
   void initState() {
     super.initState();
@@ -45,10 +42,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
     super.dispose();
   }
 
-  void removerDadosAuth() {
-    _authBox.clear();
-  }
-
   void toggleExpanded(int index) {
     setState(() {
       isExpandedList[index] = !isExpandedList[index];
@@ -58,13 +51,12 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
   Future<void> recarregarPageParaObterNovasGestoes(
       {required BuildContext context}) async {
     try {
+      showLoading(context);
       final gestaoCotnroller = GestaoCotnroller();
       await GestoesService().atualizarGestoesDoDispositivo(context);
-
       await gestaoCotnroller.init();
       await getGestao(tipo: 1);
-
-      // hideLoading(context);
+      hideLoading(context);
     } catch (e) {
       hideLoading(context);
       debugPrint('Erro ao recarregar a página: $e');
@@ -75,8 +67,7 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
       String turmaId, String idtId) async {
     final DisciplinaController disciplinaController = DisciplinaController();
     await disciplinaController.init();
-    final List<Disciplina> dados = disciplinaController.getAllDisciplinas();
-    //print(dados.toString());
+
     return await disciplinaController.getAllDisciplinasPeloTurmaId(
       turmaId: turmaId,
       idtId: idtId,
@@ -86,8 +77,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
   Future<void> getGestao({required int tipo}) async {
     try {
       final data = await _gestoesBox.get('gestoes') ?? [];
-
-      // debugPrint(data.toString());
 
       if (gestoes_data!.isEmpty && tipo == 1) {
         hideLoading(context);
@@ -122,8 +111,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
 
   @override
   Widget build(BuildContext context) {
-    //debugPrint(jsonEncode(gestoes![0]), wrapWidth: 1024);
-    //debugPrint(jsonEncode(gestoes_data![0]), wrapWidth: 1024);
     return WillPopScope(
       onWillPop: () async {
         Navigator.pushReplacementNamed(context, '/home');
@@ -185,7 +172,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                                   ),
                                 ),
                                 child: ListTile(
-                                  //onTap: () => toggleExpanded(index),
                                   title: Text(
                                     gestoes_data?[index][0]
                                             ['configuracao_descricao'] ??
@@ -206,8 +192,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                                     child: InkWell(
                                       onTap: () async {
                                         await pageAula(item);
-                                        // await Navigator.pushReplacementNamed(
-                                        //     context, '/principal');
                                       },
                                       child: Card(
                                         color: AppTema.primaryWhite,
@@ -334,7 +318,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                                                                         List<
                                                                             Disciplina>>
                                                                     snapshot) {
-                                                              // Checando o estado da conexão
                                                               if (snapshot
                                                                       .connectionState ==
                                                                   ConnectionState
@@ -351,7 +334,6 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                                                                 return const Text(
                                                                     'Nenhuma disciplina encontrada');
                                                               } else {
-                                                                // Aqui dentro, o snapshot é acessível corretamente
                                                                 return RichText(
                                                                   text:
                                                                       TextSpan(
@@ -366,7 +348,7 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                                                                           fontSize:
                                                                               fontSize,
                                                                           color:
-                                                                              Colors.black,
+                                                                              Colors.black54,
                                                                         ),
                                                                       ),
                                                                       TextSpan(

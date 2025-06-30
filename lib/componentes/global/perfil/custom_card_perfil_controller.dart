@@ -19,8 +19,9 @@ class CustomCardPerfilController {
   final GestaoAtivaServiceAdapter _gestaoAtivaServiceAdapter;
   final authController = AuthController();
 
-  ValueNotifier<AuthModel?> authModel = ValueNotifier(null);
+  AuthModel auth = AuthModel.vazio();
   ValueNotifier<GestaoAtiva?> gestaoAtivaModel = ValueNotifier(null);
+
   Professor? professor;
 
   CustomCardPerfilController({
@@ -31,8 +32,8 @@ class CustomCardPerfilController {
 
   Future<void> fetchInformacoes() async {
     try {
-      final auth = _authServiceAdapter.exibirAuth();
-      authModel.value = auth;
+      await authController.init();
+      auth = await authController.authFirst();
 
       final gestaoAtiva =
           await _gestaoAtivaServiceAdapter.getExibirGestaoAtiva();

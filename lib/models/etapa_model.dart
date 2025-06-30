@@ -1,4 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:intl/intl.dart';
+
 class Etapa {
   final String id;
   final String circuito_nota_id;
@@ -23,7 +24,7 @@ class Etapa {
   factory Etapa.fromJson(Map<dynamic, dynamic> etapaJson) {
     return Etapa(
       id: etapaJson['id'].toString(),
-      curso_descricao: etapaJson['curso_descricao']  ?? '',
+      curso_descricao: etapaJson['curso_descricao'] ?? '',
       circuito_nota_id: etapaJson['circuito_nota_id'].toString(),
       descricao: etapaJson['descricao'].toString(),
       periodo_inicial: etapaJson['periodo_inicial'].toString(),
@@ -31,6 +32,31 @@ class Etapa {
       situacao_faltas: etapaJson['situacao_faltas'].toString(),
       etapa_global: etapaJson['etapa_global'].toString(),
     );
+  }
+
+  factory Etapa.vazio() {
+    return Etapa(
+      id: '',
+      curso_descricao: '',
+      circuito_nota_id: '',
+      descricao: '',
+      periodo_inicial: '',
+      periodo_final: '',
+      situacao_faltas: '',
+      etapa_global: '',
+    );
+  }
+
+  String get ptBrInicio {
+    return DateFormat('dd/MM/yyyy').format(DateTime.parse(periodo_inicial));
+  }
+
+  String get ptBrFim {
+    return DateFormat('dd/MM/yyyy').format(DateTime.parse(periodo_final));
+  }
+
+  String get label {
+    return '$descricao - Início: $ptBrInicio Fim: $ptBrFim';
   }
 
   @override

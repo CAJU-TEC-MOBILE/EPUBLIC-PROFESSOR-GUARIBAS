@@ -8,6 +8,7 @@ import '../../models/aula_model.dart';
 import '../../models/aula_sistema_bncc_model.dart';
 import '../../models/aula_totalizador_model.dart';
 import '../../models/auth_model.dart';
+import '../../models/config_horario_model.dart';
 import '../../models/faltas_model.dart';
 import '../../models/historico_requencia_model.dart';
 import '../../models/justificativa_model.dart';
@@ -26,6 +27,7 @@ import '../../models/ano_model.dart';
 import '../../models/tipo_aula_model.dart';
 import '../../services/console_table.dart';
 import '../adapters/auth_adapter.dart';
+import '../adapters/config_horario_adapter.dart';
 
 class HiveConfig {
   static Future<void> start() async {
@@ -64,6 +66,7 @@ class HiveConfig {
     Hive.registerAdapter(HistoricoPresencaAdapter());
     Hive.registerAdapter(TipoAulaAdapter());
     Hive.registerAdapter(PedidoAdapter());
+    Hive.registerAdapter(ConfigHorarioAdapter());
 
     await Future.wait([
       Hive.openBox('auth'),
@@ -96,6 +99,7 @@ class HiveConfig {
       Hive.openBox<HistoricoPresenca>('historico_presencas'),
       Hive.openBox<TipoAula>('tipos_aulas'),
       Hive.openBox<Pedido>('pedidos_enviados'),
+      Hive.openBox<ConfigHorarioModel>('config_horarios'),
     ]);
   }
 }

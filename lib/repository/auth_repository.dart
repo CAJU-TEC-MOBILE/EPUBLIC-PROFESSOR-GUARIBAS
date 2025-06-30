@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import '../enums/status_console.dart';
 import '../helpers/console_log.dart';
@@ -22,6 +21,7 @@ import '../services/http/configuracao/configuracao_http.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
 import '../services/http/gestoes/gestoes_listar_com_outros_dados_http.dart';
 import '../services/shared_preference_service.dart';
+import 'configuracao_repository.dart';
 
 class AuthRepository {
   final sharedPreferenceService = SharedPreferenceService();
@@ -35,7 +35,7 @@ class AuthRepository {
   final configuracaoHttp = ConfiguracaoHttp();
   final configuracaoApp = ConfiguracaoApp();
   final gestaoDisciplinaHttp = GestaoDisciplinaHttp();
-
+  final configuracaoRepository = ConfiguracaoRepository();
   Future<bool> login({
     required BuildContext context,
     required String email,
@@ -43,7 +43,6 @@ class AuthRepository {
   }) async {
     try {
       await sharedPreferenceService.init();
-
       final response = await authHttp.login(email: email, password: password);
 
       if (response.statusCode != 200) {
@@ -54,41 +53,28 @@ class AuthRepository {
       await disciplinaController.init();
       await professorController.init();
       await authController.init();
-
       await instrutorController.clear();
       await disciplinaController.clear();
       await professorController.clear();
       await authController.clear();
-
       await Future.delayed(const Duration(seconds: 3));
-
       final Map<String, dynamic> data = json.decode(response.body);
-
       final professorData = data['user']['professor'];
-
       final instrutor = Instrutor(
         id: professorData['id'].toString(),
         nome: professorData['nome'].toString(),
         anoId: data['user']['ano_id'].toString(),
         token: data['user']['token_atual'].toString(),
       );
-
       final auth = AuthModel.fromJson(data['user']);
-
       await instrutorController.addInstrutor(instrutor);
-
       await authController.add(auth);
-
       await sharedPreferenceService.salvarDadosUsuario(
         accessToken: instrutor.token.toString(),
         successStatus: true,
       );
-
-      // await tipoDeAula(token: data['user']['token_atual'].toString());
-
       sharedPreferenceService.visualizar();
-
-      // await gestoesListarComOutrosDadosHttp.todasAsGestoes();
+      await configuracaoRepository.configHorario();
       await gestoesService.atualizarGestoesDispositivo();
       await professorController.create(data['user']['professor']);
       await MatriculasServiceAdapter().salvar(data['matriculas'] ?? []);

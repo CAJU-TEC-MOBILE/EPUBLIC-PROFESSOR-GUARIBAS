@@ -46,7 +46,7 @@ class HorarioController {
       return 'Nenhum horário disponível.';
     }
 
-    final horario = horarios[0].firstWhere(
+    final horario = horarios.firstWhere(
       (h) => h['id'].toString() == id.toString(),
       orElse: () => null,
     );

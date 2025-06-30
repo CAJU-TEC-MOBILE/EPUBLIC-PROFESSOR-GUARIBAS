@@ -96,8 +96,8 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
       isLoading = true;
     });
     //await carregarDadosExtras();
-    await horarioConfiguracaoController.init();
     await carregarDados();
+    await horarioConfiguracaoController.init();
     await getAulas();
     await fetchDisciplinas();
     await fetchDisciplinasAula();
@@ -275,6 +275,12 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Padding(
+                  //   padding: EdgeInsets.only(bottom: 8.0),
+                  //   child: CustomAppBar(
+                  //     onPressedSynchronizer: () async => await iniciando(),
+                  //   ),
+                  // ),
                   Expanded(
                     child: paginatedItems.isNotEmpty
                         ? Scrollbar(
