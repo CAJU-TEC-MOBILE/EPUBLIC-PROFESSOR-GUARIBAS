@@ -1,4 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../enums/status_console.dart';
+import '../../helpers/console_log.dart';
 import '../../models/aula_totalizador_model.dart';
 
 class AulaTotalizadorController {
@@ -23,10 +25,20 @@ class AulaTotalizadorController {
     await box.clear();
   }
 
-  Future<AulaTotalizador?> getAulaTotalizador() async {
-     if (box.isNotEmpty) {
-      return box.getAt(0);  
+  Future<AulaTotalizador> totalizador() async {
+    try {
+      if (box.isEmpty) {
+        return AulaTotalizador.vazio();
+      }
+      AulaTotalizador totalizador = box.values.first;
+      return totalizador;
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'totalizador',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
+      return AulaTotalizador.vazio();
     }
-    return null; 
   }
 }

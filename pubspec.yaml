@@ -70,6 +70,8 @@ dependencies:
   flutter_launcher_icons: ^0.14.3
   provider: ^6.1.5
   shared_preferences: ^2.5.3
+  package_info_plus: ^8.3.0
+  flutter_material_design_icons: ^1.1.7447
   #connectivity_plus: ^6.0.5
 # flutter_native_splash:
 #   color: "#FBB232"
@@ -114,6 +116,7 @@ flutter:
     - assets/e_PUBLIC_Guaribas.png
     - assets/logo.png
     - assets/error.png
+    - assets/ePUBLIC.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

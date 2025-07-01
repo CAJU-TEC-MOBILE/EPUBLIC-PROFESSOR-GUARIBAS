@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'data/database/database_hive.dart';
 import 'providers/auth_provider.dart';
+import 'providers/autorizacao_provider.dart';
 import 'routes/routes.dart';
 import 'services/shared_preference_service.dart';
 import 'utils/app_theme.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AutorizacaoProvider()),
       ],
       child: Builder(
         builder: (context) {

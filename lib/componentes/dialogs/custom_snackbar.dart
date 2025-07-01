@@ -75,7 +75,7 @@ class CustomSnackBar {
           Expanded(child: Text(message)),
         ],
       ),
-      backgroundColor: AppTema.primaryAmarelo,
+      backgroundColor: AppTema.primaryAzul,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),

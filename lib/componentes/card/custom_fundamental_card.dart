@@ -64,8 +64,7 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
         const Icon(Icons.calendar_month_sharp,
             color: AppTema.primaryDarkBlue, size: 16.0),
         const SizedBox(width: 4.0),
-        Text(aula.dataDaAulaPtBr,
-            style: const TextStyle(color: AppTema.primaryDarkBlue)),
+        Text(aula.data, style: const TextStyle(color: AppTema.primaryDarkBlue)),
         const Spacer(),
         aula.id.isEmpty
             ? CustomCircleSync(aula: aula)

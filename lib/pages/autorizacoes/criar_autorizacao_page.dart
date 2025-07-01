@@ -59,52 +59,52 @@ class _CriarAutorizacaoPageState extends State<CriarAutorizacaoPage> {
     setState(() {});
   }
 
-  Future<void> _salvarAutorizacao(BuildContext context) async {
-    showLoading(context);
-    try {
-      if (_pedidoSelecionadoID == null) {
-        CustomSnackBar.showErrorSnackBar(context, 'Solicitação é obrigatório');
-        return;
-      }
+  // Future<void> _salvarAutorizacao(BuildContext context) async {
+  //   showLoading(context);
+  //   try {
+  //     if (_pedidoSelecionadoID == null) {
+  //       CustomSnackBar.showErrorSnackBar(context, 'Solicitação é obrigatório');
+  //       return;
+  //     }
 
-      if (_avaliadorSelecionadoID == null) {
-        CustomSnackBar.showErrorSnackBar(context, 'Avaliador é obrigatório');
-        return;
-      }
+  //     if (_avaliadorSelecionadoID == null) {
+  //       CustomSnackBar.showErrorSnackBar(context, 'Avaliador é obrigatório');
+  //       return;
+  //     }
 
-      if (_avaliadorSelecionadoID == null) {
-        CustomSnackBar.showErrorSnackBar(context, 'observação é obrigatório');
-        return;
-      }
+  //     if (_avaliadorSelecionadoID == null) {
+  //       CustomSnackBar.showErrorSnackBar(context, 'observação é obrigatório');
+  //       return;
+  //     }
 
-      await ApiSalvarAutorizacoesService().executar(
-        context,
-        pedidoID: _pedidoSelecionadoID.toString(),
-        dataFimEtapa: widget.etapa!.periodo_final.toString(),
-        instrutorDisciplinaTurmaID: gestaoAtivaModel!.idt_id.toString(),
-        etapaID: widget.etapa!.id.toString(),
-        userSolicitanteID: authModel.id.toString(),
-        userAprovadorID: _avaliadorSelecionadoID.toString(),
-        observacao: _obsController.text,
-        avaliadorId: _avaliadorSelecionadoID.toString(),
-        circuitoId: widget.circuitoId,
-      );
+  //     await ApiSalvarAutorizacoesService().executar(
+  //       context,
+  //       pedidoID: _pedidoSelecionadoID.toString(),
+  //       dataFimEtapa: widget.etapa!.periodo_final.toString(),
+  //       instrutorDisciplinaTurmaID: gestaoAtivaModel!.idt_id.toString(),
+  //       etapaID: widget.etapa!.id.toString(),
+  //       userSolicitanteID: authModel.id.toString(),
+  //       userAprovadorID: _avaliadorSelecionadoID.toString(),
+  //       observacao: _obsController.text,
+  //       avaliadorId: _avaliadorSelecionadoID.toString(),
+  //       circuitoId: widget.circuitoId,
+  //     );
 
-      await Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const CriarAulaPage(),
-        ),
-      );
-    } catch (e) {
-      hideLoading(context);
-      CustomSnackBar.showErrorSnackBar(
-        context,
-        'Ocorreu um erro ao salvar a autorização.',
-      );
-      throw Exception('Ocorreu um erro ao salvar a autorização.');
-    }
-  }
+  //     await Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) => const CriarAulaPage(),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     hideLoading(context);
+  //     CustomSnackBar.showErrorSnackBar(
+  //       context,
+  //       'Ocorreu um erro ao salvar a autorização.',
+  //     );
+  //     throw Exception('Ocorreu um erro ao salvar a autorização.');
+  //   }
+  // }
 
   Future<void> _envioPedido() async {
     try {
@@ -344,8 +344,9 @@ class _CriarAutorizacaoPageState extends State<CriarAutorizacaoPage> {
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width,
                             child: ElevatedButton(
-                              onPressed: () async =>
-                                  await _salvarAutorizacao(context),
+                              onPressed: () {},
+                              // onPressed: () async =>
+                              //     await _salvarAutorizacao(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTema.primaryDarkBlue,
                                 padding: const EdgeInsets.symmetric(

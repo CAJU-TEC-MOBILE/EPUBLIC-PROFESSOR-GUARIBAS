@@ -37,6 +37,20 @@ class AulaTotalizador {
     );
   }
 
+  factory AulaTotalizador.vazio() {
+    return AulaTotalizador(
+      id: -1,
+      idProfessor: -1,
+      anoAtual: -1,
+      totalAula: 0,
+      qntAguardandoConfirmacao: 0,
+      qntConfirmada: 0,
+      qntConflito: 0,
+      qntFalta: 0,
+      qntInvalida: 0,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

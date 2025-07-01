@@ -18,6 +18,7 @@ import 'package:professor_acesso_notifiq/functions/boxs/gestoes/filtrar_etapas_p
 import 'package:professor_acesso_notifiq/functions/boxs/horarios/remover_horarios_repetidos.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/autorizacao_model.dart';
+import 'package:professor_acesso_notifiq/models/avaliador_model.dart';
 import 'package:professor_acesso_notifiq/models/disciplina_model.dart';
 import 'package:professor_acesso_notifiq/models/etapa_model.dart';
 import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
@@ -29,14 +30,19 @@ import 'package:professor_acesso_notifiq/services/adapters/regras_logicas/autori
 import 'package:professor_acesso_notifiq/services/http/autorizacoes/autorizacoes_listar_http.dart';
 import '../../componentes/button/custom_calendario_button.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
+import '../../componentes/global/preloader.dart';
 import '../../help/data_time.dart';
 import '../../models/auth_model.dart';
+import '../../models/solicitacao_model.dart';
 import '../../services/adapters/auth_service_adapter.dart';
 import '../../services/controller/auth_controller.dart';
+import '../../services/controller/avaliador_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
 import '../../services/controller/pedido_controller.dart';
+import '../../services/controller/solicitacao_controller.dart';
 import '../../utils/constants.dart';
 import '../../utils/datetime_utils.dart';
+import '../../wigets/cards/custom_solicitar_showbottomsheet.dart';
 import '../../wigets/custom_periodo_card.dart';
 import '../autorizacoes/criar_autorizacao_page.dart';
 
@@ -54,6 +60,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pedidoController = PedidoController();
   final authController = AuthController();
+  final avaliadorController = AvaliadorController();
+  final solicitacaoController = SolicitacaoController();
 
   AuthModel authModel = AuthModel.vazio();
   Etapa etapa = Etapa.vazio();
@@ -79,8 +87,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   List<Etapa>? listaDeEtapas;
   Etapa? etapaSelecionada;
   GestaoAtiva? gestaoAtivaModel;
-  List<AutorizacaoModel> autorizacoesDoUsuario =
-      AutorizacoesServiceAdapter().listar();
+  List<AutorizacaoModel> autorizacoesDoUsuario = [];
   AutorizacaoModel? autorizacaoSelecionada;
   String statusDaAutorizacao = 'INICIO';
 
@@ -88,6 +95,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   List<String> selectedExperiencias = [];
   List<Disciplina> disciplinas = [];
   List<Disciplina> selectedDisciplinas = [];
+  List<AvaliadorModel> avaliadores = [];
+  List<SolicitacaoModel> solicitacoes = [];
   List<dynamic> selectorData = [];
   final List<int> _horariosSelecionados = [];
   List<dynamic> horarioDaDisciplinas = [];
@@ -187,7 +196,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     await AutorizacoesServiceAdapter()
         .salvar(responseDecode['autorizacoes_atualizadas']);
     setState(() {
-      print('setState de autorizacoesDoUsuario');
       autorizacoesDoUsuario = AutorizacoesServiceAdapter().listar();
     });
   }
@@ -590,6 +598,20 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     setState(() => statusPeriodo);
   }
 
+  Future<void> _avaliadores() async {
+    await avaliadorController.init();
+    avaliadores = await avaliadorController.avaliadorPorConfiguracao(
+      configuracaoId: gestaoAtivaModel!.configuracao_id.toString(),
+    );
+    setState(() => avaliadores);
+  }
+
+  Future<void> _solicitacoes() async {
+    await solicitacaoController.init();
+    solicitacoes = await solicitacaoController.all();
+    setState(() => avaliadores);
+  }
+
   @override
   Widget build(BuildContext context) {
     _situacao();
@@ -698,25 +720,27 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                   return null;
                                 },
                               ),
-                              etapa.id != ''
+                              etapa.id != '' && gestaoAtivaModel != null
                                   ? Column(
                                       children: [
                                         const SizedBox(height: 8.0),
                                         CustomPeriodoCard(
                                           etapa: etapa,
                                           isBloqueada: statusPeriodo,
-                                          onPressed: () {
-                                            Navigator.pushReplacement(
+                                          onPressed: () async {
+                                            showLoading(context);
+                                            await _avaliadores();
+                                            await _solicitacoes();
+                                            await Future.delayed(Duration(
+                                              seconds: 1,
+                                            ));
+                                            hideLoading(context);
+                                            CustomSolicitarShowBottomSheet.show(
+                                              gestaoAtiva: gestaoAtivaModel!,
                                               context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    CriarAutorizacaoPage(
-                                                        etapa: etapa,
-                                                        circuitoId:
-                                                            gestaoAtivaModel!
-                                                                .circuito_nota_id
-                                                                .toString()),
-                                              ),
+                                              etapa: etapa,
+                                              avaliadores: avaliadores,
+                                              solicitacoes: solicitacoes,
                                             );
                                           },
                                         ),

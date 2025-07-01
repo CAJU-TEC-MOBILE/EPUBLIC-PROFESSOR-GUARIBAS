@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:card_loading/card_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
@@ -7,7 +6,6 @@ import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/aula_totalizador_model.dart';
 import 'package:professor_acesso_notifiq/models/professor_model.dart';
 import 'package:professor_acesso_notifiq/pages/professor/listagem_gestoes_professor.dart';
-
 import '../componentes/card/custom_sugestao_card.dart';
 import '../componentes/dialogs/custom_snackbar.dart';
 import '../componentes/dialogs/custom_sync_dialog.dart';
@@ -16,7 +14,6 @@ import '../componentes/global/preloader.dart';
 import '../models/ano_model.dart';
 import '../models/auth_model.dart';
 import '../models/gestao_ativa_model.dart';
-import '../services/adapters/auth_service_adapter.dart';
 import '../services/adapters/gestao_ativa_service_adapter.dart';
 import '../services/adapters/gestoes_service_adpater.dart';
 import '../services/connectivity/internet_connectivity_service.dart';
@@ -26,34 +23,33 @@ import '../services/controller/aula_totalizador_controller.dart';
 import '../services/controller/auth_controller.dart';
 import '../services/http/aulas/aula_totalizador_http.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
+import '../wigets/cards/custom_totalizador_aula_cartd.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  bool loadingCard = false;
   AnoController anoController = AnoController();
   final authController = AuthController();
-  Map<dynamic, dynamic> gestao_ativa_data = {};
+  final aulaTotalizadorController = AulaTotalizadorController();
 
-  AuthModel? authModel;
+  AulaTotalizador totalizadorAula = AulaTotalizador.vazio();
   Professor professor = Professor.vazio();
+  AuthModel? authModel;
   GestaoAtiva? gestaoAtivaModel;
-  AulaTotalizador? totalizadorAula;
+  Map<dynamic, dynamic> gestao_ativa_data = {};
+  bool loadingCard = false;
 
   Future<void> getInformacoes() async {
     try {
       await authController.init();
       professor = await authController.authProfessorFirst();
-
       if (professor.id == '') {
         return;
       }
-
       await getDados();
       gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
       await getHomeAula(professor: professor);
@@ -70,11 +66,9 @@ class _HomePageState extends State<HomePage> {
     try {
       await authController.init();
       professor = await authController.authProfessorFirst();
-
       if (professor.id == '') {
         return;
       }
-
       await getDados();
       gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
       await getHomeAulaGeral(professor: professor);
@@ -97,7 +91,6 @@ class _HomePageState extends State<HomePage> {
     AulaTotalizadorHttp aulaTotalizadorHttp = AulaTotalizadorHttp();
     AulaTotalizadorController aulaTotalizadorController =
         AulaTotalizadorController();
-
     if (professor == null) {
       ConsoleLog.mensagem(
         titulo: 'Erro',
@@ -106,7 +99,6 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-
     String professorId = professor.id.toString();
     if (professorId.isEmpty) {
       ConsoleLog.mensagem(
@@ -116,14 +108,11 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-
     try {
       final response =
           await aulaTotalizadorHttp.getAulasTotalizadas(id: professorId);
-
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
-
         if (!data.containsKey('id_professor') ||
             !data.containsKey('ano_atual') ||
             !data.containsKey('total_aula')) {
@@ -132,14 +121,10 @@ class _HomePageState extends State<HomePage> {
             mensagem: 'Dados obrigatórios ausentes na resposta.',
             tipo: 'erro',
           );
-
           return;
         }
-
         await aulaTotalizadorController.init();
-
         await aulaTotalizadorController.clearAll();
-
         final AulaTotalizador dado = AulaTotalizador(
           id: 0,
           idProfessor: data['id_professor'] ?? -1,
@@ -151,27 +136,19 @@ class _HomePageState extends State<HomePage> {
           qntFalta: data['qnt_falta'] ?? 0,
           qntInvalida: data['qnt_invalida'] ?? 0,
         );
-
         await aulaTotalizadorController.init();
-
         await aulaTotalizadorController.addAula(dado);
-
         await getDados();
-
         await anoController.init();
-
         final ano = await anoController.getAnoDescricao(
           descricao: dado.anoAtual.toString(),
         );
-
         await setSelectedAno(ano: ano, context: context);
-
         ConsoleLog.mensagem(
           titulo: 'Sucesso',
           mensagem: 'Dados processados com sucesso.',
           tipo: 'sucesso',
         );
-
         return;
       } else {
         ConsoleLog.mensagem(
@@ -193,7 +170,6 @@ class _HomePageState extends State<HomePage> {
     AulaTotalizadorHttp aulaTotalizadorHttp = AulaTotalizadorHttp();
     AulaTotalizadorController aulaTotalizadorController =
         AulaTotalizadorController();
-
     if (professor == null) {
       ConsoleLog.mensagem(
         titulo: 'Erro',
@@ -202,7 +178,6 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-
     String professorId = professor.id.toString();
     if (professorId.isEmpty) {
       ConsoleLog.mensagem(
@@ -212,14 +187,11 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-
     try {
       final response =
           await aulaTotalizadorHttp.getAulasTotalizadas(id: professorId);
-
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
-
         if (!data.containsKey('id_professor') ||
             !data.containsKey('ano_atual') ||
             !data.containsKey('total_aula')) {
@@ -228,14 +200,10 @@ class _HomePageState extends State<HomePage> {
             mensagem: 'Dados obrigatórios ausentes na resposta.',
             tipo: 'erro',
           );
-
           return;
         }
-
         await aulaTotalizadorController.init();
-
         await aulaTotalizadorController.clearAll();
-
         final AulaTotalizador dado = AulaTotalizador(
           id: 0,
           idProfessor: data['id_professor'] ?? -1,
@@ -247,19 +215,14 @@ class _HomePageState extends State<HomePage> {
           qntFalta: data['qnt_falta'] ?? 0,
           qntInvalida: data['qnt_invalida'] ?? 0,
         );
-
         await aulaTotalizadorController.init();
-
         await aulaTotalizadorController.addAula(dado);
-
         await getDados();
-
         ConsoleLog.mensagem(
           titulo: 'Sucesso',
           mensagem: 'Dados processados com sucesso.',
           tipo: 'sucesso',
         );
-
         return;
       } else {
         ConsoleLog.mensagem(
@@ -268,24 +231,20 @@ class _HomePageState extends State<HomePage> {
           tipo: 'erro',
         );
       }
-    } catch (e) {
+    } catch (error) {
       ConsoleLog.mensagem(
-        titulo: 'Erro',
-        mensagem: 'método getHomeAula: $e',
+        titulo: 'get-home-aula',
+        mensagem: error.toString(),
         tipo: 'erro',
       );
     }
   }
 
   Future<void> getDados() async {
-    AulaTotalizadorController aulaTotalizadorController =
-        AulaTotalizadorController();
     await aulaTotalizadorController.init();
-
-    totalizadorAula = await aulaTotalizadorController.getAulaTotalizador();
-    if (totalizadorAula == null) {
+    totalizadorAula = await aulaTotalizadorController.totalizador();
+    if (totalizadorAula.id != -1) {
       await aulaTotalizadorController.clearAll();
-
       final AulaTotalizador dado = AulaTotalizador(
         id: 0,
         idProfessor: -1,
@@ -297,10 +256,8 @@ class _HomePageState extends State<HomePage> {
         qntFalta: 0,
         qntInvalida: 0,
       );
-
       await aulaTotalizadorController.addAula(dado);
     }
-
     setState(() {
       totalizadorAula = totalizadorAula;
     });
@@ -309,17 +266,14 @@ class _HomePageState extends State<HomePage> {
   Future<void> setSelectedAno(
       {required Ano ano, required BuildContext context}) async {
     debugPrint("==============================================");
-
     final anoSelecionadoController = AnoSelecionadoController();
     bool isConnectedNotifier = await InternetConnectivityService.isConnected();
-
     if (!isConnectedNotifier) {
       hideLoading(context);
       CustomSnackBar.showErrorSnackBar(
         context,
         'Você está offline no momento. Verifique sua conexão com a internet.',
       );
-
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -328,33 +282,21 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
-
     final authController = AuthController();
-
     await anoSelecionadoController.init();
-
     await authController.init();
-
     int anoId = int.parse(ano.id.toString());
-
     await anoSelecionadoController.setAnoSelecionado(ano);
-
     ano = await anoSelecionadoController.getAnoSelecionado();
-
     await authController.updateAnoId(anoId: anoId);
-
     await recarregarPageParaObterNovasGestoes();
-
     await getFranquiaAtualHttp();
-
     await Navigator.push(
-      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(
         builder: (context) => const HomePage(),
       ),
     );
-
     hideLoading(context);
   }
 
@@ -369,7 +311,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
     return WillPopScope(
       child: Scaffold(
         backgroundColor: AppTema.backgroundColorApp,
@@ -415,27 +356,12 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-                // Card(
-                //   color: AppTema.primaryWhite,
-                //   elevation: 1.0,
-                //   child: Padding(
-                //     padding: const EdgeInsets.all(8.0),
-                //     child: CustomBuscarTextFormField(
-                //       controller: TextEditingController(),
-                //       borderColor: AppTema.primaryAmarelo,
-                //       labelColor: AppTema.primaryDarkBlue,
-                //       cursorColor: AppTema.primaryDarkBlue,
-                //       labelText: 'Pesquisar',
-                //       hintText: 'Digite sua pesquisa',
-                //       onSearch: () {
-                //         print('Buscar acionado');
-                //       },
-                //     ),
-                //   ),
-                // ),
                 const CustomSugestaoCard(
                   titulo: 'Ajude-nos a melhorar\ncom suas sugestões!',
                   imagem: 'assets/image_professor.png',
+                ),
+                CustomTotalizadorAulaCartd(
+                  totalizador: totalizadorAula,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -516,7 +442,7 @@ class _HomePageState extends State<HomePage> {
                                             Row(
                                               children: [
                                                 const Text(
-                                                  "Aguardando confirmação",
+                                                  "Aguardando confirmação:",
                                                 ),
                                                 const SizedBox(
                                                   width: 8.0,
@@ -546,7 +472,7 @@ class _HomePageState extends State<HomePage> {
                                             Row(
                                               children: [
                                                 const Text(
-                                                    "Aula rejeitada por falta"),
+                                                    "Aula rejeitada por falta:"),
                                                 const SizedBox(width: 8.0),
                                                 Text(
                                                   totalizadorAula!.qntFalta
@@ -571,7 +497,7 @@ class _HomePageState extends State<HomePage> {
                                           children: [
                                             Row(
                                               children: [
-                                                const Text("Aula inválida"),
+                                                const Text("Aula inválida:"),
                                                 const SizedBox(width: 8.0),
                                                 Text(
                                                   totalizadorAula!.qntInvalida
@@ -596,7 +522,7 @@ class _HomePageState extends State<HomePage> {
                                           children: [
                                             Row(
                                               children: [
-                                                const Text("Aula em conflito"),
+                                                const Text("Aula em conflito:"),
                                                 const SizedBox(width: 8.0),
                                                 Text(
                                                   totalizadorAula!.qntConflito
@@ -621,7 +547,7 @@ class _HomePageState extends State<HomePage> {
                                 height: 200.0,
                                 child: loadingCard
                                     ? const Center(
-                                        child: Text(''),
+                                        child: SizedBox(),
                                       )
                                     : const CardLoading(
                                         borderRadius: BorderRadius.all(
@@ -636,79 +562,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                /*Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Card(
-                    color: AppTema.primaryWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 1.0,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Planos',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTema.primaryDarkBlue,
-                                      ),
-                                    ),
-                                    Text(
-                                      '2024',
-                                      textAlign: TextAlign.right,
-                                      style: TextStyle(
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTema.primaryDarkBlue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(),
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children:
-                                        List.generate(planos.length, (index) {
-                                      String descricao =
-                                          planos[index]['descricao'] ?? '';
-                                      String value =
-                                          planos[index]['value'] ?? '';
-
-                                      return Row(
-                                        children: [
-                                          Text(
-                                            '$descricao $value',
-                                            style:
-                                                const TextStyle(fontSize: 14.0),
-                                          ),
-                                        ],
-                                      );
-                                    }),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),*/
               ],
             ),
           ),
@@ -728,45 +581,8 @@ class _HomePageState extends State<HomePage> {
           child: const Icon(
             Icons.assignment_add,
             color: AppTema.primaryDarkBlue,
-          ), // Icon for the button
+          ),
         ),
-        // bottomNavigationBar: BottomNavigationBar(
-        //   backgroundColor: AppTema.primaryAmarelo,
-        //   elevation: 0.0,
-        //   useLegacyColorScheme: true,
-        //   selectedItemColor: Colors.white,
-        //   unselectedItemColor: AppTema.texto,
-        //   currentIndex: _currentIndex,
-        //   onTap: (index) {
-        //     setState(() {
-        //       _currentIndex = index;
-        //       //print(_currentIndex.toString());
-        //     });
-        //   },
-        //   items: [
-        //     // BottomNavigationBarItem(
-        //     //   icon: Icon(
-        //     //     Icons.person,
-        //     //     color: _currentIndex == 0 ? Colors.white : AppTema.texto,
-        //     //   ),
-        //     //   label: 'Usuário',
-        //     // ),
-        //     BottomNavigationBarItem(
-        //       icon: Icon(
-        //         Icons.home,
-        //         color: _currentIndex == 0 ? Colors.white : AppTema.texto,
-        //       ),
-        //       label: 'Home',
-        //     ),
-        //     // BottomNavigationBarItem(
-        //     //   icon: Icon(
-        //     //     Icons.list_sharp,
-        //     //     color: _currentIndex == 1 ? Colors.white : AppTema.texto,
-        //     //   ),
-        //     //   label: 'Gestões',
-        //     // ),
-        //   ],
-        // ),
       ),
       onWillPop: () async {
         return false;

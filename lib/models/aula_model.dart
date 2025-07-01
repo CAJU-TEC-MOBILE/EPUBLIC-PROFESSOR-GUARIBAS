@@ -304,6 +304,11 @@ class Aula {
     }
   }
 
+  String get data {
+    return DateFormat('dd/MM/yyyy')
+        .format(DateTime.parse(dataDaAula.toString()));
+  }
+
   factory Aula.fromJson(Map<dynamic, dynamic> json) {
     return Aula(
       id: json['id'].toString(),
