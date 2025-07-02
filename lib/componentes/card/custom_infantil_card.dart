@@ -255,36 +255,38 @@ class _CustomInfantilCardState extends State<CustomInfantilCard> {
                             ),
                           )
                         : const SizedBox(),
-                    Padding(
-                      padding: aula.id.toString().isEmpty
-                          ? const EdgeInsets.only(left: 8.0)
-                          : const EdgeInsets.only(right: 8.0),
-                      child: ElevatedButton(
-                        onPressed: widget.onFrequencia,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(5.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          backgroundColor: AppTema.primaryAmarelo,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Frequência',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
+                    aula.id.isEmpty
+                        ? Padding(
+                            padding: aula.id.toString().isEmpty
+                                ? const EdgeInsets.only(left: 8.0)
+                                : const EdgeInsets.only(right: 8.0),
+                            child: ElevatedButton(
+                              onPressed: widget.onFrequencia,
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.all(5.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                backgroundColor: AppTema.primaryAmarelo,
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Frequência',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                            ),
+                          )
+                        : const SizedBox(),
                     aula.id.toString().isEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(left: 8.0),

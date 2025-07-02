@@ -8,6 +8,7 @@ import 'routes/routes.dart';
 import 'services/shared_preference_service.dart';
 import 'utils/app_theme.dart';
 import 'wigets/custom_flutter_error_widget.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -15,6 +16,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final preferenceService = SharedPreferenceService();
+
+  await initializeDateFormatting('pt_BR');
 
   await preferenceService.init();
 

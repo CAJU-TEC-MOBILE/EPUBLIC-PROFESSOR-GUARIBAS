@@ -9,11 +9,13 @@ import 'package:professor_acesso_notifiq/pages/professor/listagem_gestoes_profes
 import '../componentes/card/custom_sugestao_card.dart';
 import '../componentes/dialogs/custom_snackbar.dart';
 import '../componentes/dialogs/custom_sync_dialog.dart';
+import '../componentes/dialogs/custom_sync_padrao_dialog.dart';
 import '../componentes/drawer/custom_drawer.dart';
 import '../componentes/global/preloader.dart';
 import '../models/ano_model.dart';
 import '../models/auth_model.dart';
 import '../models/gestao_ativa_model.dart';
+import '../repository/auth_repository.dart';
 import '../services/adapters/gestao_ativa_service_adapter.dart';
 import '../services/adapters/gestoes_service_adpater.dart';
 import '../services/connectivity/internet_connectivity_service.dart';
@@ -23,6 +25,7 @@ import '../services/controller/aula_totalizador_controller.dart';
 import '../services/controller/auth_controller.dart';
 import '../services/http/aulas/aula_totalizador_http.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
+import '../services/shared_preference_service.dart';
 import '../wigets/cards/custom_totalizador_aula_cartd.dart';
 
 class HomePage extends StatefulWidget {
@@ -35,6 +38,9 @@ class _HomePageState extends State<HomePage> {
   AnoController anoController = AnoController();
   final authController = AuthController();
   final aulaTotalizadorController = AulaTotalizadorController();
+  final authRepository = AuthRepository();
+  final aulaTotalizadorHttp = AulaTotalizadorHttp();
+  final preference = SharedPreferenceService();
 
   AulaTotalizador totalizadorAula = AulaTotalizador.vazio();
   Professor professor = Professor.vazio();
@@ -62,16 +68,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> realizarSincronizacaoGeral() async {
+  Future<void> realizarSincronizacaoGeral(
+      {required BuildContext context}) async {
     try {
       await authController.init();
+      await authRepository.baixar();
       professor = await authController.authProfessorFirst();
       if (professor.id == '') {
         return;
       }
       await getDados();
       gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-      await getHomeAulaGeral(professor: professor);
+      await getHomeAulaGeral(context: context, professor: professor);
     } catch (error) {
       ConsoleLog.mensagem(
         titulo: 'realizar0-sincronizacao-geral',
@@ -87,8 +95,8 @@ class _HomePageState extends State<HomePage> {
     getInformacoes();
   }
 
-  Future<void> getHomeAulaGeral({required Professor? professor}) async {
-    AulaTotalizadorHttp aulaTotalizadorHttp = AulaTotalizadorHttp();
+  Future<void> getHomeAulaGeral(
+      {required BuildContext context, required Professor? professor}) async {
     AulaTotalizadorController aulaTotalizadorController =
         AulaTotalizadorController();
     if (professor == null) {
@@ -108,55 +116,70 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
+
     try {
       final response =
           await aulaTotalizadorHttp.getAulasTotalizadas(id: professorId);
-      if (response.statusCode == 200) {
-        Map<String, dynamic> data = jsonDecode(response.body);
-        if (!data.containsKey('id_professor') ||
-            !data.containsKey('ano_atual') ||
-            !data.containsKey('total_aula')) {
-          ConsoleLog.mensagem(
-            titulo: 'Erro',
-            mensagem: 'Dados obrigatórios ausentes na resposta.',
-            tipo: 'erro',
+
+      final Map<String, dynamic> data = json.decode(response.body);
+
+      if (response.statusCode != 200) {
+        String? message = data['error']?['message'].toString();
+
+        if (response.statusCode == 401) {
+          await preference.init();
+          await preference.limparDados();
+          CustomSnackBar.showInfoSnackBar(
+            context,
+            'Token de acesso expirado. Faça login novamente.',
           );
+          await Navigator.pushReplacementNamed(context, '/login');
           return;
         }
-        await aulaTotalizadorController.init();
-        await aulaTotalizadorController.clearAll();
-        final AulaTotalizador dado = AulaTotalizador(
-          id: 0,
-          idProfessor: data['id_professor'] ?? -1,
-          anoAtual: data['ano_atual'] ?? DateTime.now().year,
-          totalAula: data['total_aula'] ?? 0,
-          qntAguardandoConfirmacao: data['qnt_aguardando_confirmacao'] ?? 0,
-          qntConfirmada: data['qnt_confirmada'] ?? 0,
-          qntConflito: data['qnt_conflito'] ?? 0,
-          qntFalta: data['qnt_falta'] ?? 0,
-          qntInvalida: data['qnt_invalida'] ?? 0,
-        );
-        await aulaTotalizadorController.init();
-        await aulaTotalizadorController.addAula(dado);
-        await getDados();
-        await anoController.init();
-        final ano = await anoController.getAnoDescricao(
-          descricao: dado.anoAtual.toString(),
-        );
-        await setSelectedAno(ano: ano, context: context);
-        ConsoleLog.mensagem(
-          titulo: 'Sucesso',
-          mensagem: 'Dados processados com sucesso.',
-          tipo: 'sucesso',
+        CustomSnackBar.showSuccessSnackBar(
+          context,
+          message.toString(),
         );
         return;
-      } else {
+      }
+
+      if (!data.containsKey('id_professor') ||
+          !data.containsKey('ano_atual') ||
+          !data.containsKey('total_aula')) {
         ConsoleLog.mensagem(
           titulo: 'Erro',
-          mensagem: 'Erro: Resposta com status ${response.statusCode}.',
+          mensagem: 'Dados obrigatórios ausentes na resposta.',
           tipo: 'erro',
         );
+        return;
       }
+      await anoController.init();
+      await aulaTotalizadorController.init();
+      await aulaTotalizadorController.clearAll();
+
+      final AulaTotalizador dado = AulaTotalizador(
+        id: 0,
+        idProfessor: data['id_professor'] ?? -1,
+        anoAtual: data['ano_atual'] ?? DateTime.now().year,
+        totalAula: data['total_aula'] ?? 0,
+        qntAguardandoConfirmacao: data['qnt_aguardando_confirmacao'] ?? 0,
+        qntConfirmada: data['qnt_confirmada'] ?? 0,
+        qntConflito: data['qnt_conflito'] ?? 0,
+        qntFalta: data['qnt_falta'] ?? 0,
+        qntInvalida: data['qnt_invalida'] ?? 0,
+      );
+      await aulaTotalizadorController.addAula(dado);
+      await getDados();
+      final ano = await anoController.getAnoDescricao(
+        descricao: dado.anoAtual.toString(),
+      );
+      await setSelectedAno(ano: ano, context: context);
+      ConsoleLog.mensagem(
+        titulo: 'Sucesso',
+        mensagem: 'Dados processados com sucesso.',
+        tipo: 'sucesso',
+      );
+      return;
     } catch (e) {
       ConsoleLog.mensagem(
         titulo: 'Erro',
@@ -167,7 +190,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> getHomeAula({required Professor? professor}) async {
-    AulaTotalizadorHttp aulaTotalizadorHttp = AulaTotalizadorHttp();
     AulaTotalizadorController aulaTotalizadorController =
         AulaTotalizadorController();
     if (professor == null) {
@@ -265,39 +287,38 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> setSelectedAno(
       {required Ano ano, required BuildContext context}) async {
-    debugPrint("==============================================");
-    final anoSelecionadoController = AnoSelecionadoController();
-    bool isConnectedNotifier = await InternetConnectivityService.isConnected();
-    if (!isConnectedNotifier) {
-      hideLoading(context);
+    try {
+      final anoSelecionadoController = AnoSelecionadoController();
+      bool isConnectedNotifier =
+          await InternetConnectivityService.isConnected();
+      if (!isConnectedNotifier) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Você está offline no momento. Verifique sua conexão com a internet.',
+        );
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(),
+          ),
+        );
+        return;
+      }
+      final authController = AuthController();
+      await anoSelecionadoController.init();
+      await authController.init();
+      int anoId = int.parse(ano.id.toString());
+      await anoSelecionadoController.setAnoSelecionado(ano);
+      ano = await anoSelecionadoController.getAnoSelecionado();
+      await authController.updateAnoId(anoId: anoId);
+      await recarregarPageParaObterNovasGestoes();
+      await getFranquiaAtualHttp();
+    } catch (error) {
       CustomSnackBar.showErrorSnackBar(
         context,
-        'Você está offline no momento. Verifique sua conexão com a internet.',
+        error.toString(),
       );
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomePage(),
-        ),
-      );
-      return;
     }
-    final authController = AuthController();
-    await anoSelecionadoController.init();
-    await authController.init();
-    int anoId = int.parse(ano.id.toString());
-    await anoSelecionadoController.setAnoSelecionado(ano);
-    ano = await anoSelecionadoController.getAnoSelecionado();
-    await authController.updateAnoId(anoId: anoId);
-    await recarregarPageParaObterNovasGestoes();
-    await getFranquiaAtualHttp();
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const HomePage(),
-      ),
-    );
-    hideLoading(context);
   }
 
   Future<void> getFranquiaAtualHttp() async {
@@ -333,12 +354,17 @@ class _HomePageState extends State<HomePage> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return CustomSyncDialog(
-                      message: "'Deseja sincronizar dados?",
+                    return CustomSyncPadraoDialog(
+                      message:
+                          "Tem certeza de que deseja atualizar todos os dados?",
                       onCancel: () => Navigator.of(context).pop(false),
                       onConfirm: () async {
                         showLoading(context);
-                        await realizarSincronizacaoGeral();
+                        await realizarSincronizacaoGeral(context: context);
+                        CustomSnackBar.showSuccessSnackBar(
+                          context,
+                          'Sincronização realizada com sucesso!',
+                        );
                         hideLoading(context);
                         Navigator.pop(context);
                       },
@@ -394,16 +420,19 @@ class _HomePageState extends State<HomePage> {
                                               color: AppTema.primaryDarkBlue,
                                             ),
                                           ),
-                                          Text(
-                                            totalizadorAula!.anoAtual
-                                                .toString(),
-                                            textAlign: TextAlign.right,
-                                            style: const TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTema.primaryDarkBlue,
-                                            ),
-                                          ),
+                                          totalizadorAula.id != -1
+                                              ? Text(
+                                                  totalizadorAula.anoAtual
+                                                      .toString(),
+                                                  textAlign: TextAlign.right,
+                                                  style: const TextStyle(
+                                                    fontSize: 16.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        AppTema.primaryDarkBlue,
+                                                  ),
+                                                )
+                                              : const SizedBox(),
                                         ],
                                       ),
                                       const Divider(),

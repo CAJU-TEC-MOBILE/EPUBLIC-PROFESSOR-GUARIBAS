@@ -8,7 +8,7 @@ void showLoading(BuildContext context) {
     builder: (BuildContext context) {
       return Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
+          borderRadius: BorderRadius.circular(16.0),
         ),
         backgroundColor: AppTema.primaryWhite,
         child: Container(

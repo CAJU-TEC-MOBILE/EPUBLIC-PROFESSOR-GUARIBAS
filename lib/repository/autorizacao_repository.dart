@@ -139,6 +139,7 @@ class AutorizacaoRepository {
         final model = AutorizacaoModel.fromJson(item);
         await controller.update(model);
       }
+
       return await controller.autorizacaoPeloUserId(userId: auth.id);
     } catch (error) {
       ConsoleLog.mensagem(
@@ -148,5 +149,16 @@ class AutorizacaoRepository {
       );
       return [];
     }
+  }
+
+  Future<bool> existeStatusEtapaId({
+    required String status,
+    required String etapaId,
+  }) async {
+    final controller = AutorizacaoController();
+    await controller.init();
+    List<AutorizacaoModel> autorizacoes = await controller
+        .autorizacaoStatusEtapaId(etapaId: etapaId, status: status);
+    return autorizacoes.isNotEmpty ? true : false;
   }
 }

@@ -149,10 +149,16 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
         if (aula.id.isEmpty)
           _buildButton('Sincronizar', widget.onSync, Colors.grey[400]),
         const SizedBox(width: 8.0),
-        _buildButton('Frequência', widget.onFrequencia, AppTema.primaryAmarelo),
+        if (aula.id.isEmpty)
+          _buildButton(
+              'Frequência', widget.onFrequencia, AppTema.primaryAmarelo),
         if (aula.id.isEmpty) ...[
           const SizedBox(width: 8.0),
-          _buildButton('Editar', widget.onEdit, AppTema.primaryDarkBlue),
+          SizedBox(
+            width: 88.0,
+            child:
+                _buildButton('Editar', widget.onEdit, AppTema.primaryDarkBlue),
+          ),
         ],
       ],
     );

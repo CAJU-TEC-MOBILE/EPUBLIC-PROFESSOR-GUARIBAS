@@ -1,25 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:professor_acesso_notifiq/componentes/aulas/situacao_aula_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/constants/emojis.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/converter_data_america_para_brasil.dart';
-import 'package:professor_acesso_notifiq/functions/retornar_horario_selecionado.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/pages/aulas/aula__infantil_atualizar_page.dart';
 import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_offline_page.dart';
 import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_online_page.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offlines_listar_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_service_adapter.dart';
-import 'dart:async';
-
 import 'package:professor_acesso_notifiq/services/http/aulas/aulas_offline_sincronizar_service.dart';
-
 import '../../componentes/appbar/custom_appbar.dart';
 import '../../componentes/card/custom_infantil_card.dart';
-import '../../componentes/dialogs/custom_dialogs.dart';
 import '../../componentes/dialogs/custom_sync_dialog.dart';
+import '../../componentes/dialogs/custom_sync_padrao_dialog.dart';
+import '../../componentes/global/preloader.dart';
 import '../../services/controller/aula_controller.dart';
 import '../aula_page_controller.dart';
 
@@ -133,7 +128,23 @@ class _ListagemInfantilPageState extends State<ListagemInfantilPage> {
       child: Scaffold(
         backgroundColor: AppTema.backgroundColorApp,
         appBar: CustomAppBar(
-          onPressedSynchronizer: () async => await carregarDados(),
+          onPressedSynchronizer: () async {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return CustomSyncPadraoDialog(
+                  message: "Deseja atualizar esta aula?",
+                  onCancel: () => Navigator.of(context).pop(false),
+                  onConfirm: () async {
+                    showLoading(context);
+                    await carregarDados();
+                    hideLoading(context);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            );
+          },
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

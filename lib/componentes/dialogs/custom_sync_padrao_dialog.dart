@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_tema.dart';
 
-class CustomSyncDialog extends StatelessWidget {
+class CustomSyncPadraoDialog extends StatelessWidget {
   final VoidCallback onCancel;
   final String message;
   final Future<void> Function() onConfirm;
 
-  const CustomSyncDialog({
+  const CustomSyncPadraoDialog({
     super.key,
     required this.onCancel,
     required this.onConfirm,
@@ -27,7 +27,7 @@ class CustomSyncDialog extends StatelessWidget {
             children: [
               const Row(
                 children: [
-                  SizedBox(width: 12),
+                  //SizedBox(width: 12),
                   Text(
                     'Sincronizar',
                     style: TextStyle(
@@ -47,14 +47,14 @@ class CustomSyncDialog extends StatelessWidget {
               ),
             ],
           ),
-          Center(
-            child: Image.asset(
-              'assets/sincronizar.png',
-              width: 82.0,
-              height: 82.0,
-              fit: BoxFit.contain,
-            ),
-          ),
+          // Center(
+          //   child: Image.asset(
+          //     'assets/sincronizar.png',
+          //     width: 82.0,
+          //     height: 82.0,
+          //     fit: BoxFit.contain,
+          //   ),
+          // ),
           const SizedBox(height: 8),
           Center(
             child: Text(
@@ -72,23 +72,44 @@ class CustomSyncDialog extends StatelessWidget {
       ),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       actions: [
-        SizedBox(
-          width: double.infinity,
-          height: 36.0,
-          child: ElevatedButton(
-            onPressed: () async {
-              await onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTema.primaryAmarelo,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+        Row(
+          children: [
+            SizedBox(
+              width: 100.0,
+              child: TextButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTema.backgroundColorApp,
+                  foregroundColor: AppTema.primaryDarkBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancelar'),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 8),
             ),
-            child: const Text('Confirmar'),
-          ),
+            Spacer(),
+            SizedBox(
+              width: 100.0,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await onConfirm();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTema.primaryAmarelo,
+                  foregroundColor: AppTema.primaryDarkBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: const Text('Confirmar'),
+              ),
+            ),
+          ],
         ),
         const SizedBox(
           height: 8.0,

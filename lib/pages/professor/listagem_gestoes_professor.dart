@@ -4,6 +4,7 @@ import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
 import 'package:professor_acesso_notifiq/services/adapters/gestoes_service_adpater.dart';
 import 'package:professor_acesso_notifiq/services/adapters/matriculas_da_turma_ativa_service_adapter.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
+import '../../componentes/dialogs/custom_sync_padrao_dialog.dart';
 import '../../componentes/global/preloader.dart';
 import '../../constants/app_tema.dart';
 import '../../models/disciplina_model.dart';
@@ -136,7 +137,26 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                 size: 25,
               ),
               onPressed: () async {
-                await recarregarPageParaObterNovasGestoes(context: context);
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return CustomSyncPadraoDialog(
+                      message: "Deseja atualizar os dados de todas as gestões?",
+                      onCancel: () => Navigator.of(context).pop(false),
+                      onConfirm: () async {
+                        showLoading(context);
+                        await recarregarPageParaObterNovasGestoes(
+                            context: context);
+                        hideLoading(context);
+                        Navigator.pop(context);
+                        CustomSnackBar.showSuccessSnackBar(
+                          context,
+                          'As gestões foram atualizadas com sucesso!',
+                        );
+                      },
+                    );
+                  },
+                );
               },
             ),
           ],

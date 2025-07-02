@@ -124,7 +124,7 @@ class _CustomCalendarioInfantilButtonState
               onPrimary: Colors.white,
               onSurface: AppTema.primaryDarkBlue,
             ),
-            dialogBackgroundColor: Colors.white,
+            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
           ),
           child: child!,
         );
@@ -145,7 +145,7 @@ class _CustomCalendarioInfantilButtonState
 
       widget.onDateSelected?.call(pickedDate);
 
-      String diaSemana = DateFormat('EEEE', 'pt_BR').format(pickedDate);
+      DateFormat('EEEE', 'pt_BR').format(pickedDate);
       _selecionarDia(pickedDate);
       //widget.onDiaSelected?.call(diaSemana);
     }

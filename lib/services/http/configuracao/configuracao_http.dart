@@ -62,8 +62,8 @@ class ConfiguracaoHttp {
     final uri = Uri.parse('${ApiBaseURLService.baseUrl}/$endpoint');
 
     final headers = {
-      'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
     };
 
     final response = await http.get(uri, headers: headers);

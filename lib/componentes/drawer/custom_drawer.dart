@@ -111,14 +111,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   children: [
                     const CustomUserInfoDrawer(),
                     const SizedBox(height: 4.0),
-                    Text(
-                      professor!.nome.toString(),
-                      style: const TextStyle(
-                        color: AppTema.primaryDarkBlue,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    professor != null
+                        ? Text(
+                            professor!.nome.toString(),
+                            style: const TextStyle(
+                              color: AppTema.primaryDarkBlue,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const SizedBox(),
                     const SizedBox(height: 4.0),
                     const CustomAnosDropdown(),
                   ],

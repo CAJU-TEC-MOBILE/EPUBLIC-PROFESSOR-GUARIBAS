@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../constants/app_tema.dart';
+import '../enums/status_console.dart';
+import '../helpers/console_log.dart';
 import '../services/adapters/auth_service_adapter.dart';
 import '../services/adapters/pedidos_service_adapter.dart';
 import '../services/adapters/usuarios_service_adapter.dart';
@@ -52,11 +54,16 @@ class AutorizacaoModel {
         observacoes: json['observacoes']?.toString() ?? '',
         dataExpiracao: json['data_expiracao']?.toString() ?? '',
         status: json['status']?.toString() ?? '',
-        data: json['data'] ?? '',
-        mobile: json['mobile'] ?? '',
-        userId: json['user_id'] ?? '',
+        data: json['data']?.toString() ?? '',
+        mobile: json['mobile']?.toString() ?? '',
+        userId: json['user_id']?.toString() ?? '',
       );
     } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'autorizacao-model-fromJson',
+        mensagem: error.toString(),
+        tipo: StatusConsole.error,
+      );
       return AutorizacaoModel.vazio();
     }
   }
@@ -105,11 +112,6 @@ class AutorizacaoModel {
     final pedidosServiceAdapter = PedidosServiceAdapter();
     String? descricao = await pedidosServiceAdapter.getPeloId(id: pedidoId);
     return descricao ?? '';
-  }
-
-  Future<String>? get solicitante async {
-    AuthModel authModel = AuthServiceAdapter().exibirAuth();
-    return authModel.name;
   }
 
   Future<String>? get avaliador async {

@@ -6,11 +6,17 @@ class DateTimeUtils {
     required String dataFinal,
   }) {
     DateTime dataAtual = DateTime.now();
-    DateTime dataInicialFormatada = DateTime.parse(dataInicial);
-    DateTime dataFinalFormatada = DateTime.parse(dataFinal);
+    DateTime inicio = DateTime.parse(dataInicial);
+    DateTime fim = DateTime.parse(dataFinal);
+    if (inicio.isAfter(fim)) {
+      throw ArgumentError(
+        'A data inicial não pode ser posterior à data final.',
+      );
+    }
+    bool estaDentroDoPeriodo =
+        !dataAtual.isBefore(inicio) && !dataAtual.isAfter(fim);
 
-    return dataAtual.isAfter(dataInicialFormatada) &&
-        dataAtual.isAfter(dataFinalFormatada);
+    return estaDentroDoPeriodo;
   }
 
   static String get date {

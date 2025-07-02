@@ -17,6 +17,7 @@ class ConfiguracaoRepository {
   Future<void> configHorario() async {
     try {
       final response = await configuracaoHttp.horarios();
+
       if (response.statusCode != 200) {
         ConsoleLog.mensagem(
           titulo: 'config-horario',
@@ -26,10 +27,13 @@ class ConfiguracaoRepository {
         if (response.statusCode == 401) return;
         return;
       }
+
       await configHorarioConfiguracao.init();
       await configHorarioConfiguracao.clear();
+
       final data = json.decode(response.body);
       final dynamic horariosData = data['horarios'];
+
       if (horariosData is List) {
         final List<dynamic> horarios = horariosData;
         for (var item in horarios) {

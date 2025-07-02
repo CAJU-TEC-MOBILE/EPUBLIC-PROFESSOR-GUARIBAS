@@ -74,4 +74,17 @@ class AutorizacaoController {
       );
     }
   }
+
+  Future<List<AutorizacaoModel>> autorizacaoStatusEtapaId(
+      {required String etapaId, required String status}) async {
+    List<AutorizacaoModel> autorizacoes = box.values
+        .where(
+          (item) =>
+              item.etapaId.toString() == etapaId.toString() &&
+              item.status.toString() == status.toString(),
+        )
+        .toList();
+    autorizacoes.sort((a, b) => b.id.compareTo(a.id));
+    return autorizacoes;
+  }
 }

@@ -87,10 +87,10 @@ class GestoesService {
           });
         }
 
-        Future.microtask(() {
-          CustomSnackBar.showSuccessSnackBar(
-              context, 'Gestões atualizadas com sucesso!');
-        });
+        // Future.microtask(() {
+        //   CustomSnackBar.showSuccessSnackBar(
+        //       context, 'Gestões atualizadas com sucesso!');
+        // });
       } else if (response.statusCode == 401) {
         removerDadosAuth();
         Future.microtask(() {

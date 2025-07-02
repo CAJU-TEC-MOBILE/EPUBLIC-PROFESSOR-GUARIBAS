@@ -201,10 +201,10 @@ class Pedido {
     return descricao ?? '';
   }
 
-  Future<String>? get solicitante async {
-    AuthModel authModel = AuthServiceAdapter().exibirAuth();
-    return authModel.name;
-  }
+  // Future<String>? get solicitante async {
+  //   AuthModel authModel = AuthServiceAdapter().exibirAuth();
+  //   return authModel.name;
+  // }
 
   Future<String>? get avaliador async {
     final UusuariosServiceAdapter = UsuariosServiceAdapter();

@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:professor_acesso_notifiq/componentes/autorizacoes/aviso_de_regra_autorizacoes_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/constants/autorizacoes/autorizacoes_status_const.dart';
 import 'package:professor_acesso_notifiq/constants/emojis.dart';
@@ -34,7 +32,7 @@ import '../../componentes/global/preloader.dart';
 import '../../help/data_time.dart';
 import '../../models/auth_model.dart';
 import '../../models/solicitacao_model.dart';
-import '../../services/adapters/auth_service_adapter.dart';
+import '../../repository/autorizacao_repository.dart';
 import '../../services/controller/auth_controller.dart';
 import '../../services/controller/avaliador_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
@@ -44,7 +42,6 @@ import '../../utils/constants.dart';
 import '../../utils/datetime_utils.dart';
 import '../../wigets/cards/custom_solicitar_showbottomsheet.dart';
 import '../../wigets/custom_periodo_card.dart';
-import '../autorizacoes/criar_autorizacao_page.dart';
 
 class CriarAulaPage extends StatefulWidget {
   final String? instrutorDisciplinaTurmaId;
@@ -62,6 +59,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   final authController = AuthController();
   final avaliadorController = AvaliadorController();
   final solicitacaoController = SolicitacaoController();
+  final autorizacaoRepository = AutorizacaoRepository();
 
   AuthModel authModel = AuthModel.vazio();
   Etapa etapa = Etapa.vazio();
@@ -231,80 +229,84 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     }
   }
 
-  Future<void> _salvarAula() async {
-    if (selectedDisciplinas.isEmpty && gestaoAtivaModel!.is_polivalencia == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppTema.primaryAmarelo,
-          content: Row(
-            children: [
-              Text(
-                'Adicione ao menos um campo de conteúdo!',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-      return;
-    }
-    if (_diaDaSemana == null) {
-      CustomSnackBar.showErrorSnackBar(
-        context,
-        'Por favor, selecione uma data',
-      );
-      return;
-    }
+  Future<void> _salvarAula(BuildContext context) async {
+    try {
+      if (selectedDisciplinas.isEmpty &&
+          gestaoAtivaModel!.is_polivalencia == 1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            CustomSnackBar.showInfoSnackBar(
+              context,
+              'Adicione ao menos um campo de conteúdo!',
+            );
+          }
+        });
+        return;
+      }
 
-    var aula = Aula(
-      id: '',
-      e_aula_infantil: 0,
-      instrutor_id: gestaoAtivaModel?.idt_instrutor_id.toString(),
-      disciplina_id: gestaoAtivaModel?.idt_disciplina_id.toString(),
-      turma_id: gestaoAtivaModel?.idt_turma_id.toString(),
-      tipoDeAula: _aula_selecionada.toString(),
-      dataDaAula: corrigirDataCompletaAmericanaParaAnoMesDiaSomente(
-          dataString: _dataSelecionada.toString()),
-      horarioID: _horario_selecionado.toString(),
-      horarios_infantis:
-          _horario_selecionado != null ? [_horario_selecionado] : [],
-      conteudo: _conteudoController.text.toString(),
-      metodologia: _metodologiaController.text.toString(),
-      saberes_conhecimentos: '',
-      dia_da_semana: _diaDaSemana.toString(),
-      situacao: 'Aguardando confirmação',
-      criadaPeloCelular: gerarUuidIdentification().toString(),
-      etapa_id: _etapa_selecionada.toString(),
-      instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
-      campos_de_experiencias: selectedExperiencias.toString(),
-      is_polivalencia: gestaoAtivaModel!.is_polivalencia ?? 0,
-      eixos: '',
-      estrategias: '',
-      recursos: '',
-      atividade_casa: '',
-      atividade_classe: '',
-      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
-      observacoes: '',
-    );
-    bool status = await AulasOfflineOnlineServiceAdapter().salvar(
+      if (_diaDaSemana == null) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Por favor, selecione uma data',
+        );
+        return;
+      }
+
+      var aula = Aula(
+        id: '',
+        e_aula_infantil: 0,
+        instrutor_id: gestaoAtivaModel?.idt_instrutor_id.toString(),
+        disciplina_id: gestaoAtivaModel?.idt_disciplina_id.toString(),
+        turma_id: gestaoAtivaModel?.idt_turma_id.toString(),
+        tipoDeAula: _aula_selecionada.toString(),
+        dataDaAula: corrigirDataCompletaAmericanaParaAnoMesDiaSomente(
+            dataString: _dataSelecionada.toString()),
+        horarioID: _horario_selecionado.toString(),
+        horarios_infantis:
+            _horario_selecionado != null ? [_horario_selecionado] : [],
+        conteudo: _conteudoController.text.toString(),
+        metodologia: _metodologiaController.text.toString(),
+        saberes_conhecimentos: '',
+        dia_da_semana: _diaDaSemana.toString(),
+        situacao: 'Aguardando confirmação',
+        criadaPeloCelular: gerarUuidIdentification().toString(),
+        etapa_id: _etapa_selecionada.toString(),
+        instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
+        campos_de_experiencias: selectedExperiencias.toString(),
+        is_polivalencia: gestaoAtivaModel!.is_polivalencia ?? 0,
+        eixos: '',
+        estrategias: '',
+        recursos: '',
+        atividade_casa: '',
+        atividade_classe: '',
+        experiencias:
+            selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
+        observacoes: '',
+      );
+      bool status = await AulasOfflineOnlineServiceAdapter().salvar(
         novaAula: aula,
         isPolivalencia: gestaoAtivaModel!.is_polivalencia,
-        disciplina: selectedDisciplinas);
+        disciplina: selectedDisciplinas,
+      );
 
-    if (status != true) {
+      if (status != true) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Já existe uma aula criada para este dia. Por favor, escolha uma data diferente.',
+        );
+        return;
+      }
+      CustomSnackBar.showSuccessSnackBar(
+        context,
+        'Aula criada com sucesso!',
+      );
+      Navigator.pushNamed(context, '/index-fundamental');
+    } catch (error) {
       CustomSnackBar.showErrorSnackBar(
         context,
-        'Já existe uma aula criada para este dia. Por favor, escolha uma data diferente.',
+        error.toString(),
       );
-      return;
     }
-    CustomSnackBar.showSuccessSnackBar(
-      context,
-      'Aula criada com sucesso!',
-    );
-    Navigator.pushNamed(context, '/index-fundamental');
   }
 
   DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
@@ -589,13 +591,40 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     etapa = listaDeEtapas!
         .where((item) => item.id.toString() == etapaId.toString())
         .first;
-    if (etapa.id != '') {
-      statusPeriodo = DateTimeUtils.isDataAtualNoPeriodo(
-        dataInicial: etapa.periodo_inicial,
-        dataFinal: etapa.periodo_final,
-      );
+
+    if (etapa.id == '') {
+      return;
     }
-    setState(() => statusPeriodo);
+
+    DateTime fim = DateTime.parse(etapa.periodo_final);
+    DateTime dataAtual = DateTime.now();
+
+    bool status = await autorizacaoRepository.existeStatusEtapaId(
+      status: 'APROVADO',
+      etapaId: etapaId,
+    );
+
+    if (status) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+
+    if (dataAtual.isBefore(fim)) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+
+    statusPeriodo = DateTimeUtils.isDataAtualNoPeriodo(
+      dataInicial: etapa.periodo_inicial,
+      dataFinal: etapa.periodo_final,
+    );
+
+    if (statusPeriodo) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+
+    setState(() => statusPeriodo = true);
   }
 
   Future<void> _avaliadores() async {
@@ -747,14 +776,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                       ],
                                     )
                                   : const SizedBox(),
-                              ((data_etapa_valida &&
-                                          etapa_selecionada_objeto != null) ||
-                                      (etapa_selecionada_objeto != null &&
-                                          situacaoStatus == 'APROVADO' &&
-                                          !verificarSeDataAtualEmaior(
-                                              data: autorizacaoSelecionada!
-                                                  .dataExpiracao
-                                                  .toString())))
+                              etapa_selecionada_objeto != null &&
+                                      statusPeriodo != true
                                   ? Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -871,6 +894,9 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                               ),
                                               _diaDaSemana != null
                                                   ? Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         const SizedBox(
                                                           height: 16.0,
@@ -892,27 +918,23 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             ),
                                                           ),
                                                         ),
-                                                        Align(
-                                                          alignment: Alignment
-                                                              .centerLeft,
-                                                          child: Card(
-                                                            color: AppTema
-                                                                .backgroundColorApp,
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .fromLTRB(
-                                                                      10,
-                                                                      5,
-                                                                      10,
-                                                                      5),
-                                                              child: Text(
-                                                                _diaDaSemana
-                                                                    .toString(),
-                                                                style:
-                                                                    const TextStyle(
-                                                                  fontSize: 16,
-                                                                ),
+                                                        Card(
+                                                          color: AppTema
+                                                              .backgroundColorApp,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .fromLTRB(
+                                                                    10,
+                                                                    5,
+                                                                    10,
+                                                                    5),
+                                                            child: Text(
+                                                              _diaDaSemana
+                                                                  .toString(),
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 16,
                                                               ),
                                                             ),
                                                           ),
@@ -921,7 +943,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                     )
                                                   : const SizedBox(),
                                               _diaDaSemana != null
-                                                  ? const SizedBox(height: 16)
+                                                  ? const SizedBox(height: 0)
                                                   : const SizedBox(height: 0),
                                               const SizedBox(height: 16),
                                               gestaoAtivaModel
@@ -1392,7 +1414,9 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             .validate() &&
                                                         (_errorText == null ||
                                                             _errorText == '')) {
-                                                      await _salvarAula();
+                                                      await _salvarAula(
+                                                        context,
+                                                      );
                                                     }
                                                   },
                                                   style:

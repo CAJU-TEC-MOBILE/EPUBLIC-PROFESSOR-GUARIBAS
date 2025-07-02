@@ -27,7 +27,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AutorizacaoProvider>(context, listen: false);
+    final provider = Provider.of<AutorizacaoProvider>(context, listen: true);
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
       appBar: AppBar(
@@ -47,24 +47,31 @@ class _PedidoPageState extends State<PedidoPage> {
               color: Colors.black,
               size: 25,
             ),
-            onPressed: () async => await provider.secronizar(context: context),
+            onPressed: () async {
+              await provider.secronizar(context: context);
+              setState(() {});
+            },
           ),
         ],
       ),
       drawer: const CustomDrawer(),
-      body: provider.autorizacoes.isEmpty
-          ? const Center(
-              child: Text('No momento, não há pedidos para exibir.'),
+      body: provider.loading == true
+          ? Center(
+              child: CircularProgressIndicator(),
             )
-          : ListView.builder(
-              itemCount: provider.autorizacoes.length,
-              itemBuilder: (context, index) {
-                final item = provider.autorizacoes[index];
-                return CustomPedidoCard(
-                  item: item,
-                );
-              },
-            ),
+          : provider.autorizacoes.isEmpty
+              ? const Center(
+                  child: Text('No momento, não há pedidos para exibir.'),
+                )
+              : ListView.builder(
+                  itemCount: provider.autorizacoes.length,
+                  itemBuilder: (context, index) {
+                    final item = provider.autorizacoes[index];
+                    return CustomPedidoCard(
+                      item: item,
+                    );
+                  },
+                ),
     );
   }
 }

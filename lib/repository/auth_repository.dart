@@ -107,7 +107,7 @@ class AuthRepository {
         cpf: data['user']['professor']['cpf']?.toString() ?? '',
         userId: data['user']['id']?.toString() ?? '',
       );
-      await _baixar();
+      await baixar();
       return true;
     } catch (error) {
       ConsoleLog.mensagem(
@@ -119,7 +119,7 @@ class AuthRepository {
     }
   }
 
-  Future<void> _baixar() async {
+  Future<void> baixar() async {
     await configuracaoRepository.configHorario();
     print("\n✅ Download de horários completo!");
     await _baixarAvaliadores();
@@ -131,8 +131,6 @@ class AuthRepository {
   Future<void> _baixarAvaliadores() async {
     try {
       final response = await avaliadorHttp.all();
-
-      print(response.body.toString());
 
       if (response.statusCode != 200) {
         return;

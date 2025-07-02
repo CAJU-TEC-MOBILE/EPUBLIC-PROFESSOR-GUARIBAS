@@ -11,6 +11,8 @@ import '../utils/datetime_utils.dart';
 
 class AutorizacaoProvider with ChangeNotifier {
   List<AutorizacaoModel> autorizacoes = [];
+  bool loading = false;
+
   Future<bool> solicitar({
     required BuildContext context,
     required String etapaId,
@@ -74,10 +76,14 @@ class AutorizacaoProvider with ChangeNotifier {
 
   Future<void> listarAutorizacoes() async {
     try {
+      loading = true;
+      notifyListeners();
       final repository = AutorizacaoRepository();
       autorizacoes = await repository.getPeloUserId();
+      loading = false;
       notifyListeners();
     } catch (error) {
+      loading = false;
       ConsoleLog.mensagem(
         titulo: 'listar-autorizacoes-provider',
         mensagem: error.toString(),

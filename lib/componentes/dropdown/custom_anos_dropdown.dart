@@ -123,7 +123,10 @@ class _CustomAnosDropdownState extends State<CustomAnosDropdown>
     await getFranquiaAtualHttp();
 
     setState(() => selectedAno = ano);
-
+    CustomSnackBar.showSuccessSnackBar(
+      context,
+      'Ano selecionado com sucesso',
+    );
     await Navigator.push(
       // ignore: use_build_context_synchronously
       context,

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../constants/app_tema.dart';
 import '../../models/avaliador_model.dart';
 import '../../models/etapa_model.dart';
 import '../../models/gestao_ativa_model.dart';
 import '../../models/solicitacao_model.dart';
 import '../../providers/autorizacao_provider.dart';
-import '../../utils/app_theme.dart';
 import '../../utils/validador.dart';
 
 class CustomSolicitarShowBottomSheet {

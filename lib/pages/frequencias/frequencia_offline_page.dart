@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:professor_acesso_notifiq/componentes/dialogs/custom_justificativa_offline_dialog.dart';
@@ -18,7 +17,6 @@ import '../../componentes/dialogs/custom_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../models/aula_model.dart';
 import '../../models/historico_requencia_model.dart';
-import '../../services/controller/aula_controller.dart';
 import '../../services/controller/historico_requencia_controller.dart';
 import '../../services/faltas/falta_controller.dart';
 
@@ -26,7 +24,6 @@ class FrequenciaOfflinePage extends StatefulWidget {
   final String aula_id;
   final Aula? aula;
   const FrequenciaOfflinePage({super.key, required this.aula_id, this.aula});
-
   @override
   State<FrequenciaOfflinePage> createState() => _FrequenciaOfflinePageState();
 }
@@ -44,7 +41,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
   late String aula_id = '';
   List<bool?> _isLiked = [];
   final faltaController = FaltaController();
-
   Future<void> carregarDados() async {
     await carregarJustificativas();
     List<Matricula> response =
@@ -56,7 +52,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
       _isLiked = List.generate(response.length, (_) => true);
       justificavasDaMatricula = List.generate(response.length, (_) => null);
     });
-
     if (frequenciaJaCriada == true) {
       matriculas_da_gestao_da_turma_ativa.asMap().forEach((index, matricula) {
         for (var falta in faltas) {
@@ -81,21 +76,17 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
     try {
       final historicoPresencaController = HistoricoPresencaController();
       await historicoPresencaController.init();
-
       if (matriculas_da_gestao_da_turma_ativa.isEmpty) {
         return;
       }
-
       for (var matricula in matriculas_da_gestao_da_turma_ativa) {
         String? caminho =
             await historicoPresencaController.getAnexoeAulaPorAula(
           widget.aula!.criadaPeloCelular.toString(),
           matricula.aluno_id.toString(),
         );
-
         matricula.existe_anexo = caminho != null && caminho.isNotEmpty;
       }
-
       setState(() {});
     } catch (e) {
       debugPrint("Error: $e");
@@ -161,7 +152,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
         isLiked: _isLiked,
         justificavasDaMatricula: justificavasDaMatricula,
       );
-      //await salvaDadosFrequenciaLocal();
       CustomSnackBar.showSuccessSnackBarFalta(
         context,
         'Frequência salva com sucesso!',
@@ -184,7 +174,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
       List<Justificativa> justificativas) async {
     justificativas.sort((a, b) =>
         a.descricao.toUpperCase().compareTo(b.descricao.toUpperCase()));
-
     return justificativas;
   }
 
@@ -196,19 +185,12 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
   ) async {
     try {
       CustomDialogs.showLoadingDialog(context, show: true);
-
       if (value == true) {
-        // CustomSnackBar.showSuccessSnackBar(
-        //   context,
-        //   'Frequência registrada com sucesso!',
-        // );
         CustomDialogs.showLoadingDialog(context, show: false);
         return;
       }
-
       justificativas = await ordenarJustificativas(justificativas);
       setState(() => justificativas);
-
       final bool? result =
           await JustificativaOfflineDialog.exibirDialogoJustificativa(
         context,
@@ -250,34 +232,20 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
             turmaId: widget.aula!.turma_id.toString(),
             presenca: false,
           );
-          //JustificativaOfflineDialog.fecharDialogo(context, resultado: true);
           setState(() => historicoPresenca);
         },
       );
       if (result == null) {
-        // print('Nenhuma seleção foi feita');
         CustomDialogs.showLoadingDialog(context, show: false);
         return;
       }
-
       setState(
         () => historicoPresenca!.justificativaId =
             matricula.justificativa_id.toString(),
       );
       await Future.delayed(const Duration(seconds: 1));
-
       await salvaDadosFrequenciaLocal();
-
       await getAjusteMatricula();
-
-      // CustomSnackBar.showSuccessSnackBar(
-      //   context,
-      //   'Frequência registrada com sucesso!',
-      // );
-      // setState(() {
-      //   matriculas_da_gestao_da_turma_ativa;
-      //   _isLiked[index] = false;
-      // });
       CustomDialogs.showLoadingDialog(context, show: false);
     } catch (e) {
       CustomDialogs.showLoadingDialog(context, show: false);
@@ -289,7 +257,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
     matricula.justificativa = justificativa;
     matricula.justificativa_id = justificativa_id;
     matriculas_da_gestao_da_turma_ativa[index] = matricula;
-
     setState(() {
       matriculas_da_gestao_da_turma_ativa;
       _isLiked[index] = false;
@@ -334,7 +301,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
       );
       return;
     }
-
     await OpenFilex.open(caminho);
   }
 
@@ -342,13 +308,12 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
   bool get wantKeepAlive => true;
   @override
   Widget build(BuildContext context) {
-    //getAula();
     super.build(context);
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
       appBar: AppBar(
         title: const Text(
-          'Frequência Offline',
+          'Frequência',
           style: TextStyle(color: AppTema.primaryDarkBlue),
         ),
         centerTitle: true,
@@ -358,17 +323,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
         padding: const EdgeInsets.only(top: 10),
         child: Column(
           children: [
-            /*Container(
-                padding: const EdgeInsets.only(left: 5, bottom: 10),
-                child: const Text(
-                  'Frequência Offline',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Color.fromARGB(255, 101, 94, 94)),
-                ),
-              ),*/
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(left: 5, bottom: 10),
@@ -391,7 +345,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                     itemBuilder: (context, index) {
                       Matricula matricula =
                           matriculas_da_gestao_da_turma_ativa[index];
-                      // debugPrint(matricula.toString());
                       return Container(
                         decoration: const BoxDecoration(
                           border: Border(
@@ -405,7 +358,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Text(matricula.toString()),
                                   Container(
                                     padding: const EdgeInsets.only(
                                       left: 8.0,
@@ -434,7 +386,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                             ),
                                           ),
                                   ),
-                                  // Text(_isLiked[index]!.toString()),
                                   _isLiked[index] == false &&
                                           matricula.justificativa.toString() !=
                                               ''
@@ -460,7 +411,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                           ),
                                         )
                                       : const SizedBox(),
-                                  // Text(matricula.existe_anexo.toString()),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -544,7 +494,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                                   ),
                                                 )
                                               : const SizedBox(),
-
                                           !_isLiked[index]! &&
                                                   matricula.existe_anexo == true
                                               ? Padding(
@@ -574,109 +523,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                                   ),
                                                 )
                                               : const SizedBox(),
-                                          // _isLiked[index] == false
-                                          //     ? Container(
-                                          //         height: 30,
-                                          //         padding: const EdgeInsets
-                                          //             .symmetric(horizontal: 5),
-                                          //         decoration: BoxDecoration(
-                                          //           border: Border.all(
-                                          //             color: Colors.grey,
-                                          //             width: 1.0,
-                                          //           ),
-                                          //           borderRadius:
-                                          //               BorderRadius.circular(
-                                          //                   8.0),
-                                          //         ),
-                                          //         child:
-                                          //             DropdownButtonHideUnderline(
-                                          //           child: DropdownButton<int>(
-                                          //             value:
-                                          //                 justificavasDaMatricula[
-                                          //                     index],
-                                          //             onChanged:
-                                          //                 (int? newValue) {
-                                          //               setState(() {
-                                          //                 // print(newValue);
-                                          //                 justificavasDaMatricula[
-                                          //                         index] =
-                                          //                     newValue!;
-                                          //               });
-                                          //             },
-                                          //             items: justificativas
-                                          //                 .where((justificativa) =>
-                                          //                     justificativa
-                                          //                         .descricao
-                                          //                         .toUpperCase() !=
-                                          //                     'OUTROS')
-                                          //                 .map((justificativa) {
-                                          //               return DropdownMenuItem<
-                                          //                   int>(
-                                          //                 value: int.parse(
-                                          //                     justificativa.id),
-                                          //                 child: justificativa
-                                          //                             .descricao
-                                          //                             .length >
-                                          //                         20
-                                          //                     ? Tooltip(
-                                          //                         message:
-                                          //                             justificativa
-                                          //                                 .descricao,
-                                          //                         child: Text(
-                                          //                           '${justificativa.descricao.substring(0, 20).toUpperCase()}...',
-                                          //                           style: const TextStyle(
-                                          //                               fontSize:
-                                          //                                   11),
-                                          //                         ),
-                                          //                       )
-                                          //                     : Text(
-                                          //                         justificativa
-                                          //                             .descricao
-                                          //                             .toString()
-                                          //                             .toUpperCase(),
-                                          //                         style: const TextStyle(
-                                          //                             fontSize:
-                                          //                                 11),
-                                          //                       ),
-                                          //               );
-                                          //             }).toList(),
-                                          //             style: const TextStyle(
-                                          //               fontSize: 12,
-                                          //               color: Colors.black,
-                                          //             ),
-                                          //             iconSize: 24,
-                                          //             elevation: 2,
-                                          //           ),
-                                          //         ))
-                                          // : Container(
-                                          //     height: 30,
-                                          //     padding:
-                                          //         const EdgeInsets.only(
-                                          //             top: 5,
-                                          //             bottom: 5,
-                                          //             left: 10,
-                                          //             right: 10),
-                                          //     child: const Row(
-                                          //       children: [
-                                          //         Text(
-                                          //           'Confirmando presença',
-                                          //           style: TextStyle(
-                                          //             fontSize: 15,
-                                          //             color: Color.fromARGB(
-                                          //                 255, 52, 118, 54),
-                                          //           ),
-                                          //         ),
-                                          //         SizedBox(
-                                          //           width: 3,
-                                          //         ),
-                                          //         Icon(
-                                          //           Icons.check,
-                                          //           color: Color.fromARGB(
-                                          //               255, 52, 118, 54),
-                                          //           size: 15,
-                                          //         )
-                                          //       ],
-                                          //     )),
                                         ],
                                       ),
                                     ],
@@ -686,12 +532,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                             : Container(
                                 decoration: BoxDecoration(
                                   color: Colors.red[100],
-                                  // border: Border(
-                                  //   bottom: BorderSide(
-                                  //     color: Colors.grey,
-                                  //     width: 1.0,
-                                  //   ),
-                                  // ),
                                 ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -725,7 +565,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                           color: AppTema.error,
                                           borderRadius:
                                               BorderRadius.circular(5)),
-                                      // color: AppTema.error,
                                       margin: const EdgeInsets.only(
                                           left: 5, top: 5),
                                       padding: const EdgeInsets.only(
