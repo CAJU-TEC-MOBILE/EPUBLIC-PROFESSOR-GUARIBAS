@@ -49,8 +49,6 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
 
-      hideLoading(context);
-
       if (!success) {
         enabledTextFormField = true;
         isLoading = false;
@@ -61,6 +59,7 @@ class AuthProvider with ChangeNotifier {
 
       enabledTextFormField = true;
       isLoading = false;
+      hideLoading(context);
       notifyListeners();
       CustomSnackBar.showSuccessSnackBar(context, 'Logado com sucesso!');
       Navigator.pushReplacementNamed(context, '/home');

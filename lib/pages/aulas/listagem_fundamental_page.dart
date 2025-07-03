@@ -249,7 +249,8 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
               context: context,
               builder: (BuildContext context) {
                 return CustomSyncPadraoDialog(
-                  message: "Deseja atualizar esta aula?",
+                  message:
+                      "Tem certeza de que deseja prosseguir com a atualização destas aulas?",
                   onCancel: () => Navigator.of(context).pop(false),
                   onConfirm: () async {
                     showLoading(context);

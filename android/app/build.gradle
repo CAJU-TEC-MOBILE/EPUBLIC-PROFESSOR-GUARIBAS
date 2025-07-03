@@ -49,15 +49,15 @@ def getLocalProperty(String key) {
 android {
     
     namespace = 'br.com.servidorcaju.guaribas'
-    compileSdkVersion = 36
+    compileSdkVersion = 35
     // ndkVersion = "25.1.8937393"
     ndkVersion = "26.3.11579264"
     // ndkVersion flutter.ndkVersion
     defaultConfig {
         applicationId = 'br.com.servidorcaju.guaribas'
         minSdkVersion = 23
-        targetSdkVersion = 36
-        versionCode 10
+        targetSdkVersion = 35
+        versionCode 11
         versionName "5.0.11.5949"
         multiDexEnabled true
     }

@@ -28,8 +28,8 @@ class _LoginPageState extends State<LoginPage> {
         Provider.of<AuthProvider>(context, listen: false);
       }
     });
-    _usernameController.text = '77777777777';
-    _passwordController.text = '01012000';
+    // _usernameController.text = '77777777777';
+    // _passwordController.text = '01012000';
   }
 
   Future<void> configuracaoEnv() async {
@@ -77,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: Column(
                             children: [
                               TextFormField(
+                                key: const Key('cpf_field'),
                                 keyboardType: TextInputType.number,
                                 enabled: provider.enabledTextFormField,
                                 controller: _usernameController,
@@ -125,7 +126,10 @@ class _LoginPageState extends State<LoginPage> {
                               SizedBox(
                                 width: MediaQuery.of(context).size.width,
                                 child: ElevatedButton(
+                                  key: const Key('btn_login'),
                                   onPressed: () async {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
                                     if (_formKey.currentState?.validate() ??
                                         false) {
                                       await provider.login(
@@ -138,7 +142,9 @@ class _LoginPageState extends State<LoginPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTema.primaryAmarelo,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 24.0, vertical: 12.0),
+                                      horizontal: 24.0,
+                                      vertical: 12.0,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),

@@ -141,7 +141,7 @@ class _ListagemGestoesProfessorState extends State<ListagemGestoesProfessor> {
                   context: context,
                   builder: (BuildContext context) {
                     return CustomSyncPadraoDialog(
-                      message: "Deseja atualizar os dados de todas as gestões?",
+                      message: "Deseja atualizar todas as gestões?",
                       onCancel: () => Navigator.of(context).pop(false),
                       onConfirm: () async {
                         showLoading(context);

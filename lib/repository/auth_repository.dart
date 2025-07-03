@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../componentes/dialogs/custom_snackbar.dart';
 import '../enums/status_console.dart';
 import '../helpers/console_log.dart';
 import '../models/auth_model.dart';
@@ -55,21 +56,29 @@ class AuthRepository {
     try {
       await sharedPreferenceService.init();
       final response = await authHttp.login(email: email, password: password);
+      final Map<String, dynamic> data = json.decode(response.body);
 
       if (response.statusCode != 200) {
+        String? message = data['error']?['message'].toString();
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          message.toString(),
+        );
         return false;
       }
 
+      await authController.init();
       await instrutorController.init();
       await disciplinaController.init();
       await professorController.init();
-      await authController.init();
+
+      await authController.clear();
       await instrutorController.clear();
       await disciplinaController.clear();
       await professorController.clear();
-      await authController.clear();
+
       await Future.delayed(const Duration(seconds: 3));
-      final Map<String, dynamic> data = json.decode(response.body);
+
       final professorData = data['user']['professor'];
       final instrutor = Instrutor(
         id: professorData['id'].toString(),
@@ -77,6 +86,7 @@ class AuthRepository {
         anoId: data['user']['ano_id'].toString(),
         token: data['user']['token_atual'].toString(),
       );
+
       final auth = AuthModel.fromJson(data['user']);
       await instrutorController.addInstrutor(instrutor);
       await authController.add(auth);

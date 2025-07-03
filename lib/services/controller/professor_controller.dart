@@ -3,20 +3,16 @@ import '../../models/professor_model.dart';
 
 class ProfessorController {
   late Box<Professor> box;
-
   Future<void> init() async {
     await Hive.initFlutter();
-
     if (!Hive.isAdapterRegistered(ProfessorAdapter().typeId)) {
       Hive.registerAdapter(ProfessorAdapter());
     }
-
     box = await Hive.openBox<Professor>('professores');
   }
 
   Future<void> create(Map<String, dynamic> model) async {
     try {
-      // await clear();
       Professor professor = Professor(
         id: model['id']?.toString() ?? '',
         userId: model['user_id']?.toString() ?? '',
@@ -52,7 +48,6 @@ class ProfessorController {
     if (box.isEmpty) {
       return null;
     }
-    print(box.values.first);
     return box.values.first;
   }
 
@@ -61,10 +56,7 @@ class ProfessorController {
   }
 
   Future<void> update(model) async {
-    //final authController = AuthController();
-    //await authController.init();
     await clear();
     await create(model);
-    //await authController.updateName(model['nome']?.toString() ?? '');
   }
 }

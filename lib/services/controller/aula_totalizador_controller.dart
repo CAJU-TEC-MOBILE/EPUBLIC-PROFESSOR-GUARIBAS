@@ -16,11 +16,11 @@ class AulaTotalizadorController {
     box = await Hive.openBox<AulaTotalizador>('aula_totalizadores');
   }
 
-  Future<void> addAula(AulaTotalizador aulaTotalizador) async {
+  Future<void> add(AulaTotalizador aulaTotalizador) async {
     await box.add(aulaTotalizador);
   }
 
-  Future<void> clearAll() async {
+  Future<void> clear() async {
     box = await Hive.openBox<AulaTotalizador>('aula_totalizadores');
     await box.clear();
   }
@@ -40,5 +40,13 @@ class AulaTotalizadorController {
       );
       return AulaTotalizador.vazio();
     }
+  }
+
+  Future<void> visualizar() async {
+    List<AulaTotalizador> data = box.values.toList();
+    print("total: ${data.length.toString()}");
+    data.forEach((item) {
+      print(item);
+    });
   }
 }

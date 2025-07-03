@@ -8,7 +8,6 @@ import 'package:professor_acesso_notifiq/models/professor_model.dart';
 import 'package:professor_acesso_notifiq/pages/professor/listagem_gestoes_professor.dart';
 import '../componentes/card/custom_sugestao_card.dart';
 import '../componentes/dialogs/custom_snackbar.dart';
-import '../componentes/dialogs/custom_sync_dialog.dart';
 import '../componentes/dialogs/custom_sync_padrao_dialog.dart';
 import '../componentes/drawer/custom_drawer.dart';
 import '../componentes/global/preloader.dart';
@@ -16,6 +15,7 @@ import '../models/ano_model.dart';
 import '../models/auth_model.dart';
 import '../models/gestao_ativa_model.dart';
 import '../repository/auth_repository.dart';
+import '../repository/sincronizar_repository.dart';
 import '../services/adapters/gestao_ativa_service_adapter.dart';
 import '../services/adapters/gestoes_service_adpater.dart';
 import '../services/connectivity/internet_connectivity_service.dart';
@@ -23,10 +23,12 @@ import '../services/controller/ano_controller.dart';
 import '../services/controller/ano_selecionado_controller.dart';
 import '../services/controller/aula_totalizador_controller.dart';
 import '../services/controller/auth_controller.dart';
+import '../services/controller/autorizacao_controller.dart';
 import '../services/http/aulas/aula_totalizador_http.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
 import '../services/shared_preference_service.dart';
 import '../wigets/cards/custom_totalizador_aula_cartd.dart';
+import '../wigets/cards/custom_totalizador_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -37,11 +39,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   AnoController anoController = AnoController();
   final authController = AuthController();
-  final aulaTotalizadorController = AulaTotalizadorController();
   final authRepository = AuthRepository();
-  final aulaTotalizadorHttp = AulaTotalizadorHttp();
+  final totalizadorHttp = AulaTotalizadorHttp();
   final preference = SharedPreferenceService();
-
+  final autorizacaoController = AutorizacaoController();
+  final totalizadorController = AulaTotalizadorController();
+  final sincronizarRepository = SincronizarRepository();
   AulaTotalizador totalizadorAula = AulaTotalizador.vazio();
   Professor professor = Professor.vazio();
   AuthModel? authModel;
@@ -49,14 +52,27 @@ class _HomePageState extends State<HomePage> {
   Map<dynamic, dynamic> gestao_ativa_data = {};
   bool loadingCard = false;
 
-  Future<void> getInformacoes() async {
+  Future<void> _informacoes() async {
     try {
       await authController.init();
+      await getDados();
+      bool isConnected = await InternetConnectivityService.isConnected();
+      if (!isConnected) {
+        ConsoleLog.mensagem(
+          titulo: 'get-informacoes',
+          mensagem:
+              'Você está offline no momento. Verifique sua conexão com a internet.',
+          tipo: 'erro',
+        );
+
+        return;
+      }
+
       professor = await authController.authProfessorFirst();
       if (professor.id == '') {
         return;
       }
-      await getDados();
+
       gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
       await getHomeAula(professor: professor);
     } catch (error) {
@@ -68,21 +84,77 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> realizarSincronizacaoGeral(
-      {required BuildContext context}) async {
+  Future<void> sincronizacao({required BuildContext context}) async {
     try {
+      showLoading(context);
+
+      await totalizadorController.init();
       await authController.init();
-      await authRepository.baixar();
+
+      bool status = await sincronizarRepository.geral(context: context);
+
+      if (!status) {
+        totalizadorAula = await totalizadorController.totalizador();
+        setState(() => totalizadorAula);
+        hideLoading(context);
+        hideLoading(context);
+      }
+
       professor = await authController.authProfessorFirst();
+
       if (professor.id == '') {
+        totalizadorAula = await totalizadorController.totalizador();
+        setState(() => totalizadorAula);
+        hideLoading(context);
+        hideLoading(context);
         return;
       }
+
+      final response = await totalizadorHttp.getAulasTotalizadas(
+        id: professor.id,
+      );
+      final Map<String, dynamic> data = json.decode(response.body);
+
+      if (response.statusCode != 200) {
+        if (response.statusCode != 201) {
+          String? message = data['error']?['message'].toString();
+          if (response.statusCode == 401) {
+            await preference.init();
+            await preference.limparDados();
+            CustomSnackBar.showInfoSnackBar(
+              context,
+              'Token de acesso expirado. Faça login novamente.',
+            );
+            await Navigator.pushReplacementNamed(context, '/login');
+            return;
+          }
+          CustomSnackBar.showSuccessSnackBar(
+            context,
+            message.toString(),
+          );
+          return;
+        }
+      }
+
+      totalizadorAula = await totalizadorController.totalizador();
+      setState(() => totalizadorAula);
+
       await getDados();
       gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
       await getHomeAulaGeral(context: context, professor: professor);
+
+      CustomSnackBar.showSuccessSnackBar(
+        context,
+        'Sincronização realizada com sucesso!',
+      );
+
+      hideLoading(context);
+      Navigator.pop(context);
     } catch (error) {
+      hideLoading(context);
+      Navigator.pop(context);
       ConsoleLog.mensagem(
-        titulo: 'realizar0-sincronizacao-geral',
+        titulo: 'sincronizacao',
         mensagem: error.toString(),
         tipo: 'erro',
       );
@@ -92,13 +164,15 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    getInformacoes();
+    _informacoes();
   }
 
   Future<void> getHomeAulaGeral(
       {required BuildContext context, required Professor? professor}) async {
-    AulaTotalizadorController aulaTotalizadorController =
-        AulaTotalizadorController();
+    await anoController.init();
+    await totalizadorController.init();
+    await totalizadorController.clear();
+
     if (professor == null) {
       ConsoleLog.mensagem(
         titulo: 'Erro',
@@ -107,6 +181,7 @@ class _HomePageState extends State<HomePage> {
       );
       return;
     }
+
     String professorId = professor.id.toString();
     if (professorId.isEmpty) {
       ConsoleLog.mensagem(
@@ -119,7 +194,7 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final response =
-          await aulaTotalizadorHttp.getAulasTotalizadas(id: professorId);
+          await totalizadorHttp.getAulasTotalizadas(id: professorId);
 
       final Map<String, dynamic> data = json.decode(response.body);
 
@@ -153,9 +228,6 @@ class _HomePageState extends State<HomePage> {
         );
         return;
       }
-      await anoController.init();
-      await aulaTotalizadorController.init();
-      await aulaTotalizadorController.clearAll();
 
       final AulaTotalizador dado = AulaTotalizador(
         id: 0,
@@ -168,7 +240,7 @@ class _HomePageState extends State<HomePage> {
         qntFalta: data['qnt_falta'] ?? 0,
         qntInvalida: data['qnt_invalida'] ?? 0,
       );
-      await aulaTotalizadorController.addAula(dado);
+      await totalizadorController.add(dado);
       await getDados();
       final ano = await anoController.getAnoDescricao(
         descricao: dado.anoAtual.toString(),
@@ -211,7 +283,7 @@ class _HomePageState extends State<HomePage> {
     }
     try {
       final response =
-          await aulaTotalizadorHttp.getAulasTotalizadas(id: professorId);
+          await totalizadorHttp.getAulasTotalizadas(id: professorId);
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
         if (!data.containsKey('id_professor') ||
@@ -225,7 +297,7 @@ class _HomePageState extends State<HomePage> {
           return;
         }
         await aulaTotalizadorController.init();
-        await aulaTotalizadorController.clearAll();
+        await aulaTotalizadorController.clear();
         final AulaTotalizador dado = AulaTotalizador(
           id: 0,
           idProfessor: data['id_professor'] ?? -1,
@@ -238,7 +310,7 @@ class _HomePageState extends State<HomePage> {
           qntInvalida: data['qnt_invalida'] ?? 0,
         );
         await aulaTotalizadorController.init();
-        await aulaTotalizadorController.addAula(dado);
+        await aulaTotalizadorController.add(dado);
         await getDados();
         ConsoleLog.mensagem(
           titulo: 'Sucesso',
@@ -263,26 +335,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> getDados() async {
-    await aulaTotalizadorController.init();
-    totalizadorAula = await aulaTotalizadorController.totalizador();
-    if (totalizadorAula.id != -1) {
-      await aulaTotalizadorController.clearAll();
-      final AulaTotalizador dado = AulaTotalizador(
-        id: 0,
-        idProfessor: -1,
-        anoAtual: DateTime.now().year,
-        totalAula: 0,
-        qntAguardandoConfirmacao: 0,
-        qntConfirmada: 0,
-        qntConflito: 0,
-        qntFalta: 0,
-        qntInvalida: 0,
-      );
-      await aulaTotalizadorController.addAula(dado);
+    await totalizadorController.init();
+    totalizadorAula = await totalizadorController.totalizador();
+
+    if (totalizadorAula.id == -1) {
+      await totalizadorController.clear();
+      final model = AulaTotalizador.vazio();
+      await totalizadorController.add(model);
     }
-    setState(() {
-      totalizadorAula = totalizadorAula;
-    });
+    setState(() => totalizadorAula);
   }
 
   Future<void> setSelectedAno(
@@ -358,16 +419,8 @@ class _HomePageState extends State<HomePage> {
                       message:
                           "Tem certeza de que deseja atualizar todos os dados?",
                       onCancel: () => Navigator.of(context).pop(false),
-                      onConfirm: () async {
-                        showLoading(context);
-                        await realizarSincronizacaoGeral(context: context);
-                        CustomSnackBar.showSuccessSnackBar(
-                          context,
-                          'Sincronização realizada com sucesso!',
-                        );
-                        hideLoading(context);
-                        Navigator.pop(context);
-                      },
+                      onConfirm: () async =>
+                          await sincronizacao(context: context),
                     );
                   },
                 );
@@ -389,207 +442,31 @@ class _HomePageState extends State<HomePage> {
                 CustomTotalizadorAulaCartd(
                   totalizador: totalizadorAula,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Card(
-                    color: AppTema.primaryWhite,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 1.0,
-                    child: Row(
-                      children: [
-                        totalizadorAula != null
-                            ? Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            'Aulas',
-                                            textAlign: TextAlign.left,
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTema.primaryDarkBlue,
-                                            ),
-                                          ),
-                                          totalizadorAula.id != -1
-                                              ? Text(
-                                                  totalizadorAula.anoAtual
-                                                      .toString(),
-                                                  textAlign: TextAlign.right,
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                )
-                                              : const SizedBox(),
-                                        ],
+                Row(
+                  children: [
+                    totalizadorAula.id != -1
+                        ? Expanded(
+                            child: CustomTotalizadorCard(
+                              totalizador: totalizadorAula,
+                            ),
+                          )
+                        : SizedBox(
+                            width: MediaQuery.of(context).size.width - 24.0,
+                            height: 200.0,
+                            child: loadingCard
+                                ? const Center(
+                                    child: SizedBox(),
+                                  )
+                                : const CardLoading(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(
+                                        8.0,
                                       ),
-                                      const Divider(),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Text("Aula confirmada:"),
-                                                const SizedBox(width: 8.0),
-                                                Text(
-                                                  totalizadorAula!.qntConfirmada
-                                                      .toString(),
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Text(
-                                                  "Aguardando confirmação:",
-                                                ),
-                                                const SizedBox(
-                                                  width: 8.0,
-                                                ),
-                                                Text(
-                                                  totalizadorAula!
-                                                      .qntAguardandoConfirmacao
-                                                      .toString(),
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Text(
-                                                    "Aula rejeitada por falta:"),
-                                                const SizedBox(width: 8.0),
-                                                Text(
-                                                  totalizadorAula!.qntFalta
-                                                      .toString(),
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Text("Aula inválida:"),
-                                                const SizedBox(width: 8.0),
-                                                Text(
-                                                  totalizadorAula!.qntInvalida
-                                                      .toString(),
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 16.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Text("Aula em conflito:"),
-                                                const SizedBox(width: 8.0),
-                                                Text(
-                                                  totalizadorAula!.qntConflito
-                                                      .toString(),
-                                                  style: const TextStyle(
-                                                    fontSize: 16.0,
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                    ),
+                                    height: 100,
                                   ),
-                                ),
-                              )
-                            : SizedBox(
-                                width: MediaQuery.of(context).size.width - 24.0,
-                                height: 200.0,
-                                child: loadingCard
-                                    ? const Center(
-                                        child: SizedBox(),
-                                      )
-                                    : const CardLoading(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(
-                                            8.0,
-                                          ),
-                                        ),
-                                        height: 100,
-                                      ),
-                              )
-                      ],
-                    ),
-                  ),
+                          )
+                  ],
                 ),
               ],
             ),
