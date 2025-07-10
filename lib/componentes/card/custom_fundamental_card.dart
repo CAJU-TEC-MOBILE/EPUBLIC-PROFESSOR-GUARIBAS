@@ -47,6 +47,7 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
               _buildInfoRow('Tipo:', aula.tipoDeAula.toString()),
               _buildInfoRow('Situação:', aula.situacao.toString()),
               if (aula.is_polivalencia != 1)
+                // Text(aula.getHorario(horarioId: aula.horarioID).toString())
                 _buildHorario(aula)
               else
                 _buildHorarios(aula),
@@ -107,6 +108,7 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
     return FutureBuilder<String>(
       future: aula.getDescricaoHorario(),
       builder: (context, snapshot) {
+        print("snapshot.data: ${snapshot.data}");
         return _buildInfoRow('Horário:', snapshot.data ?? '- - -');
       },
     );

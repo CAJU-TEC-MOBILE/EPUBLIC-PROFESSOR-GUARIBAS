@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_tema.dart';
 import '../providers/auth_provider.dart';
@@ -18,18 +19,38 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String appVerso = '';
+  String numeroBuild = '';
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
+    installerStore: 'Unknown',
+  );
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    numeroBuild = info.buildNumber;
+    setState(() {
+      numeroBuild;
+      _packageInfo = info;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     configuracaoEnv();
+    _initPackageInfo();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<AuthProvider>(context, listen: false);
       }
     });
-    // _usernameController.text = '77777777777';
-    // _passwordController.text = '01012000';
+    _usernameController.text = '77777777777';
+    _passwordController.text = '01012000';
   }
 
   Future<void> configuracaoEnv() async {
@@ -39,13 +60,13 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AuthProvider>(context, listen: false);
+    final provider = Provider.of<AuthProvider>(context, listen: true);
     return WillPopScope(
       onWillPop: () async {
         return false;
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        // resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
             Container(
@@ -62,11 +83,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    children: <Widget>[
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
                       Image.asset(
                         'assets/logo.png',
                         width: 250,
-                        height: 224,
                       ),
                       Card(
                         color: AppTema.primaryWhite.withValues(alpha: 0.3),
@@ -76,6 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                               const EdgeInsets.only(left: 14.0, right: 14.0),
                           child: Column(
                             children: [
+                              const SizedBox(height: 16.0),
                               TextFormField(
                                 key: const Key('cpf_field'),
                                 keyboardType: TextInputType.number,
@@ -169,6 +192,33 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                 ),
                               ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Versão:",
+                                      style: const TextStyle(
+                                        fontSize: 12.0,
+                                        color: Colors.black38,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 4.0,
+                                    ),
+                                    Text(
+                                      "$numeroBuild ($appVerso)",
+                                      style: const TextStyle(
+                                        fontSize: 12.0,
+                                        color: Colors.black38,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -178,33 +228,24 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            Positioned(
-              bottom: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Versão',
-                      style: TextStyle(
-                        color: Colors.black38,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 4.0,
-                    ),
-                    Text(
-                      appVerso,
-                      style: const TextStyle(
-                        color: Colors.black38,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
+            // Positioned(
+            //   bottom: 0,
+            //   child: Container(
+            //     color: Colors.transparent,
+            //     padding: EdgeInsets.all(2.0),
+            //     child: Row(
+            //       children: [
+            //         Text(
+            //           "$numeroBuild ($appVerso)",
+            //           style: const TextStyle(
+            //             color: Colors.black38,
+            //             fontWeight: FontWeight.bold,
+            //           ),
+            //         )
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

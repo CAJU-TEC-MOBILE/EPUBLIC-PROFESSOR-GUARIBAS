@@ -9,6 +9,7 @@ import 'services/shared_preference_service.dart';
 import 'utils/app_theme.dart';
 import 'wigets/custom_flutter_error_widget.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -55,6 +56,13 @@ class MyApp extends StatelessWidget {
             },
             initialRoute: nextRoute,
             routes: Routes.routes,
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            supportedLocales: const [
+              Locale('pt', 'BR'),
+              Locale('en', 'US'),
+              Locale('ka', 'GE'),
+              Locale('ru', 'RU'),
+            ],
           );
         },
       ),

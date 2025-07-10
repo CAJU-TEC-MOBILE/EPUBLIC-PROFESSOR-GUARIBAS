@@ -1356,8 +1356,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                                                               _horario_selecionado,
                                                                           onChanged: (var novaSelecao) =>
                                                                               setState(() => _horario_selecionado = novaSelecao),
-                                                                          focusColor:
-                                                                              Colors.black,
                                                                           decoration:
                                                                               InputDecoration(
                                                                             fillColor:

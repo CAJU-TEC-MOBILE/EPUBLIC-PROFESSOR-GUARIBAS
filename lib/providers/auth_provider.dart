@@ -50,10 +50,10 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (!success) {
+        hideLoading(context);
         enabledTextFormField = true;
         isLoading = false;
         notifyListeners();
-        hideLoading(context);
         return false;
       }
 

@@ -416,8 +416,7 @@ class _HomePageState extends State<HomePage> {
                   context: context,
                   builder: (BuildContext context) {
                     return CustomSyncPadraoDialog(
-                      message:
-                          "Tem certeza de que deseja atualizar todos os dados?",
+                      message: " Deseja sincronizar os dados?",
                       onCancel: () => Navigator.of(context).pop(false),
                       onConfirm: () async =>
                           await sincronizacao(context: context),

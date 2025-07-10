@@ -31,8 +31,8 @@ class CustomSyncPadraoDialog extends StatelessWidget {
                   Text(
                     'Sincronizar',
                     style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.w400,
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w500,
                       color: Colors.black87,
                     ),
                   ),
@@ -73,12 +73,14 @@ class CustomSyncPadraoDialog extends StatelessWidget {
       actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       actions: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 100.0,
+              width: 90.0,
               child: TextButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTema.backgroundColorApp,
+                  backgroundColor: Colors.grey[300],
                   foregroundColor: AppTema.primaryDarkBlue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -91,9 +93,11 @@ class CustomSyncPadraoDialog extends StatelessWidget {
                 child: Text('Cancelar'),
               ),
             ),
-            Spacer(),
+            const SizedBox(
+              width: 32.0,
+            ),
             SizedBox(
-              width: 100.0,
+              width: 90.0,
               child: ElevatedButton(
                 onPressed: () async {
                   await onConfirm();

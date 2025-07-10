@@ -1,0 +1,2 @@
+/home/caju25/Documentos/apps/GUARIBAS/EPUBLIC-PROF-GUARIBAS/android/app/.cxx/RelWithDebInfo/6y3u3457/arm64-v8a/CMakeFiles/edit_cache.dir
+/home/caju25/Documentos/apps/GUARIBAS/EPUBLIC-PROF-GUARIBAS/android/app/.cxx/RelWithDebInfo/6y3u3457/arm64-v8a/CMakeFiles/rebuild_cache.dir
