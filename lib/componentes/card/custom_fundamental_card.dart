@@ -108,7 +108,7 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
     return FutureBuilder<String>(
       future: aula.getDescricaoHorario(),
       builder: (context, snapshot) {
-        print("snapshot.data: ${snapshot.data}");
+        // print("snapshot.data: ${snapshot.data}");
         return _buildInfoRow('Horário:', snapshot.data ?? '- - -');
       },
     );

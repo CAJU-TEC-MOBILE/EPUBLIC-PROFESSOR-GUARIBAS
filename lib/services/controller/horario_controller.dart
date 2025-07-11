@@ -39,7 +39,6 @@ class HorarioController {
   }
 
   Future<String> getDescricaoHorario(int id) async {
-    await init();
     final horarios = _horarioBox.values.toList();
 
     if (horarios.isEmpty) {

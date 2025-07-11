@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:professor_acesso_notifiq/models/horario_model.dart';
-
 import '../constants/app_tema.dart';
 import '../services/controller/config_horario_configuracao.dart';
 import '../services/controller/disciplina_aula_controller.dart';
 import '../services/controller/disciplina_controller.dart';
+import '../services/controller/horario_configuracao_controller.dart';
 import '../services/controller/horario_controller.dart';
 import 'disciplina_aula_model.dart';
 import 'disciplina_model.dart';
@@ -45,39 +45,42 @@ class Aula {
   List<Serie>? series;
   String? disciplinas_formatted;
   String? horarios_formatted;
-  Aula(
-      {this.id = '',
-      required this.instrutor_id,
-      required this.disciplina_id,
-      required this.turma_id,
-      required this.tipoDeAula,
-      required this.dataDaAula,
-      required this.horarioID,
-      required this.horarios_infantis,
-      required this.conteudo,
-      required this.metodologia,
-      required this.saberes_conhecimentos,
-      required this.dia_da_semana,
-      required this.situacao,
-      required this.criadaPeloCelular,
-      required this.etapa_id,
-      required this.instrutorDisciplinaTurma_id,
-      required this.eixos,
-      required this.estrategias,
-      required this.recursos,
-      required this.atividade_casa,
-      required this.atividade_classe,
-      required this.observacoes,
-      required this.is_polivalencia,
-      required this.experiencias,
-      this.e_aula_infantil,
-      this.campos_de_experiencias,
-      this.disciplinas,
-      this.horarios_extras_formatted,
-      this.multi_etapa,
-      this.series,
-      this.horarios_formatted,
-      this.disciplinas_formatted});
+  bool? status_frequencia;
+  Aula({
+    this.id = '',
+    required this.instrutor_id,
+    required this.disciplina_id,
+    required this.turma_id,
+    required this.tipoDeAula,
+    required this.dataDaAula,
+    required this.horarioID,
+    required this.horarios_infantis,
+    required this.conteudo,
+    required this.metodologia,
+    required this.saberes_conhecimentos,
+    required this.dia_da_semana,
+    required this.situacao,
+    required this.criadaPeloCelular,
+    required this.etapa_id,
+    required this.instrutorDisciplinaTurma_id,
+    required this.eixos,
+    required this.estrategias,
+    required this.recursos,
+    required this.atividade_casa,
+    required this.atividade_classe,
+    required this.observacoes,
+    required this.is_polivalencia,
+    required this.experiencias,
+    this.e_aula_infantil,
+    this.campos_de_experiencias,
+    this.disciplinas,
+    this.horarios_extras_formatted,
+    this.multi_etapa,
+    this.series,
+    this.horarios_formatted,
+    this.disciplinas_formatted,
+    this.status_frequencia,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -113,7 +116,8 @@ class Aula {
       'campos_de_experiencias': campos_de_experiencias.toString(),
       'multi_etapa': multi_etapa ?? 0,
       'series': series ?? [],
-      'horarios_formatted': horarios_formatted
+      'horarios_formatted': horarios_formatted,
+      'status_frequencia': status_frequencia,
     };
   }
 
@@ -142,10 +146,11 @@ class Aula {
   }
 
   Future<String> get descricaoHorarioPeloIdHorario async {
+    final horarioController = HorarioController();
     if (horarioID == null || horarioID.toString().isEmpty) {
       return 'Sem horário';
     }
-
+    await horarioController.init();
     final String horarioIDString = horarioID.toString();
 
     final int? horarioIDInt = int.tryParse(horarioIDString);
@@ -154,9 +159,24 @@ class Aula {
       return 'ID de horário inválido';
     }
 
-    HorarioController horarioController = HorarioController();
-
     final descricao = await horarioController.getDescricaoHorario(horarioIDInt);
+    return descricao;
+  }
+
+  Future<String> get descricaoHorarioPeloHorarioId async {
+    final controller = HorarioConfiguracaoController();
+    if (horarioID == null || horarioID.toString().isEmpty) {
+      return 'Sem horário';
+    }
+    await controller.init();
+
+    if (horarioID == null) {
+      return 'ID de horário inválido';
+    }
+
+    final String horarioId = horarioID.toString();
+
+    final descricao = await controller.getDescricaoHorario(horarioId);
     return descricao;
   }
 
@@ -305,8 +325,11 @@ class Aula {
   }
 
   String get data {
-    return DateFormat('dd/MM/yyyy')
-        .format(DateTime.parse(dataDaAula.toString()));
+    return DateFormat('dd/MM/yyyy').format(
+      DateTime.parse(
+        dataDaAula.toString(),
+      ),
+    );
   }
 
   factory Aula.fromJson(Map<dynamic, dynamic> json) {
@@ -345,6 +368,7 @@ class Aula {
       multi_etapa: json['multi_etapa'] ?? 0,
       series: json['series'] ?? [],
       horarios_formatted: json['horarios_formatted'].toString(),
+      status_frequencia: false,
     );
   }
 
@@ -355,7 +379,7 @@ class Aula {
         'conteudo: $conteudo, metodologia: $metodologia, saberes_conhecimentos: $saberes_conhecimentos, is_polivalencia: $is_polivalencia, horarios_formatted: $horarios_formatted'
         'dia_da_semana: $dia_da_semana, situacao: $situacao, criadaPeloCelular: $criadaPeloCelular, etapa_id: $etapa_id, disciplinas: $disciplinas,'
         'instrutorDisciplinaTurma_id: $instrutorDisciplinaTurma_id, eixos: $eixos, estrategias: $estrategias, campos_de_experiencias: $campos_de_experiencias, disciplinas_formatted: $disciplinas_formatted'
-        'recursos: $recursos, series: $series multi_etapa: $multi_etapa, atividade_casa: $atividade_casa, atividade_classe: $atividade_classe, e_aula_infantil: $e_aula_infantil observacoes: $observacoes, experiencias: $experiencias)';
+        'recursos: $recursos, series: $series multi_etapa: $multi_etapa, atividade_casa: $atividade_casa, atividade_classe: $atividade_classe, e_aula_infantil: $e_aula_infantil observacoes: $observacoes, experiencias: $experiencias, status_frequencia: $status_frequencia)';
   }
 }
 
@@ -394,6 +418,7 @@ class AulaAdapter extends TypeAdapter<Aula> {
       is_polivalencia: reader.readInt(),
       multi_etapa: reader.readInt(),
       series: (reader.readList()).map((item) => item as Serie).toList(),
+      status_frequencia: reader.readBool(),
     );
   }
 
@@ -427,5 +452,6 @@ class AulaAdapter extends TypeAdapter<Aula> {
     writer.writeInt(obj.is_polivalencia);
     writer.writeInt(obj.multi_etapa ?? 0);
     writer.writeList(obj.series ?? []);
+    writer.writeBool(obj.status_frequencia ?? false);
   }
 }

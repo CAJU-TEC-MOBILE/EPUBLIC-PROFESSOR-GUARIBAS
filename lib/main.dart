@@ -5,6 +5,7 @@ import 'data/database/database_hive.dart';
 import 'providers/auth_provider.dart';
 import 'providers/autorizacao_provider.dart';
 import 'routes/routes.dart';
+import 'services/directories/directories_controller.dart';
 import 'services/shared_preference_service.dart';
 import 'utils/app_theme.dart';
 import 'wigets/custom_flutter_error_widget.dart';
@@ -18,13 +19,21 @@ void main() async {
 
   final preferenceService = SharedPreferenceService();
 
-  await initializeDateFormatting('pt_BR');
+  final directories = DirectoriesController();
 
   await preferenceService.init();
 
   String route = await preferenceService.nextRoute();
 
-  await HiveConfig.start();
+  final initTasks = [
+    HiveConfig.start(),
+    directories.getStorageDirectories(),
+    directories.createImageDirectory(),
+    directories.getDiretorioImages(),
+    initializeDateFormatting('pt_BR')
+  ];
+
+  await Future.wait(initTasks);
 
   runApp(MyApp(nextRoute: route));
 }

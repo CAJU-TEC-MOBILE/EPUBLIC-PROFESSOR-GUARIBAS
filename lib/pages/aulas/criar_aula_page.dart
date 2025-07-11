@@ -458,7 +458,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                   Navigator.of(context).pop(true);
                 },
                 child: const Text(
-                  'Limpar Seleções',
+                  'Cancelar',
                   style: TextStyle(color: AppTema.primaryDarkBlue),
                 ),
               ),

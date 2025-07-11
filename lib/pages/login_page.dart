@@ -9,7 +9,6 @@ import '../wigets/custom_passwordfield.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -28,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
     buildSignature: 'Unknown',
     installerStore: 'Unknown',
   );
-
   Future<void> _initPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
     numeroBuild = info.buildNumber;
@@ -43,14 +41,13 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     configuracaoEnv();
     _initPackageInfo();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<AuthProvider>(context, listen: false);
       }
     });
-    _usernameController.text = '77777777777';
-    _passwordController.text = '01012000';
+    _usernameController.text = '12121212121';
+    _passwordController.text = '07121999';
   }
 
   Future<void> configuracaoEnv() async {
@@ -61,12 +58,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AuthProvider>(context, listen: true);
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         return false;
       },
       child: Scaffold(
-        // resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
             Container(
@@ -79,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 180),
+                padding: const EdgeInsets.only(left: 15, right: 15, top: 220),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -89,6 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                       Image.asset(
                         'assets/logo.png',
                         width: 250,
+                        height: 150,
                       ),
                       Card(
                         color: AppTema.primaryWhite.withValues(alpha: 0.3),
@@ -228,24 +226,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            // Positioned(
-            //   bottom: 0,
-            //   child: Container(
-            //     color: Colors.transparent,
-            //     padding: EdgeInsets.all(2.0),
-            //     child: Row(
-            //       children: [
-            //         Text(
-            //           "$numeroBuild ($appVerso)",
-            //           style: const TextStyle(
-            //             color: Colors.black38,
-            //             fontWeight: FontWeight.bold,
-            //           ),
-            //         )
-            //       ],
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

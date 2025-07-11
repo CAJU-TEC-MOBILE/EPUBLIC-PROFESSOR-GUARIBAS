@@ -1,14 +1,11 @@
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../help/console_log.dart';
 import '../../models/horario_aula_model.dart';
 
 class HorarioConfiguracaoController {
   late Box<HorarioConfiguracao> _horarioConfiguracaoBox;
-
   Future<void> init() async {
     await Hive.initFlutter();
-
     if (!Hive.isAdapterRegistered(HorarioConfiguracaoAdapter().typeId)) {
       Hive.registerAdapter(HorarioConfiguracaoAdapter());
     }
@@ -59,7 +56,6 @@ class HorarioConfiguracaoController {
         print('Sem horários de configuração');
         return;
       }
-
       for (var horario in horarios) {
         var dado = HorarioConfiguracao(
           id: horario['id'].toString(),
@@ -105,24 +101,19 @@ class HorarioConfiguracaoController {
         tipo_horario: '',
       ),
     );
-
     return dado.descricao;
   }
 
   Future<String> getDescricaoHorario(String horarioId) async {
     await init();
     final horarios = _horarioConfiguracaoBox.values.toList();
-
     if (horarios.isEmpty) {
       return 'Nenhum horário disponível.';
     }
-
-    // Busca o item correspondente ao ID informado
     final horarioEncontrado = horarios.firstWhere(
       (item) => item.id == horarioId,
       orElse: () => HorarioConfiguracao.vazio(),
     );
-
     return horarioEncontrado.descricao.toString();
   }
 }

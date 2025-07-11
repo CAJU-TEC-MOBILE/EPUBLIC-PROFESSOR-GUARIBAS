@@ -17,7 +17,6 @@ class AulaController {
   Future<List<Aula>> getAulaCriadaPeloCelular(
       {required String? criadaPeloCelular}) async {
     try {
-      print('---BUSCANDO POR AULA LOCAL---');
       final aulas = _aulaBox.values
           .where((aula) => aula.criadaPeloCelular == criadaPeloCelular)
           .toList();
@@ -186,5 +185,34 @@ class AulaController {
     }
 
     return dados;
+  }
+
+  Future<bool> registrarFrequencia({required String criadaPeloCelular}) async {
+    List<Aula> aulas = _aulaBox.values
+        .where(
+          (aula) =>
+              aula.criadaPeloCelular.toString() == criadaPeloCelular.toString(),
+        )
+        .toList();
+    if (aulas.isEmpty) {
+      return false;
+    }
+    for (var aula in aulas) {
+      aula.status_frequencia = true;
+      final key = await _aulaBox.keyAt(_aulaBox.values.toList().indexOf(aula));
+      await _aulaBox.put(key, aula);
+    }
+    return true;
+  }
+
+  Future<Aula?> aula({required String criadaPeloCelular}) async {
+    List<Aula> aulas = _aulaBox.values
+        .where(
+          (aula) =>
+              aula.criadaPeloCelular.toString() == criadaPeloCelular.toString(),
+        )
+        .toList();
+
+    return aulas.first;
   }
 }

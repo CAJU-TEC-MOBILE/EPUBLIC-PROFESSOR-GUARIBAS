@@ -201,7 +201,7 @@ class _CustomInfantilCardState extends State<CustomInfantilCard> {
                         width: 4.0,
                       ),
                       FutureBuilder<String>(
-                        future: aula.descricaoHorarioPeloIdHorario,
+                        future: aula.descricaoHorarioPeloHorarioId,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -218,7 +218,9 @@ class _CustomInfantilCardState extends State<CustomInfantilCard> {
                           } else {
                             return const Text(
                               'Sem Horário',
-                              style: TextStyle(color: AppTema.primaryDarkBlue),
+                              style: TextStyle(
+                                color: AppTema.primaryDarkBlue,
+                              ),
                             );
                           }
                         },

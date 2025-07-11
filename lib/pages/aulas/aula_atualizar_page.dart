@@ -714,7 +714,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                   Navigator.of(context).pop(false);
                 },
                 child: const Text(
-                  'Limpar Seleções',
+                  'Cancelar',
                   style: TextStyle(color: AppTema.primaryDarkBlue),
                 ),
               ),

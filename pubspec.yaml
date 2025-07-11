@@ -71,6 +71,7 @@ dependencies:
   shared_preferences: ^2.5.3
   package_info_plus: ^8.3.0
   flutter_material_design_icons: ^1.1.7447
+  app_settings: ^6.1.1
   #connectivity_plus: ^6.0.5
 # flutter_native_splash:
 #   color: "#FBB232"
