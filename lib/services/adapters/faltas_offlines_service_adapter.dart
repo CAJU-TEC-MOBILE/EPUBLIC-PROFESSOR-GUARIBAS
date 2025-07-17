@@ -3,22 +3,20 @@ import 'package:professor_acesso_notifiq/models/faltas_model.dart';
 import 'package:professor_acesso_notifiq/models/matricula_model.dart';
 
 class FaltasOfflinesServiceAdapter {
-  Future<void> salvar(
-      {required String criadaPeloCelular,
-      required List<Matricula> matriculasDaTurmaAtiva,
-      required List<bool?> isLiked,
-      required List<dynamic> justificavasDaMatricula}) async {
+  Future<void> salvar({
+    required String criadaPeloCelular,
+    required List<Matricula> matriculasDaTurmaAtiva,
+    required List<bool?> isLiked,
+    required List<dynamic> justificavasDaMatricula,
+  }) async {
     Box<Falta> faltasBox = Hive.box<Falta>('faltas');
-
     matriculasDaTurmaAtiva.asMap().forEach((index, matricula) {
       bool salvar = true;
       bool atualizar_justificativa = false;
       String falta_id_aula = '';
       bool deletar_falta = false;
       int index_falta = 0;
-
       List<Falta> faltasData = faltasBox.values.toList();
-
       faltasData.asMap().forEach((index_falta_atual, falta) {
         if (falta.matricula_id.toString() == matricula.matricula_id &&
             falta.aula_id.toString() == criadaPeloCelular.toString()) {
@@ -26,7 +24,6 @@ class FaltasOfflinesServiceAdapter {
           index_falta = index_falta_atual;
           falta_id_aula = falta.aula_id;
           deletar_falta = true;
-          // JUSTIFICATIVA DIFERENTE
           if (falta.justificativa_id.toString() !=
               justificavasDaMatricula[index].toString()) {
             atualizar_justificativa = true;
@@ -34,13 +31,30 @@ class FaltasOfflinesServiceAdapter {
           }
         }
       });
-      // ATUALIZANDO
       if (falta_id_aula.toString() == criadaPeloCelular.toString() &&
           salvar == false &&
           deletar_falta == false &&
           atualizar_justificativa == true) {
         faltasBox.putAt(
-            index_falta,
+          index_falta,
+          Falta(
+              aula_id: criadaPeloCelular.toString(),
+              matricula_id:
+                  matriculasDaTurmaAtiva[index].matricula_id.toString(),
+              justificativa_id: justificavasDaMatricula[index].toString(),
+              aluno_nome: matriculasDaTurmaAtiva[index].aluno_nome.toString(),
+              observacao: '',
+              document: ''),
+        );
+      } else if (falta_id_aula.toString() == criadaPeloCelular.toString() &&
+          salvar == false &&
+          deletar_falta == true &&
+          atualizar_justificativa == false &&
+          isLiked[index] != false) {
+        faltasBox.deleteAt(index_falta);
+      } else {
+        if (isLiked[index] == false && salvar == true) {
+          faltasBox.add(
             Falta(
                 aula_id: criadaPeloCelular.toString(),
                 matricula_id:
@@ -48,30 +62,11 @@ class FaltasOfflinesServiceAdapter {
                 justificativa_id: justificavasDaMatricula[index].toString(),
                 aluno_nome: matriculasDaTurmaAtiva[index].aluno_nome.toString(),
                 observacao: '',
-                document: ''));
-      }
-      // DELETANDO
-      else if (falta_id_aula.toString() == criadaPeloCelular.toString() &&
-          salvar == false &&
-          deletar_falta == true &&
-          atualizar_justificativa == false &&
-          isLiked[index] != false) {
-        faltasBox.deleteAt(index_falta);
-      } else {
-        // CRIANDO
-        if (isLiked[index] == false && salvar == true) {
-          faltasBox.add(Falta(
-              aula_id: criadaPeloCelular.toString(),
-              matricula_id:
-                  matriculasDaTurmaAtiva[index].matricula_id.toString(),
-              justificativa_id: justificavasDaMatricula[index].toString(),
-              aluno_nome: matriculasDaTurmaAtiva[index].aluno_nome.toString(),
-              observacao: '',
-              document: ''));
+                document: ''),
+          );
         }
       }
     });
-
     print("-----------------TOTAL DE FALTAS DO BOX---------------------");
     print(faltasBox.values.toList().length);
     List<Falta> faltasData = faltasBox.values.toList();
@@ -98,7 +93,6 @@ class FaltasOfflinesServiceAdapter {
     Box<Falta> faltasBox = Hive.box<Falta>('Faltas');
     List<Falta> faltasData = faltasBox.values.toList();
     List<int> indexDeFaltasAseremRemovidasAposSincronizacao = [];
-
     faltasData.asMap().forEach((indexFalta, falta) {
       for (var faltaDaAula in faltas) {
         if (falta.aula_id.toString() == faltaDaAula.aula_id.toString() &&
@@ -108,10 +102,8 @@ class FaltasOfflinesServiceAdapter {
         }
       }
     });
-
     indexDeFaltasAseremRemovidasAposSincronizacao
         .sort((a, b) => b.compareTo(a));
-
     for (int index in indexDeFaltasAseremRemovidasAposSincronizacao) {
       faltasBox.deleteAt(index);
     }

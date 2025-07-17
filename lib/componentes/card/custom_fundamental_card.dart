@@ -8,7 +8,6 @@ class CustomFundamentalCard extends StatefulWidget {
   final Future<void> Function() onSync;
   final Future<void> Function() onFrequencia;
   final Future<void> Function() onEdit;
-
   const CustomFundamentalCard({
     super.key,
     required this.paginatedItems,
@@ -16,7 +15,6 @@ class CustomFundamentalCard extends StatefulWidget {
     required this.onFrequencia,
     required this.onEdit,
   });
-
   @override
   _CustomFundamentalCardState createState() => _CustomFundamentalCardState();
 }
@@ -25,7 +23,6 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
   @override
   Widget build(BuildContext context) {
     final aula = widget.paginatedItems;
-
     return Card(
       color: AppTema.primaryWhite,
       child: Container(
@@ -50,6 +47,7 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
               _buildInfoRow('Tipo:', aula.tipoDeAula.toString()),
               _buildInfoRow('Situação:', aula.situacao.toString()),
               if (aula.is_polivalencia != 1)
+                // Text(aula.getHorario(horarioId: aula.horarioID).toString())
                 _buildHorario(aula)
               else
                 _buildHorarios(aula),
@@ -67,8 +65,7 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
         const Icon(Icons.calendar_month_sharp,
             color: AppTema.primaryDarkBlue, size: 16.0),
         const SizedBox(width: 4.0),
-        Text(aula.dataDaAulaPtBr,
-            style: const TextStyle(color: AppTema.primaryDarkBlue)),
+        Text(aula.data, style: const TextStyle(color: AppTema.primaryDarkBlue)),
         const Spacer(),
         aula.id.isEmpty
             ? CustomCircleSync(aula: aula)
@@ -109,9 +106,10 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
 
   Widget _buildHorario(Aula aula) {
     return FutureBuilder<String>(
-      future: aula.descricaoHorarioPeloIdHorario,
+      future: aula.getDescricaoHorario(),
       builder: (context, snapshot) {
-        return _buildInfoRow('Horário:', snapshot.data ?? 'Sem horário');
+        // print("snapshot.data: ${snapshot.data}");
+        return _buildInfoRow('Horário:', snapshot.data ?? '- - -');
       },
     );
   }
@@ -153,10 +151,16 @@ class _CustomFundamentalCardState extends State<CustomFundamentalCard> {
         if (aula.id.isEmpty)
           _buildButton('Sincronizar', widget.onSync, Colors.grey[400]),
         const SizedBox(width: 8.0),
-        _buildButton('Frequência', widget.onFrequencia, AppTema.primaryAmarelo),
+        if (aula.id.isEmpty)
+          _buildButton(
+              'Frequência', widget.onFrequencia, AppTema.primaryAmarelo),
         if (aula.id.isEmpty) ...[
           const SizedBox(width: 8.0),
-          _buildButton('Editar', widget.onEdit, AppTema.primaryDarkBlue),
+          SizedBox(
+            width: 88.0,
+            child:
+                _buildButton('Editar', widget.onEdit, AppTema.primaryDarkBlue),
+          ),
         ],
       ],
     );

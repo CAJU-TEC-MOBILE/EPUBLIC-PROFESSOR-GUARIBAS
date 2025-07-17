@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../models/faltas_model.dart';
 import '../../models/justificativa_model.dart';
 import '../../models/matricula_model.dart';
@@ -15,9 +14,7 @@ class FaltaController {
         await MatriculasDaTurmaAtivaServiceAdapter().listar();
     List<Justificativa> justificativas =
         await JustificativasServiceAdapter().listar();
-
     bool frequenciaJaCriada = faltas.any((falta) => falta.aula_id == aula_id);
-
     return matriculas.map((matricula) {
       Falta? faltaCorrespondente = faltas.firstWhere(
         (falta) =>
@@ -34,13 +31,11 @@ class FaltaController {
           existe_anexo: false,
         ),
       );
-
       Justificativa? justificativaCorrespondente = justificativas.firstWhere(
         (justificativa) =>
             justificativa.id == faltaCorrespondente.justificativa_id,
         orElse: () => Justificativa(id: '0', descricao: ''),
       );
-
       return Matricula(
         matricula_id: matricula.matricula_id,
         turma_id: matricula.turma_id,
@@ -57,10 +52,8 @@ class FaltaController {
 
   Future<List<Matricula>> getFaltaPorAulaId({required String? aula_id}) async {
     if (aula_id == null || aula_id.isEmpty) return [];
-
     List<Matricula> matriculasComFaltas =
         await _getMatriculasComFaltas(aula_id: aula_id);
-
     for (var matricula in matriculasComFaltas) {
       if (matricula.justificativa_id != null &&
           matricula.justificativa_id! > 0) {
@@ -74,7 +67,6 @@ class FaltaController {
         debugPrint("justificativa_id: ${matricula.justificativa_id}");
       }
     }
-
     return matriculasComFaltas;
   }
 }

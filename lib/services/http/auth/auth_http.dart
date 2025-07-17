@@ -31,7 +31,6 @@ class AuthHttp {
         'device_name': 'mobile',
       },
     );
-
     return response;
   }
 

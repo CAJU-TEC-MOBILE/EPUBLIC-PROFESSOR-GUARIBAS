@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:professor_acesso_notifiq/componentes/graficos/doughnut_grafico_disciplinas_por_gestao_componente.dart';
-//import 'package:professor_acesso_notifiq/componentes/graficos/stacked_bar_grafico_disciplinas_por_gestao_componente.dart';
-import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import '../../models/chart_data_model.dart';
-
-import '../componentes/dialogs/custom_dialogs.dart';
-import '../componentes/graficos/stacked_bar_grafico_disciplinas_por_gestao_componente.dart';
-import '../functions/textos/extrair_apenas_texto_antes_dos_parenteses.dart';
 import '../models/gestao_ativa_model.dart';
 import '../models/gestao_disciplina_model.dart';
-import '../services/adapters/gestao_ativa_service_adapter.dart';
+import '../componentes/dialogs/custom_dialogs.dart';
+import 'package:professor_acesso_notifiq/constants/app_tema.dart';
+import '../componentes/graficos/stacked_bar_grafico_disciplinas_por_gestao_componente.dart';
+import 'package:professor_acesso_notifiq/componentes/graficos/doughnut_grafico_disciplinas_por_gestao_componente.dart';
 import '../services/controller/gestao_disciplina_controller.dart';
+import '../services/adapters/gestao_ativa_service_adapter.dart';
 import '../services/http/gestoes/gestoes_disciplinas_http.dart';
-import '../componentes/drawer/custom_drawer.dart';
 
 class GraficosPage extends StatefulWidget {
   const GraficosPage({super.key});

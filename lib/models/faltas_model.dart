@@ -37,7 +37,18 @@ class Falta {
 
   @override
   String toString() {
-    return 'Falta(aula_id: $aula_id, matricula_id: $matricula_id, justificativa_id: $justificativa_id, aluno_nome: $aluno_nome, observacao: $observacao, document: $document, status_falta: $status_falta, existe_anexo: $existe_anexo)';
+    return '''
+      ┌───────────────────────────────
+      │ Aula ID:        $aula_id
+      │ Matrícula ID:   $matricula_id
+      │ Justificativa ID: $justificativa_id
+      │ Aluno Nome:     $aluno_nome
+      │ Observação:     $observacao
+      │ Documento:      $document
+      │ Status da Falta: $status_falta
+      │ Existe Anexo:   $existe_anexo
+      └───────────────────────────────
+    ''';
   }
 }
 

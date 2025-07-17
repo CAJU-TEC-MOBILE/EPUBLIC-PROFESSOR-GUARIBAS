@@ -1,57 +1,51 @@
-import 'dart:convert';
-import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
-import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:professor_acesso_notifiq/componentes/autorizacoes/aviso_de_regra_autorizacoes_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/constants/autorizacoes/autorizacoes_status_const.dart';
 import 'package:professor_acesso_notifiq/constants/emojis.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/corrigir_data_completa_americana_para_ano_mes_dia_somente.dart';
-import 'package:professor_acesso_notifiq/functions/aplicativo/data/converter_data_americana_para_brasileira.dart';
-import 'package:professor_acesso_notifiq/functions/aplicativo/data/verificar_se_data_atual_e_maior.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/data/verificar_se_data_atual_esta_entre_duas_datas.dart';
-import 'package:professor_acesso_notifiq/functions/aplicativo/gerar_uuid_identificador.dart';
-import 'package:professor_acesso_notifiq/functions/boxs/gestoes/filtrar_etapas_por_gestao_ativa.dart';
 import 'package:professor_acesso_notifiq/functions/boxs/horarios/remover_horarios_repetidos.dart';
 import 'package:professor_acesso_notifiq/help/console_log.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/autorizacao_model.dart';
 import 'package:professor_acesso_notifiq/models/etapa_model.dart';
 import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
-import 'package:professor_acesso_notifiq/models/horario_model.dart';
 import 'package:professor_acesso_notifiq/models/relacao_dia_horario_model.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/adapters/autorizacoes_service.dart';
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
-import 'package:professor_acesso_notifiq/services/adapters/regras_logicas/autorizacoes/listar_unica_autorizacao_por_etapa_e_gestao_e_ultimoItem_regra_logica.dart';
-import 'package:professor_acesso_notifiq/services/http/autorizacoes/autorizacoes_listar_http.dart';
-
 import '../../componentes/button/custom_calendario_button.dart';
+import '../../componentes/dialogs/custom_disciplinas_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
-import '../../componentes/dialogs/custom_dialogs.dart';
-import '../../componentes/dropdown/custom_dropdown_experiencia.dart';
+import '../../componentes/global/preloader.dart';
 import '../../help/data_time.dart';
+import '../../models/aula_ativa_model.dart';
 import '../../models/auth_model.dart';
+import '../../models/avaliador_model.dart';
 import '../../models/disciplina_aula_model.dart';
 import '../../models/disciplina_model.dart';
-import '../../services/adapters/auth_service_adapter.dart';
+import '../../models/solicitacao_model.dart';
+import '../../repository/aula_repository.dart';
+import '../../repository/autorizacao_repository.dart';
 import '../../services/controller/aula_controller.dart';
+import '../../services/controller/auth_controller.dart';
+import '../../services/controller/avaliador_controller.dart';
 import '../../services/controller/disciplina_aula_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
+import '../../services/controller/etapa_controller.dart';
 import '../../services/controller/pedido_controller.dart';
-import 'listagem_aulas_page.dart';
+import '../../services/controller/solicitacao_controller.dart';
+import '../../utils/constants.dart';
+import '../../utils/datetime_utils.dart';
+import '../../wigets/cards/custom_solicitar_showbottomsheet.dart';
+import '../../wigets/custom_periodo_card.dart';
+import '../../wigets/polivalencia/custom_conteudo_polivalencia.dart';
 
 class AulaAtualizarPage extends StatefulWidget {
   final String? aulaLocalId;
   final String? instrutorDisciplinaTurmaId;
   const AulaAtualizarPage(
       {super.key, this.aulaLocalId, this.instrutorDisciplinaTurmaId});
-
   @override
   State<AulaAtualizarPage> createState() => _AulaAtualizarPageState();
 }
@@ -61,8 +55,25 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   final TextEditingController _metodologiaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pedidoController = PedidoController();
-  AuthModel authModel = AuthServiceAdapter().exibirAuth();
-
+  final authController = AuthController();
+  final avaliadorController = AvaliadorController();
+  final solicitacaoController = SolicitacaoController();
+  final autorizacaoRepository = AutorizacaoRepository();
+  final disciplinaAulaController = DisciplinaAulaController();
+  final aulasOfflineOnlineServiceAdapter = AulasOfflineOnlineServiceAdapter();
+  final aulaController = AulaController();
+  final _aulaRepository = AulaRepository();
+  final disciplinaController = DisciplinaController();
+  final _etapaController = EtapaController();
+  String circuitoId = '';
+  AulaAtivaModel aulaAtiva = AulaAtivaModel.vazio();
+  String aulaLocalId = '';
+  bool statusPeriudo = false;
+  bool statusPeriodo = false;
+  AuthModel authModel = AuthModel.vazio();
+  Etapa etapa = Etapa.vazio();
+  List<AvaliadorModel> avaliadores = [];
+  List<SolicitacaoModel> solicitacoes = [];
   bool isStatus = false;
   bool isLoading = true;
   bool isLoadigList = true;
@@ -71,10 +82,11 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   String? _errorText;
   String? _aula_selecionada;
   var _horario_selecionado;
-  var _etapa_selecionada;
+  Etapa? etapaSelecionada;
   Etapa? etapa_selecionada_objeto;
   bool data_etapa_valida = true;
   DateTime? _dataSelecionada;
+  List<Etapa> etapas = [];
   var texto1_etapa;
   var texto2_etapa;
   String cursoDescricao = '';
@@ -83,17 +95,15 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   List<dynamic>? listaFiltradaDeHorarios;
   List<RelacaoDiaHorario>? listaFiltradaDeHorariosPorHorariosDaColunaDaGestao;
   List<int> diasParaSeremExibidosNoCalendario = [];
-  List<Etapa>? listaDeEtapas;
+  List<Etapa> listaDeEtapas = [];
   GestaoAtiva? gestaoAtivaModel;
-  List<AutorizacaoModel> autorizacoesDoUsuario =
-      AutorizacoesServiceAdapter().listar();
+  List<AutorizacaoModel> autorizacoesDoUsuario = [];
   List<Disciplina> disciplinas = [];
   List<Disciplina> selectedDisciplinas = [];
   AutorizacaoModel? autorizacaoSelecionada;
   String inicioPeriodoEtapa = '';
   String fimPeriodoEtapa = '';
   List<String>? semanas;
-  bool statusPeriudo = false;
   String statusDaAutorizacao = 'INICIO';
   List<String> tipos = [
     "Aula Remota",
@@ -116,49 +126,52 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     "Traços, sons, cores e formas",
     "Espaço, tempo, quantidades, relações e transformações",
   ];
+
   String situacaoStatus = '';
-  String circuitoId = '';
+
   List<String> selectedExperiencias = [];
 
   Future<void> _situacao() async {
-    await pedidoController.init();
-    String status =
-        await pedidoController.getTipoStatusPeloInstrutorDisciplinaTurmaID(
-      instrutorDisciplinaTurmaID:
-          gestaoAtivaModel!.instrutorDisciplinaTurma_id.toString(),
-      etapaId: _etapa_selecionada.toString(),
-      userId: authModel.id,
-      circuitoId: circuitoId,
-    );
-    setState(() => situacaoStatus = status);
-  }
-
-  // Define the callback function
-  void _handleSelectionChanged(List<String> selecionadas) {
-    setState(() {
-      selectedExperiencias = selecionadas;
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Se o valor não foi passado diretamente no construtor, tenta obtê-lo dos argumentos da rota
-    final args = ModalRoute.of(context)?.settings.arguments as Map?;
-    if (args != null && widget.instrutorDisciplinaTurmaId == null) {
-      instrutorDisciplinaTurmaId =
-          args['instrutorDisciplinaTurmaId']!.toString();
-      print(instrutorDisciplinaTurmaId);
-    } else {
-      instrutorDisciplinaTurmaId = widget.instrutorDisciplinaTurmaId;
+    try {
+      await pedidoController.init();
+      String status =
+          await pedidoController.getTipoStatusPeloInstrutorDisciplinaTurmaID(
+        instrutorDisciplinaTurmaID:
+            gestaoAtivaModel!.instrutorDisciplinaTurma_id.toString(),
+        etapaId: etapaSelecionada!.id.toString(),
+        userId: authModel.id,
+        circuitoId: circuitoId,
+      );
+      setState(() => situacaoStatus = status);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'situacao',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
   }
 
   @override
   void initState() {
     super.initState();
+    gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
     iniciando();
+  }
+
+  Future<void> _etapas() async {
+    listaDeEtapas.clear();
+
+    await _etapaController.init();
+
+    circuitoId = (gestaoAtivaModel!.circuito_nota_id.toString());
+
+    listaDeEtapas =
+        await _etapaController.etapasPeloCircuitoId(circuitoId: circuitoId);
+    setState(() {
+      listaDeEtapas;
+      circuitoId;
+    });
   }
 
   Future<void> iniciando() async {
@@ -167,32 +180,27 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         isLoading = true;
       });
 
-      //await atualizarAutorizacoes();
-
       horarios_data = await _horariosBox.get('horarios');
-      gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-      gestaoAtivaModel?.circuito.etapas;
-      listaDeEtapas = filtrarEtapasPorGestaoAtiva();
-      // listaFiltradaDeHorarios = filtrarListaDeObjetoPorCondicaoUnica(
-      //     lista_de_objetos: horarios_data!, condicao: gestaoAtivaModel?.turno_id);
-      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao =
-          gestaoAtivaModel?.relacoesDiasHorarios;
-      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao
-          ?.sort((a, b) => a.horario.descricao.compareTo(b.horario.descricao));
-      await _mostrarCalendario(context);
-      _dataSelecionada =
-          _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
-              DateTime.now());
-      await carregarDados(criadaPeloCelularId: widget.aulaLocalId);
+
+      await _etapas();
+      await loadData();
       await getConfiguracaoDisciplinas();
       await getDisciplinasAula();
 
       await Future.delayed(const Duration(seconds: 3));
+
+      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao =
+          gestaoAtivaModel?.relacoesDiasHorarios;
+
+      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao
+          ?.sort((a, b) => a.horario.descricao.compareTo(b.horario.descricao));
+
       setState(() {
         isLoading = false;
       });
+
       await gerarTextEditingController();
-      _situacao();
+      await _situacao();
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -202,116 +210,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         mensagem: e.toString(),
         tipo: 'erro',
       );
-    }
-  }
-
-  Future<void> atualizarAutorizacoes() async {
-    AutorizacoesListarHttp apiService = AutorizacoesListarHttp();
-    http.Response response = await apiService.executar();
-    Map<dynamic, dynamic> responseDecode = await jsonDecode(response.body);
-    await AutorizacoesServiceAdapter()
-        .salvar(responseDecode['autorizacoes_atualizadas']);
-    setState(() {
-      //print('setState de autorizacoesDoUsuario');
-      autorizacoesDoUsuario = AutorizacoesServiceAdapter().listar();
-    });
-  }
-
-  verificarSeExistemAutorizacoesParaEssaEtapaEgestao() {
-    statusDaAutorizacao = 'INICIO';
-    autorizacaoSelecionada =
-        ListarUnicaAutorizacaoPorEtapaEGestaoEultimoItemRegraLogica().executar(
-            autorizacoes: autorizacoesDoUsuario,
-            etapaID: _etapa_selecionada.toString());
-    if (autorizacaoSelecionada!.id.toString() == '') {
-      statusDaAutorizacao = 'SEM RETORNO';
-      return;
-    }
-
-    if (autorizacaoSelecionada!.status.toString() ==
-        AutorizacoesStatusConst.pendente) {
-      statusDaAutorizacao = 'PENDENTE';
-      return;
-    }
-    if (autorizacaoSelecionada!.status.toString() ==
-            AutorizacoesStatusConst.aprovado &&
-        !verificarSeDataAtualEmaior(
-            data: autorizacaoSelecionada!.dataExpiracao.toString())) {
-      statusDaAutorizacao = 'APROVADO';
-      return;
-    }
-
-    if (autorizacaoSelecionada!.status.toString() ==
-        AutorizacoesStatusConst.cancelado) {
-      statusDaAutorizacao = 'CANCELADO';
-      return;
-    }
-  }
-
-  DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
-      DateTime data) {
-    if (diasParaSeremExibidosNoCalendario.isNotEmpty) {
-      while (data.weekday != diasParaSeremExibidosNoCalendario[0]) {
-        data = data.add(const Duration(days: 1));
-      }
-    }
-    return data;
-  }
-
-  Future<void> _mostrarCalendario(BuildContext context) async {
-    for (var element in listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!) {
-      if (int.parse(element.dia.id) == 0) {
-        // diasParaSeremExibidosNoCalendario?.add('monday');
-        diasParaSeremExibidosNoCalendario.add(1);
-      }
-      if (int.parse(element.dia.id) == 1) {
-        // diasParaSeremExibidosNoCalendario.add('tuesday');
-        diasParaSeremExibidosNoCalendario.add(2);
-      }
-      if (int.parse(element.dia.id) == 2) {
-        // diasParaSeremExibidosNoCalendario.add('wednesday');
-        diasParaSeremExibidosNoCalendario.add(3);
-      }
-      if (int.parse(element.dia.id) == 3) {
-        // diasParaSeremExibidosNoCalendario.add('thursday');
-        diasParaSeremExibidosNoCalendario.add(4);
-      }
-      if (int.parse(element.dia.id) == 4) {
-        // diasParaSeremExibidosNoCalendario.add('friday');
-        diasParaSeremExibidosNoCalendario.add(5);
-      }
-      if (int.parse(element.dia.id) == 5) {
-        // diasParaSeremExibidosNoCalendario.add('saturday');
-        diasParaSeremExibidosNoCalendario.add(6);
-      }
-      if (int.parse(element.dia.id) == 6) {
-        // diasParaSeremExibidosNoCalendario.add('sunday');
-        diasParaSeremExibidosNoCalendario.add(7);
-      }
-    }
-    if (_dataSelecionada != null) {
-      final DateTime? dataSelecionada = await showDatePicker(
-        context: context,
-        initialDate: _dataSelecionada!,
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100),
-        selectableDayPredicate: (DateTime day) {
-          bool diaDaSemanaParaSerExibido = false;
-          for (var numeroDoDIaDaSemanaComecandoPorUm
-              in diasParaSeremExibidosNoCalendario) {
-            if (numeroDoDIaDaSemanaComecandoPorUm == day.weekday) {
-              diaDaSemanaParaSerExibido = true;
-            }
-          }
-          return diaDaSemanaParaSerExibido;
-          // return day.weekday == DateTime.tuesday || day.weekday == DateTime.thursday;
-        },
-      );
-      if (dataSelecionada != null) {
-        setState(() {
-          _dataSelecionada = dataSelecionada;
-        });
-      }
     }
   }
 
@@ -327,83 +225,86 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     }
   }
 
-  Future<void> carregarDados({required String? criadaPeloCelularId}) async {
+  Future<void> loadData() async {
     try {
-      AulaController aulaController = AulaController();
+      aulaAtiva = await _aulaRepository.aulaAtiva();
 
-      await aulaController.init();
-
-      if (criadaPeloCelularId == null) {
-        print("ID criadaPeloCelularId é nulo.");
+      if (aulaAtiva.criadaPeloCelular == null ||
+          aulaAtiva.criadaPeloCelular!.isEmpty) {
+        ConsoleLog.mensagem(
+          titulo: 'load-data',
+          mensagem: 'Aula não encontrada',
+          tipo: 'erro',
+        );
         return;
       }
 
-      List<Aula> aulas = await aulaController.getAulaCriadaPeloCelular(
-          criadaPeloCelular: criadaPeloCelularId);
-
-      if (aulas.isNotEmpty) {
-        for (var aula in aulas) {
-          int? etapaId = int.tryParse(aula.etapa_id);
-          if (etapaId != null) {
-            carregarEtapaSelecionada(etapaId);
-          } else {
-            print("Etapa ID não é um número válido para a aula: $aula");
-          }
-          setState(() => _diaDaSemana = aula.dia_da_semana.toString());
-          carregarTipoSelecionada(aula.tipoDeAula);
-          carregarDataSelecionada(aula.dataDaAula);
-          carregarHorarioSelecionada(aula.horarioID);
-          carregarConteudoSelecionada(aula.conteudo);
-          carregarMetodologiaSelecionada(aula.metodologia);
-          carregarExperienciaSelecionada(aula.experiencias);
-        }
-      } else {
-        print(
-            "Nenhuma aula encontrada com o ID fornecido: $criadaPeloCelularId");
+      if (aulaAtiva.etapa_id != null) {
+        await carregarEtapa(
+          etapaId: aulaAtiva.etapa_id.toString(),
+        );
       }
-    } catch (e) {
-      print("Erro ao carregar os dados: $e");
+      aulaLocalId = aulaAtiva.criadaPeloCelular;
+      carregarTipoSelecionada(aulaAtiva.tipoDeAula ?? '');
+      carregarDataSelecionada(aulaAtiva.dataDaAula ?? '');
+      carregarHorarioSelecionada(aulaAtiva.horarioID ?? '');
+      carregarConteudoSelecionada(aulaAtiva.conteudo ?? '');
+      carregarMetodologiaSelecionada(aulaAtiva.metodologia ?? '');
+      carregarExperienciaSelecionada(aulaAtiva.experiencias ?? []);
+
+      _diaDaSemana = aulaAtiva.dia_da_semana ?? '';
+
+      setState(() {
+        _diaDaSemana;
+        aulaAtiva;
+        aulaLocalId;
+      });
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'load-data',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
   }
 
-  void carregarEtapaSelecionada(int novaSelecao) {
-    var etapaSelecionada = listaDeEtapas!.firstWhere(
-      (item) => item.id == novaSelecao.toString(),
-      orElse: () => Etapa(
-        id: '-1', // ID
-        circuito_nota_id: '',
-        curso_descricao: '',
-        descricao: '',
-        periodo_inicial: '',
-        periodo_final: '',
-        situacao_faltas: '',
-        etapa_global: '',
-      ),
-    );
+  Future<void> carregarEtapa({required String etapaId}) async {
+    try {
+      listaDeEtapas.where((item) => item.id == etapaId).toList();
 
-    if (etapaSelecionada.id != '-1') {
-      _etapa_selecionada = int.parse(etapaSelecionada.id);
-      selecaoEtapa(novaSelecao: _etapa_selecionada);
-      texto1_etapa =
-          'Início da etapa: ${converterDataAmericaParaBrasil(dataString: etapaSelecionada.periodo_inicial.toString())}';
-      texto2_etapa =
-          'Final da etapa: ${converterDataAmericaParaBrasil(dataString: etapaSelecionada.periodo_final.toString())}';
-      etapa_selecionada_objeto = etapaSelecionada;
-      verificarSeExistemAutorizacoesParaEssaEtapaEgestao();
+      if (listaDeEtapas.isEmpty) {
+        return;
+      }
+
+      etapaSelecionada =
+          listaDeEtapas.where((item) => item.id == etapaId).toList().first;
+
+      if (etapaSelecionada == null) {
+        return;
+      }
+
+      etapa = etapaSelecionada!;
+
+      circuitoId = etapa.circuito_nota_id.toString();
+
       data_etapa_valida = verificarSeDataAtualEstaEntreDuasDatas(
-        dataInicial: etapaSelecionada.periodo_inicial.toString(),
-        dataFinal: etapaSelecionada.periodo_final.toString(),
+        dataInicial: etapa.periodo_inicial.toString(),
+        dataFinal: etapa.periodo_final.toString(),
       );
+
       setState(() {
-        _etapa_selecionada;
-        circuitoId = etapaSelecionada.circuito_nota_id.toString();
-        texto1_etapa;
-        texto2_etapa;
+        etapa;
+        circuitoId;
+        etapaSelecionada;
         data_etapa_valida;
-        etapa_selecionada_objeto;
       });
-    } else {
-      print('Etapa não encontrada para o ID: $novaSelecao');
+      selecaoEtapa(model: etapaSelecionada);
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'carregar-etapa',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
   }
 
@@ -412,15 +313,11 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       print('Tipo não selecionado.');
       return;
     }
-
     String tipoSelecionado =
         tipos.firstWhere((item) => item == tipo, orElse: () => '');
-
     setState(() {
       _aula_selecionada = tipoSelecionado != '' ? tipoSelecionado : '';
     });
-
-    print('Tipo selecionado: $tipoSelecionado');
   }
 
   void carregarDataSelecionada(String? data) {
@@ -428,8 +325,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       print('Data não selecionada.');
       return;
     }
-
-    // Converte a string em DateTime
     DateTime? dataSelecionada;
     try {
       dataSelecionada = DateTime.parse(data);
@@ -437,11 +332,9 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       print('Erro ao converter a data: $e');
       return;
     }
-
     setState(() {
       _dataSelecionada = dataSelecionada;
     });
-
     print('Data selecionada: $dataSelecionada');
   }
 
@@ -471,8 +364,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     setState(() {
       _conteudoController.text = conteudo;
     });
-
-    print('Conteúdo selecionada: $conteudo');
   }
 
   void carregarMetodologiaSelecionada(String? metodologia) {
@@ -483,8 +374,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     setState(() {
       _metodologiaController.text = metodologia;
     });
-
-    print('Metodologia selecionada: $metodologia');
   }
 
   void carregarExperienciaSelecionada(List<String> experienciaSelecionada) {
@@ -495,28 +384,17 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     setState(() {
       selectedExperiencias = experienciaSelecionada;
     });
-
-    print('Experiências selecionadas: $experienciaSelecionada');
   }
 
   Future<bool> atualizarAula() async {
     try {
+      showLoading(context);
       const durationDelay = Duration(seconds: 3);
-
-      CustomDialogs.showLoadingDialog(context,
-          show: true, message: 'Aguardando...');
       setState(() => isStatus = true);
-
-      //print(widget.aulaLocalId.toString());
-
-      DisciplinaAulaController disciplinaAulaController =
-          DisciplinaAulaController();
-      AulasOfflineOnlineServiceAdapter aulasOfflineOnlineServiceAdapter =
-          AulasOfflineOnlineServiceAdapter();
-
       await disciplinaAulaController.init();
       await disciplinaAulaController.removerAulasPeloCriadaPeloCelular(
-          criadaPeloCelular: widget.aulaLocalId);
+        criadaPeloCelular: widget.aulaLocalId,
+      );
       if (selectedDisciplinas.isEmpty &&
           gestaoAtivaModel!.is_polivalencia == 1) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -534,8 +412,15 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
             ),
           ),
         );
-        CustomDialogs.showLoadingDialog(context, show: false);
+        hideLoading(context);
         setState(() => isStatus = false);
+        return false;
+      }
+      if (_diaDaSemana == null) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Por favor, selecione uma data',
+        );
         return false;
       }
       Aula aulaAtualizada = Aula(
@@ -556,7 +441,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         dia_da_semana: _diaDaSemana.toString(),
         situacao: 'Aguardando confirmação',
         criadaPeloCelular: widget.aulaLocalId.toString(),
-        etapa_id: _etapa_selecionada.toString(),
+        etapa_id: etapaSelecionada!.id.toString(),
         instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
         campos_de_experiencias: selectedExperiencias.toString(),
         experiencias:
@@ -569,36 +454,32 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         atividade_classe: '',
         observacoes: '',
       );
-
       bool sucesso = await aulasOfflineOnlineServiceAdapter.atualizar(
         aula: aulaAtualizada,
         isPolivalencia: gestaoAtivaModel!.is_polivalencia,
         disciplina: selectedDisciplinas,
       );
-
       await Future.delayed(durationDelay);
-
-      CustomDialogs.showLoadingDialog(context, show: false);
+      hideLoading(context);
       setState(() => isStatus = false);
-
       if (!sucesso) {
         CustomSnackBar.showErrorSnackBar(
-            context, 'Aula não atualizada com sucesso.');
+          context,
+          'Aula não atualizada com sucesso.',
+        );
         return false;
       }
-
       CustomSnackBar.showSuccessSnackBar(
         context,
         'Aula atualizada com sucesso',
       );
       Navigator.pushNamed(context, '/index-fundamental');
-
       return true;
-    } catch (e) {
-      ConsoleLog.mensagem(
-        titulo: 'error-atualizar-aula',
-        mensagem: e.toString(),
-        tipo: 'erro',
+    } catch (error) {
+      hideLoading(context);
+      CustomSnackBar.showErrorSnackBar(
+        context,
+        error.toString(),
       );
       return false;
     }
@@ -607,17 +488,13 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
   Future<void> getConfiguracaoDisciplinas() async {
     try {
       disciplinas.clear();
-
-      DisciplinaController disciplinaController = DisciplinaController();
       await disciplinaController.init();
-
       if (gestaoAtivaModel == null) {
         setState(() {
           disciplinas = [];
         });
         return;
       }
-
       final model = gestaoAtivaModel!;
 
       final List<Disciplina> disciplinasCarregadas =
@@ -628,9 +505,12 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       setState(() {
         disciplinas = disciplinasCarregadas;
       });
-    } catch (e, stacktrace) {
-      debugPrint('Error ao carregar as disciplinas: $e');
-      debugPrint('Stacktrace: $stacktrace');
+    } catch (error) {
+      ConsoleLog.mensagem(
+        titulo: 'carregar-etapa',
+        mensagem: error.toString(),
+        tipo: 'erro',
+      );
     }
   }
 
@@ -638,8 +518,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     try {
       selectedDisciplinas.clear();
 
-      DisciplinaAulaController disciplinaAulaController =
-          DisciplinaAulaController();
       await disciplinaAulaController.init();
 
       if (gestaoAtivaModel == null) {
@@ -649,57 +527,36 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         return;
       }
 
-      final List<DisciplinaAula> aulasCarregadas =
+      List<DisciplinaAula> aulasCarregadas =
           await disciplinaAulaController.getDisciplinaAulaCriadaPeloCelular(
-        criadaPeloCelular: widget.aulaLocalId,
+        criadaPeloCelular: aulaLocalId,
       );
 
       if (aulasCarregadas.isEmpty) {
         return;
       }
 
-      List<dynamic> items;
-      controllers.clear();
       for (final disciplina in disciplinas) {
         for (final aula in aulasCarregadas) {
           if (aula.id == disciplina.id) {
-            List<dynamic> items = [];
-
-            disciplina.data ??= [];
-
+            disciplina.checkbox = true;
             for (var item in aula.data) {
-              if (item['horarios'] != null) {
-                items.addAll(item['horarios']);
+              if (disciplina.data.isEmpty) {
+                disciplina.data.add({
+                  'conteudo': item['conteudo'],
+                  'metodologia': '',
+                  'horarios': item['horarios'],
+                });
+              }
+              if (disciplina.data.isNotEmpty) {
+                disciplina.data.first['conteudo'] = item['conteudo'];
+                disciplina.data.first['horarios'] = item['horarios'];
               }
             }
-
-            setState(() {
-              disciplina.data = items;
-            });
-
-            final disc = Disciplina(
-              id: disciplina.id,
-              codigo: disciplina.codigo,
-              descricao: disciplina.descricao,
-              idtTurmaId: disciplina.idtTurmaId,
-              idt_id: disciplina.idt_id,
-              checkbox: true,
-              data: disciplina.data,
-            );
-            setState(() {
-              disciplina.checkbox = true;
-            });
-            // Verificação se 'conteudo' existe antes de criar o controlador
-            String? conteudo =
-                aula.data.isNotEmpty && aula.data[0].containsKey('conteudo')
-                    ? aula.data[0]['conteudo']
-                    : '';
-            await addDisciplinaVisualizacao(
-                disc, conteudo, '2', disciplina.data);
+            selectedDisciplinas.add(disciplina);
           }
         }
       }
-
       setState(() {
         selectedDisciplinas;
       });
@@ -707,96 +564,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       debugPrint('Error ao carregar disciplinas selecionadas: $e');
       debugPrint('Stacktrace: $stacktrace');
     }
-  }
-
-  void _showMultiSelectDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            backgroundColor: AppTema.backgroundColorApp,
-            title: const Text('Selecione as disciplinas'),
-            content: SizedBox(
-              height: 300,
-              child: Scrollbar(
-                thumbVisibility: true,
-                trackVisibility: true,
-                thickness: 8,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: disciplinas.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-
-                      return CheckboxListTile(
-                        activeColor: AppTema.primaryAmarelo,
-                        title: Text(item.descricao.toString()),
-                        value: item.checkbox,
-                        onChanged: (bool? selected) {
-                          setState(() {
-                            isLoadigList = false;
-                            var newController = TextEditingController();
-                            if (selected == true) {
-                              item.checkbox = true;
-                              item.data ??= [];
-                              item.data!.add({
-                                'conteudo': '',
-                                'metodologia': '',
-                                'horarios': []
-                              });
-                              controllers.insert(index, newController);
-                              _addDisciplina(item);
-                              return;
-                            }
-                            item.checkbox = false;
-                            item.data ??= [];
-                            // selectedDisciplinas
-                            //     .removeWhere((disc) => disc.id == item.id);
-                            // controllers.removeAt(index);
-                            _removeDisciplina(item);
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    selectedDisciplinas.clear();
-                    // print(selectedDisciplinas);
-                    for (var item in disciplinas) {
-                      item.checkbox = false;
-                      item.data = [];
-                    }
-                  });
-                  Navigator.of(context).pop(false);
-                },
-                child: const Text(
-                  'Limpar Seleções',
-                  style: TextStyle(color: AppTema.primaryDarkBlue),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text(
-                  'Confirmar',
-                  style: TextStyle(
-                    color: AppTema.primaryDarkBlue,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
   }
 
   Future<void> addDisciplinaVisualizacao(Disciplina disciplinaDetails,
@@ -809,9 +576,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         {'conteudo': conteudo, 'metodologia': '', 'horarios': horarios}
       ];
     }
-
     selectedDisciplinas.add(disciplinaDetails);
-
     setState(() {});
   }
 
@@ -824,9 +589,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       if (selectedDisciplinas.isEmpty) {
         return;
       }
-
       controllers.clear();
-
       for (final disc in selectedDisciplinas) {
         if (disc.data != null) {
           for (final item in disc.data!) {
@@ -837,32 +600,15 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
           }
         }
       }
-
       setState(() {
-        //print(controllers);
         controllers;
       });
-
       setState(() {
         isLoadigList = false;
       });
     } catch (e) {
       ConsoleLog.mensagem(
         titulo: 'gerarTextEditingController',
-        mensagem: e.toString(),
-        tipo: 'erro',
-      );
-    }
-  }
-
-  void _addDisciplina(Disciplina disciplinaDetails) {
-    try {
-      selectedDisciplinas.add(disciplinaDetails);
-
-      setState(() => selectedDisciplinas);
-    } catch (e) {
-      ConsoleLog.mensagem(
-        titulo: 'add-disciplina',
         mensagem: e.toString(),
         tipo: 'erro',
       );
@@ -878,25 +624,8 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         {'conteudo': '', 'metodologia': '', 'horarios': []}
       ];
     }
-
     selectedDisciplinas.add(disciplinaDetails);
-
     setState(() {});
-  }
-
-  void _removeDisciplina(Disciplina disciplinaDetails) {
-    try {
-      disciplinaDetails.data = [];
-      selectedDisciplinas
-          .removeWhere((disciplina) => disciplina.id == disciplinaDetails.id);
-      setState(() => selectedDisciplinas);
-    } catch (e) {
-      ConsoleLog.mensagem(
-        titulo: 'add-disciplina',
-        mensagem: e.toString(),
-        tipo: 'erro',
-      );
-    }
   }
 
   void removeDisciplina(Disciplina disciplinaDetails) {
@@ -921,40 +650,32 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     setState(() => semanas);
   }
 
-  Future<void> selecaoEtapa({required int? novaSelecao}) async {
+  Future<void> selecaoEtapa({required Etapa? model}) async {
     try {
-      _etapa_selecionada = novaSelecao;
-
-      final etapaSelecionada = listaDeEtapas?.firstWhere(
-        (e) => e.id.toString() == novaSelecao.toString(),
-      );
-
-      if (etapaSelecionada == null) {
-        throw Exception('Etapa selecionada não encontrada na lista de etapas.');
+      if (model == null) {
+        return;
       }
 
+      etapaSelecionada = model;
+      etapa = model;
+      await selecaoDeEtapa(etapaId: etapa.id);
       setState(() {
-        etapa_selecionada_objeto = etapaSelecionada;
-
-        texto1_etapa =
-            'Início da etapa: ${converterDataAmericaParaBrasil(dataString: etapaSelecionada.periodo_inicial.toString())}';
-        texto2_etapa =
-            'Final da etapa: ${converterDataAmericaParaBrasil(dataString: etapaSelecionada.periodo_final.toString())}';
-
-        inicioPeriodoEtapa = etapaSelecionada.periodo_inicial.toString();
-        fimPeriodoEtapa = etapaSelecionada.periodo_final.toString();
-
+        etapa;
+        etapaSelecionada;
+        circuitoId = etapa.circuito_nota_id.toString();
+        inicioPeriodoEtapa = etapa.periodo_inicial.toString();
+        fimPeriodoEtapa = etapa.periodo_final.toString();
         data_etapa_valida = verificarSeDataAtualEstaEntreDuasDatas(
           dataInicial: inicioPeriodoEtapa,
           dataFinal: fimPeriodoEtapa,
         );
       });
-
-      verificarSeExistemAutorizacoesParaEssaEtapaEgestao();
       await gestaoAtivaDias();
     } catch (e) {
-      debugPrint(
-        'Erro ao processar a seleção da etapa ($novaSelecao): $e',
+      ConsoleLog.mensagem(
+        titulo: 'selecao-etapa',
+        mensagem: e.toString(),
+        tipo: 'erro',
       );
     }
   }
@@ -967,11 +688,9 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
       String dataAtualStr = DataTime.getDataAtualFormatoISO();
       String dataInicialStr = etapa_selecionada_objeto!.periodo_inicial;
       String dataFinalStr = etapa_selecionada_objeto!.periodo_final;
-
       DateTime dataAtual = DateTime.parse(dataAtualStr);
       DateTime dataInicial = DateTime.parse(dataInicialStr);
       DateTime dataFinal = DateTime.parse(dataFinalStr);
-
       if (dataAtual.isAfter(dataInicial.subtract(const Duration(days: 1))) &&
           dataAtual.isBefore(dataFinal.add(const Duration(days: 1)))) {
         setState(() => statusPeriudo = true);
@@ -1003,11 +722,56 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
     return true;
   }
 
+  Future<void> selecaoDeEtapa({required etapaId}) async {
+    etapa = listaDeEtapas
+        .where((item) => item.id.toString() == etapaId.toString())
+        .first;
+    if (etapa.id == '') {
+      return;
+    }
+    DateTime fim = DateTime.parse(etapa.periodo_final);
+    DateTime dataAtual = DateTime.now();
+    bool status = await autorizacaoRepository.existeStatusEtapaId(
+      status: 'APROVADO',
+      etapaId: etapaId,
+    );
+    if (status) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+    if (dataAtual.isBefore(fim)) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+    statusPeriodo = DateTimeUtils.isDataAtualNoPeriodo(
+      dataInicial: etapa.periodo_inicial,
+      dataFinal: etapa.periodo_final,
+    );
+    if (statusPeriodo) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+    setState(() => statusPeriodo = true);
+  }
+
+  Future<void> _avaliadores() async {
+    await avaliadorController.init();
+    avaliadores = await avaliadorController.avaliadorPorConfiguracao(
+      configuracaoId: gestaoAtivaModel!.configuracao_id.toString(),
+    );
+    setState(() => avaliadores);
+  }
+
+  Future<void> _solicitacoes() async {
+    await solicitacaoController.init();
+    solicitacoes = await solicitacaoController.all();
+    setState(() => avaliadores);
+  }
+
   @override
   Widget build(BuildContext context) {
     _situacao();
     _validadePeriodoEtapa();
-
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
       appBar: AppBar(
@@ -1039,27 +803,20 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        // !! SELECIONAR A ETAPA !!
-                                        Container(
-                                          margin:
-                                              const EdgeInsets.only(bottom: 10),
-                                          child: const Text(
-                                            'Selecione a etapa',
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black),
+                                        const Text(
+                                          'Etapas',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black,
                                           ),
                                         ),
-                                        // Text(
-                                        //     '_etapa_selecionada: $_etapa_selecionada'),
-                                        Container(
-                                            child: DropdownButtonFormField<int>(
-                                          value: _etapa_selecionada,
-                                          onChanged: (int? novaSelecao) async =>
-                                              await selecaoEtapa(
-                                            novaSelecao: novaSelecao,
-                                          ),
-                                          focusColor: AppTema.primaryDarkBlue,
+                                        const SizedBox(
+                                          height: 8.0,
+                                        ),
+                                        DropdownButtonFormField<Etapa>(
+                                          value: etapaSelecionada,
+                                          onChanged: (Etapa? model) async =>
+                                              await selecaoEtapa(model: model),
                                           dropdownColor: AppTema.primaryWhite,
                                           decoration: InputDecoration(
                                             filled: true,
@@ -1094,28 +851,28 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                             ),
                                             contentPadding:
                                                 const EdgeInsets.symmetric(
-                                                    horizontal: 16.0),
+                                              horizontal: 16.0,
+                                            ),
                                           ),
                                           icon: const Icon(
-                                            Icons
-                                                .arrow_drop_down, // Ícone da seta
-                                            color: Colors
-                                                .black, // Cor do ícone da seta
+                                            Icons.arrow_drop_down,
+                                            color: Colors.black,
                                           ),
-                                          items: listaDeEtapas!
-                                              .map<DropdownMenuItem<int>>(
-                                                  (objeto) {
-                                            return DropdownMenuItem<int>(
-                                                value: int.parse(objeto.id),
-                                                child: SingleChildScrollView(
-                                                  scrollDirection:
-                                                      Axis.horizontal,
-                                                  child: Text(
-                                                    objeto.descricao,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ));
+                                          items: listaDeEtapas
+                                              .map<DropdownMenuItem<Etapa>>(
+                                                  (item) {
+                                            return DropdownMenuItem<Etapa>(
+                                              value: item,
+                                              child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Text(
+                                                  item.descricao,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            );
                                           }).toList(),
                                           validator: (value) {
                                             if (value == null) {
@@ -1123,978 +880,618 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                                             }
                                             return null;
                                           },
-                                        )),
-                                        _etapa_selecionada != null &&
-                                                situacaoStatus != 'PENDENTE'
-                                            ? Container(
-                                                margin: const EdgeInsets.only(
-                                                    // left: 15,
-                                                    top: 10,
-                                                    bottom: 10),
-                                                child: Card(
-                                                  elevation: 0.0,
-                                                  color: AppTema.primaryAmarelo,
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            15.0),
-                                                    child: Column(
-                                                      children: [
-                                                        const Align(
-                                                          alignment: Alignment
-                                                              .centerLeft,
-                                                          child: Text(
-                                                            'Informações sobre esta etapa ',
-                                                            style: TextStyle(
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: AppTema
-                                                                    .primaryDarkBlue),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 5,
-                                                        ),
-                                                        Align(
-                                                          alignment: Alignment
-                                                              .centerLeft,
-                                                          child: Text(
-                                                              texto1_etapa
-                                                                  .toString()),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 3,
-                                                        ),
-                                                        Align(
-                                                          alignment: Alignment
-                                                              .centerLeft,
-                                                          child: Text(
-                                                            texto2_etapa
-                                                                .toString(),
-                                                            style: const TextStyle(
-                                                                color: AppTema
-                                                                    .primaryDarkBlue),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
+                                        ),
+                                        etapa.id != '' &&
+                                                gestaoAtivaModel != null
+                                            ? Column(
+                                                children: [
+                                                  const SizedBox(height: 8.0),
+                                                  CustomPeriodoCard(
+                                                    etapa: etapa,
+                                                    isBloqueada: statusPeriodo,
+                                                    onPressed: () async {
+                                                      showLoading(context);
+                                                      await _avaliadores();
+                                                      await _solicitacoes();
+                                                      await Future.delayed(
+                                                          Duration(
+                                                        seconds: 1,
+                                                      ));
+                                                      hideLoading(context);
+                                                      CustomSolicitarShowBottomSheet
+                                                          .show(
+                                                        gestaoAtiva:
+                                                            gestaoAtivaModel!,
+                                                        context,
+                                                        etapa: etapa,
+                                                        avaliadores:
+                                                            avaliadores,
+                                                        solicitacoes:
+                                                            solicitacoes,
+                                                      );
+                                                    },
                                                   ),
-                                                ),
+                                                ],
                                               )
                                             : const SizedBox(),
-                                        etapa_selecionada_objeto != null &&
-                                                situacaoStatus != 'APROVADO' &&
-                                                statusPeriudo != true
-                                            ? AvisoDeRegraAutorizacoesComponente(
-                                                etapa_selecionada_objeto:
-                                                    etapa_selecionada_objeto,
-                                                autorizacaoSelecionada:
-                                                    autorizacaoSelecionada,
-                                                statusDaAutorizacao:
-                                                    statusDaAutorizacao,
-                                                dataLogicaExpiracao:
-                                                    verificarSeDataAtualEmaior(
-                                                  data: autorizacaoSelecionada!
-                                                      .dataExpiracao
-                                                      .toString(),
-                                                ),
-                                                dataEtapaValida:
-                                                    data_etapa_valida,
-                                                etapaId:
-                                                    etapa_selecionada_objeto !=
-                                                            null
-                                                        ? etapa_selecionada_objeto!
-                                                            .id
-                                                        : '',
-                                                instrutorDisciplinaTurmaID:
-                                                    gestaoAtivaModel!.idt_id
-                                                        .toString(),
-                                                statusPeriudo: statusPeriudo,
-                                              )
-                                            : const SizedBox(),
-
-                                        // !! CONTAINER GERAL DOS FORMULÁRIO !!
-                                        ((data_etapa_valida && // !! LÓGICA PARA MOSTRAR CAMPO DE CRIAR AULA OU NÃO !!
-                                                    etapa_selecionada_objeto !=
-                                                        null) ||
-                                                (etapa_selecionada_objeto !=
-                                                        null &&
-                                                    situacaoStatus ==
-                                                        'APROVADO' &&
-                                                    !verificarSeDataAtualEmaior(
-                                                        data:
-                                                            autorizacaoSelecionada!
-                                                                .dataExpiracao
-                                                                .toString())))
+                                        etapaSelecionada != null &&
+                                                statusPeriodo != true
                                             ? Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                    Container(
-                                                      margin:
-                                                          const EdgeInsets.only(
-                                                              bottom: 10),
-                                                      child: const Text(
-                                                        'Tipo de Aula',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            color:
-                                                                Colors.black),
+                                                  const SizedBox(),
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            bottom: 10),
+                                                    child: const Text(
+                                                      'Tipo de Aula',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.black,
                                                       ),
                                                     ),
-                                                    InputDecorator(
-                                                      decoration:
-                                                          InputDecoration(
-                                                        fillColor: AppTema
-                                                            .backgroundColorApp,
-                                                        filled: true,
-                                                        border:
-                                                            OutlineInputBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      8.0),
-                                                          borderSide:
-                                                              const BorderSide(
-                                                            color: Colors.grey,
-                                                            width: 1.0,
-                                                          ),
-                                                        ),
-                                                        contentPadding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal:
-                                                                    16.0),
-                                                      ),
-                                                      child:
-                                                          DropdownButtonHideUnderline(
-                                                        child: DropdownButton<
-                                                            String>(
-                                                          dropdownColor: AppTema
-                                                              .primaryWhite,
-                                                          value:
-                                                              _aula_selecionada,
-                                                          onChanged: (String?
-                                                              novaSelecao) {
-                                                            setState(() {
-                                                              _aula_selecionada =
-                                                                  novaSelecao;
-                                                            });
-                                                          },
-                                                          style:
-                                                              const TextStyle(
-                                                            color:
-                                                                Color.fromARGB(
-                                                                    255,
-                                                                    8,
-                                                                    8,
-                                                                    8),
-                                                          ),
-                                                          icon: const Icon(
-                                                            Icons
-                                                                .arrow_drop_down, // Ícone da seta
-                                                            color: Colors
-                                                                .black, // Cor do ícone da seta
-                                                          ),
-                                                          items: tipos.map<
-                                                              DropdownMenuItem<
-                                                                  String>>(
-                                                            (String opcao) {
-                                                              return DropdownMenuItem<
-                                                                  String>(
-                                                                value: opcao,
-                                                                child:
-                                                                    Text(opcao),
-                                                              );
-                                                            },
-                                                          ).toList(),
+                                                  ),
+                                                  InputDecorator(
+                                                    decoration: InputDecoration(
+                                                      fillColor: AppTema
+                                                          .backgroundColorApp,
+                                                      filled: true,
+                                                      border:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8.0),
+                                                        borderSide:
+                                                            const BorderSide(
+                                                          color: Colors.grey,
+                                                          width: 1.0,
                                                         ),
                                                       ),
+                                                      contentPadding:
+                                                          const EdgeInsets
+                                                              .symmetric(
+                                                              horizontal: 16.0),
                                                     ),
-                                                    Container(
-                                                      margin:
-                                                          const EdgeInsets.only(
-                                                              top: 5, left: 15),
-                                                      child: Text(
-                                                        _errorText ?? '',
+                                                    child:
+                                                        DropdownButtonHideUnderline(
+                                                      child: DropdownButton<
+                                                          String>(
+                                                        dropdownColor: AppTema
+                                                            .primaryWhite,
+                                                        value:
+                                                            _aula_selecionada,
+                                                        onChanged: (String?
+                                                            novaSelecao) {
+                                                          setState(() {
+                                                            _aula_selecionada =
+                                                                novaSelecao;
+                                                          });
+                                                        },
                                                         style: const TextStyle(
-                                                            color: Colors.red,
-                                                            fontSize: 12),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(
-                                                      height: 5,
-                                                    ),
-
-                                                    // !! SELECIONAR A DATA !!
-                                                    Container(
-                                                      margin:
-                                                          const EdgeInsets.only(
-                                                              bottom: 10),
-                                                      child: const Text(
-                                                        'Data da Aula',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            color:
-                                                                Colors.black),
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                        child: Column(
-                                                      children: [
-                                                        CustomCalendarioButton(
-                                                          firstDate:
-                                                              DateTime(2000),
-                                                          lastDate:
-                                                              DateTime(2100),
-                                                          semanas: semanas!,
-                                                          onDataSelected:
-                                                              _dataSelecionada,
-                                                          onDateSelected:
-                                                              (selectedDate) {
-                                                            _diaDaSemana = DataTime
-                                                                .diaDaSemana(
-                                                                    selectedDate
-                                                                        .toString());
-                                                            setState(() {
-                                                              _dataSelecionada =
-                                                                  selectedDate
-                                                                      .toLocal();
-                                                              _diaDaSemana;
-                                                            });
-                                                          },
+                                                          color: Color.fromARGB(
+                                                              255, 8, 8, 8),
                                                         ),
-                                                        _diaDaSemana != null
-                                                            ? Column(
-                                                                children: [
-                                                                  const SizedBox(
-                                                                    height:
-                                                                        16.0,
-                                                                  ),
-                                                                  // // !! DIA DA SEMANA !!
-                                                                  Align(
-                                                                    alignment:
-                                                                        Alignment
-                                                                            .centerLeft,
+                                                        icon: const Icon(
+                                                          Icons.arrow_drop_down,
+                                                          color: Colors.black,
+                                                        ),
+                                                        items: Constants
+                                                            .tiposDeAulas
+                                                            .map<
+                                                                DropdownMenuItem<
+                                                                    String>>(
+                                                          (String opcao) {
+                                                            return DropdownMenuItem<
+                                                                String>(
+                                                              value: opcao,
+                                                              child:
+                                                                  Text(opcao),
+                                                            );
+                                                          },
+                                                        ).toList(),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            top: 5, left: 15),
+                                                    child: Text(
+                                                      _errorText ?? '',
+                                                      style: const TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 12),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 5,
+                                                  ),
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            bottom: 10),
+                                                    child: const Text(
+                                                      'Selecione uma data',
+                                                      style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: Colors.black),
+                                                    ),
+                                                  ),
+                                                  Column(
+                                                    children: [
+                                                      CustomCalendarioButton(
+                                                        firstDate:
+                                                            DateTime(2000),
+                                                        lastDate:
+                                                            DateTime(2100),
+                                                        semanas: semanas!,
+                                                        onDataSelected:
+                                                            _dataSelecionada,
+                                                        onDateSelected:
+                                                            (selectedDate) {
+                                                          _diaDaSemana = DataTime
+                                                              .diaDaSemana(
+                                                                  selectedDate
+                                                                      .toString());
+                                                          setState(() {
+                                                            _dataSelecionada =
+                                                                selectedDate
+                                                                    .toLocal();
+                                                            _diaDaSemana;
+                                                          });
+                                                        },
+                                                      ),
+                                                      _diaDaSemana != null
+                                                          ? Column(
+                                                              children: [
+                                                                const SizedBox(
+                                                                  height: 16.0,
+                                                                ),
+                                                                Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerLeft,
+                                                                  child:
+                                                                      Container(
+                                                                    margin: const EdgeInsets
+                                                                        .only(
+                                                                        bottom:
+                                                                            10),
                                                                     child:
-                                                                        Container(
-                                                                      margin: const EdgeInsets
-                                                                          .only(
-                                                                          bottom:
-                                                                              10),
-                                                                      child:
-                                                                          const Text(
-                                                                        'Dia da Semana',
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                            color:
-                                                                                Colors.black),
-                                                                      ),
+                                                                        const Text(
+                                                                      'Dia da Semana',
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                          color:
+                                                                              Colors.black),
                                                                     ),
                                                                   ),
-                                                                  Align(
-                                                                    alignment:
-                                                                        Alignment
-                                                                            .centerLeft,
-                                                                    child: Card(
-                                                                      color: AppTema
-                                                                          .backgroundColorApp,
+                                                                ),
+                                                                Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerLeft,
+                                                                  child: Card(
+                                                                    color: AppTema
+                                                                        .backgroundColorApp,
+                                                                    child:
+                                                                        Padding(
+                                                                      padding: const EdgeInsets
+                                                                          .fromLTRB(
+                                                                          10,
+                                                                          5,
+                                                                          10,
+                                                                          5),
                                                                       child:
-                                                                          Padding(
-                                                                        padding: const EdgeInsets
-                                                                            .fromLTRB(
-                                                                            10,
-                                                                            5,
-                                                                            10,
-                                                                            5),
-                                                                        child:
-                                                                            Text(
-                                                                          _diaDaSemana
-                                                                              .toString(),
-                                                                          style:
-                                                                              const TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                          ),
+                                                                          Text(
+                                                                        _diaDaSemana
+                                                                            .toString(),
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              16,
                                                                         ),
                                                                       ),
                                                                     ),
                                                                   ),
-                                                                ],
-                                                              )
-                                                            : const SizedBox(),
-                                                        _diaDaSemana != null
-                                                            ? const SizedBox(
-                                                                height: 16)
-                                                            : const SizedBox(
-                                                                height: 0),
-                                                        // Container(
-                                                        //   decoration:
-                                                        //       BoxDecoration(
-                                                        //     border: Border.all(
-                                                        //         color: Colors
-                                                        //             .black,
-                                                        //         width: 1.0),
-                                                        //     borderRadius:
-                                                        //         BorderRadius
-                                                        //             .circular(
-                                                        //                 8.0),
-                                                        //   ),
-                                                        //   child: Container(
-                                                        //     width:
-                                                        //         double.infinity,
-                                                        //     decoration:
-                                                        //         BoxDecoration(
-                                                        //       color: Colors
-                                                        //           .grey[350],
-                                                        //       borderRadius:
-                                                        //           BorderRadius
-                                                        //               .circular(
-                                                        //                   8.0),
-                                                        //     ),
-                                                        //     height: 45,
-                                                        //     child:
-                                                        //         ElevatedButton(
-                                                        //       style: ElevatedButton.styleFrom(
-                                                        //           backgroundColor:
-                                                        //               Colors
-                                                        //                   .transparent,
-                                                        //           side:
-                                                        //               BorderSide
-                                                        //                   .none,
-                                                        //           elevation:
-                                                        //               0.0),
-                                                        //       onPressed: () {
-                                                        //         _mostrarCalendario(
-                                                        //             context);
-                                                        //       },
-                                                        //       child: Align(
-                                                        //         alignment: Alignment
-                                                        //             .centerLeft,
-                                                        //         child: Row(
-                                                        //           mainAxisAlignment:
-                                                        //               MainAxisAlignment
-                                                        //                   .spaceBetween,
-                                                        //           children: [
-                                                        //             Text(
-                                                        //               '${DateFormat('dd/MM/yyyy').format(_dataSelecionada!)}',
-                                                        //               style:
-                                                        //                   const TextStyle(
-                                                        //                 color: Colors
-                                                        //                     .black,
-                                                        //                 fontWeight:
-                                                        //                     FontWeight.normal,
-                                                        //               ),
-                                                        //               textAlign:
-                                                        //                   TextAlign
-                                                        //                       .start,
-                                                        //             ),
-                                                        //             const Icon(
-                                                        //               Icons
-                                                        //                   .arrow_drop_down,
-                                                        //               color: Colors
-                                                        //                   .black,
-                                                        //             ),
-                                                        //           ],
-                                                        //         ),
-                                                        //       ),
-                                                        //       /*style: ButtonStyle(
-                                                        //                                   backgroundColor:
-                                                        //                                       MaterialStateProperty
-                                                        //                                           .all<
-                                                        //                                               Color>(
-                                                        //                                     AppTema
-                                                        //                                         .secondaryAmarelo, // Cor de fundo
-                                                        //                                   ),
-                                                        //                                 ),*/
-                                                        //     ),
-                                                        //   ),
-                                                        // ),
-                                                        //Text(_horario_selecionado.toString()),
-                                                        const SizedBox(
-                                                            height: 16),
-                                                        gestaoAtivaModel!
-                                                                    .is_polivalencia !=
-                                                                1
-                                                            ? Column(
-                                                                children: [
-                                                                  // !! SELECIONAR UM HORÁRIO !!
-                                                                  _aula_selecionada !=
-                                                                          'Aula Remota'
-                                                                      ? Align(
-                                                                          alignment:
-                                                                              Alignment.centerLeft,
+                                                                ),
+                                                              ],
+                                                            )
+                                                          : const SizedBox(),
+                                                      _diaDaSemana != null
+                                                          ? const SizedBox(
+                                                              height: 0)
+                                                          : const SizedBox(
+                                                              height: 0),
+                                                      const SizedBox(
+                                                          height: 16),
+                                                      gestaoAtivaModel!
+                                                                  .is_polivalencia !=
+                                                              1
+                                                          ? Column(
+                                                              children: [
+                                                                _aula_selecionada !=
+                                                                        'Aula Remota'
+                                                                    ? Align(
+                                                                        alignment:
+                                                                            Alignment.centerLeft,
+                                                                        child:
+                                                                            Container(
+                                                                          margin: const EdgeInsets
+                                                                              .only(
+                                                                              bottom: 10),
                                                                           child:
-                                                                              Container(
-                                                                            margin:
-                                                                                const EdgeInsets.only(bottom: 10),
-                                                                            child:
-                                                                                const Text(
-                                                                              'Selecione o Horário',
-                                                                              style: TextStyle(fontSize: 16, color: Colors.black),
+                                                                              const Text(
+                                                                            'Selecione um horário',
+                                                                            style:
+                                                                                TextStyle(fontSize: 16, color: Colors.black),
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    : const SizedBox(),
+                                                                _aula_selecionada !=
+                                                                        'Aula Remota'
+                                                                    ? DropdownButtonFormField<
+                                                                        int>(
+                                                                        value:
+                                                                            _horario_selecionado,
+                                                                        onChanged:
+                                                                            (var novaSelecao) =>
+                                                                                setState(() => _horario_selecionado = novaSelecao),
+                                                                        decoration:
+                                                                            InputDecoration(
+                                                                          fillColor:
+                                                                              AppTema.backgroundColorApp,
+                                                                          filled:
+                                                                              true,
+                                                                          border:
+                                                                              OutlineInputBorder(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(8.0),
+                                                                            borderSide:
+                                                                                const BorderSide(
+                                                                              color: Colors.black,
+                                                                              width: 1.0,
                                                                             ),
                                                                           ),
-                                                                        )
-                                                                      : const SizedBox(),
-                                                                  _aula_selecionada !=
-                                                                          'Aula Remota'
-                                                                      ? DropdownButtonFormField<
-                                                                          int>(
-                                                                          value:
-                                                                              _horario_selecionado,
-                                                                          onChanged: (var novaSelecao) =>
-                                                                              setState(() => _horario_selecionado = novaSelecao),
-                                                                          focusColor:
+                                                                          contentPadding: const EdgeInsets
+                                                                              .symmetric(
+                                                                              horizontal: 16.0),
+                                                                        ),
+                                                                        icon:
+                                                                            const Icon(
+                                                                          Icons
+                                                                              .arrow_drop_down,
+                                                                          color:
                                                                               Colors.black,
-                                                                          decoration:
-                                                                              InputDecoration(
-                                                                            fillColor:
-                                                                                AppTema.backgroundColorApp,
-                                                                            filled:
-                                                                                true,
-                                                                            border:
-                                                                                OutlineInputBorder(
-                                                                              borderRadius: BorderRadius.circular(8.0),
-                                                                              borderSide: const BorderSide(
-                                                                                color: Colors.black,
-                                                                                width: 1.0,
-                                                                              ),
-                                                                            ),
-                                                                            contentPadding:
-                                                                                const EdgeInsets.symmetric(horizontal: 16.0),
-                                                                          ),
-                                                                          icon:
-                                                                              const Icon(
-                                                                            Icons.arrow_drop_down,
-                                                                            color:
-                                                                                Colors.black,
-                                                                          ),
-                                                                          items:
-                                                                              removeHorariosRepetidos(listaOriginal: listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!)!.map<DropdownMenuItem<int>>((objeto) {
-                                                                            return DropdownMenuItem<int>(
-                                                                              value: int.parse(objeto.horario.id),
-                                                                              child: Text(objeto.horario.descricao),
-                                                                            );
-                                                                          }).toList(),
-                                                                          validator:
-                                                                              (value) {
-                                                                            if (value ==
-                                                                                null) {
-                                                                              return 'Por favor, selecione um horário';
-                                                                            }
-                                                                            return null;
-                                                                          },
-                                                                        )
-                                                                      : const Text(
-                                                                          ''),
-
-                                                                  // !! CONTEÚDO !!
-
-                                                                  Container(
-                                                                    margin: const EdgeInsets
-                                                                        .only(
-                                                                        bottom:
+                                                                        ),
+                                                                        items: removeHorariosRepetidos(listaOriginal: listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!)!
+                                                                            .map<DropdownMenuItem<int>>((objeto) {
+                                                                          return DropdownMenuItem<
+                                                                              int>(
+                                                                            value:
+                                                                                int.parse(objeto.horario.id),
+                                                                            child:
+                                                                                Text(objeto.horario.descricao),
+                                                                          );
+                                                                        }).toList(),
+                                                                        validator:
+                                                                            (value) {
+                                                                          if (value ==
+                                                                              null) {
+                                                                            return 'Por favor, selecione um horário';
+                                                                          }
+                                                                          return null;
+                                                                        },
+                                                                      )
+                                                                    : const Text(
+                                                                        ''),
+                                                                Container(
+                                                                  margin: const EdgeInsets
+                                                                      .only(
+                                                                      bottom:
+                                                                          10,
+                                                                      top: 15),
+                                                                  child:
+                                                                      const Align(
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .centerLeft,
+                                                                    child: Text(
+                                                                      'Conteúdo',
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              16,
+                                                                          color:
+                                                                              Colors.black),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                TextFormField(
+                                                                  controller:
+                                                                      _conteudoController,
+                                                                  validator:
+                                                                      (value) {
+                                                                    if (value!
+                                                                        .isEmpty) {
+                                                                      return 'Por favor, preencha o conteúdo';
+                                                                    }
+                                                                    return null;
+                                                                  },
+                                                                  maxLines: 8,
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    fillColor:
+                                                                        AppTema
+                                                                            .backgroundColorApp,
+                                                                    filled:
+                                                                        true,
+                                                                    focusedBorder:
+                                                                        OutlineInputBorder(
+                                                                      borderSide:
+                                                                          const BorderSide(
+                                                                              color: Colors.grey),
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              8.0),
+                                                                    ),
+                                                                    contentPadding: const EdgeInsets
+                                                                        .symmetric(
+                                                                        horizontal:
                                                                             10,
-                                                                        top:
-                                                                            15),
-                                                                    child:
-                                                                        const Align(
-                                                                      alignment:
-                                                                          Alignment
-                                                                              .centerLeft,
-                                                                      child:
-                                                                          Text(
-                                                                        'Conteúdo',
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                            color:
-                                                                                Colors.black),
-                                                                      ),
+                                                                        vertical:
+                                                                            5),
+                                                                    border:
+                                                                        OutlineInputBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              8.0),
                                                                     ),
                                                                   ),
-                                                                  TextFormField(
-                                                                    controller:
-                                                                        _conteudoController,
-                                                                    validator:
-                                                                        (value) {
-                                                                      if (value!
-                                                                          .isEmpty) {
-                                                                        return 'Por favor, preencha o conteúdo';
-                                                                      }
-                                                                      return null;
-                                                                    },
-                                                                    maxLines: 8,
-                                                                    decoration:
-                                                                        InputDecoration(
-                                                                      fillColor:
-                                                                          AppTema
-                                                                              .backgroundColorApp,
-                                                                      filled:
-                                                                          true,
-                                                                      focusedBorder:
-                                                                          OutlineInputBorder(
-                                                                        borderSide:
-                                                                            const BorderSide(color: Colors.grey),
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
+                                                                ),
+                                                              ],
+                                                            )
+                                                          : const SizedBox(),
+                                                      gestaoAtivaModel
+                                                                  ?.is_polivalencia ==
+                                                              1
+                                                          ? Column(
+                                                              children: [
+                                                                TextButton(
+                                                                  onPressed:
+                                                                      () async {
+                                                                    await showDialog(
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (context) =>
+                                                                              CustomDisciplinasDialog(
+                                                                        selectedDisciplinas:
+                                                                            selectedDisciplinas,
+                                                                        onSelectedDisciplinas:
+                                                                            (disciplinas) {
+                                                                          setState(
+                                                                              () {
+                                                                            selectedDisciplinas =
+                                                                                disciplinas;
+                                                                          });
+                                                                        },
                                                                       ),
-                                                                      contentPadding: const EdgeInsets
-                                                                          .symmetric(
-                                                                          horizontal:
-                                                                              10,
-                                                                          vertical:
-                                                                              5),
-                                                                      border:
-                                                                          OutlineInputBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8.0),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              )
-                                                            : const SizedBox(),
-                                                        // Text(gestaoAtivaModel!.is_polivalencia.toString()),
-                                                        // Text(selectedDisciplinas.toString()),
-                                                        gestaoAtivaModel
-                                                                    ?.is_polivalencia ==
-                                                                1
-                                                            ? Column(
-                                                                children: [
-                                                                  Padding(
-                                                                    padding: const EdgeInsets
-                                                                        .only(
-                                                                        top:
-                                                                            8.0,
-                                                                        bottom:
-                                                                            8.0),
-                                                                    child:
-                                                                        TextButton(
-                                                                      onPressed:
-                                                                          () =>
-                                                                              _showMultiSelectDialog(context),
-                                                                      style: OutlinedButton
-                                                                          .styleFrom(
-                                                                        backgroundColor:
-                                                                            AppTema.primaryAmarelo,
-                                                                        fixedSize: const Size(
+                                                                    );
+                                                                  },
+                                                                  style: OutlinedButton
+                                                                      .styleFrom(
+                                                                    backgroundColor:
+                                                                        AppTema
+                                                                            .primaryAmarelo,
+                                                                    fixedSize:
+                                                                        const Size(
                                                                             400.0,
                                                                             48.0),
-                                                                        side: const BorderSide(
-                                                                            width:
-                                                                                1.0,
-                                                                            color:
-                                                                                AppTema.primaryAmarelo),
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(8.0),
-                                                                        ),
-                                                                      ),
-                                                                      child:
-                                                                          const Text(
-                                                                        'Selecione as disciplinas dessa aula',
-                                                                        style: TextStyle(
-                                                                            color:
-                                                                                Colors.black),
+                                                                    side:
+                                                                        const BorderSide(
+                                                                      width:
+                                                                          1.0,
+                                                                      color: AppTema
+                                                                          .primaryAmarelo,
+                                                                    ),
+                                                                    shape:
+                                                                        RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius
+                                                                              .circular(
+                                                                        8.0,
                                                                       ),
                                                                     ),
                                                                   ),
-                                                                  Container(
-                                                                    margin: const EdgeInsets
-                                                                        .only(
-                                                                        bottom:
-                                                                            10,
-                                                                        top:
-                                                                            15),
-                                                                    child:
-                                                                        const Align(
-                                                                      alignment:
-                                                                          Alignment
-                                                                              .centerLeft,
-                                                                      child:
-                                                                          Text(
-                                                                        'Conteúdos',
-                                                                        style: TextStyle(
-                                                                            fontSize:
-                                                                                16,
-                                                                            color:
-                                                                                Colors.black),
-                                                                      ),
+                                                                  child:
+                                                                      const Text(
+                                                                    'Selecione as disciplinas dessa aula',
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .black,
                                                                     ),
                                                                   ),
-                                                                  selectedDisciplinas
-                                                                          .isNotEmpty
-                                                                      ? Card(
-                                                                          color:
-                                                                              AppTema.backgroundColorApp,
-                                                                          elevation:
-                                                                              8.0,
-                                                                          child:
-                                                                              Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.all(8.0),
-                                                                            child: !isLoadigList
-                                                                                ? Column(
-                                                                                    children: selectedDisciplinas.asMap().entries.map((entry) {
-                                                                                      final index = entry.key;
-                                                                                      final item = entry.value;
-
-                                                                                      if (item.data == null) {
-                                                                                        return const SizedBox();
-                                                                                      }
-
-                                                                                      return Column(
-                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                        children: [
-                                                                                          Padding(
-                                                                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                                                                            child: Column(
-                                                                                              children: item.data!.asMap().entries.map((dataEntry) {
-                                                                                                final dataIndex = dataEntry.key;
-                                                                                                final elemente = dataEntry.value;
-
-                                                                                                if (elemente is! Map) {
-                                                                                                  print('Erro: elemento não é Map: $elemente');
-                                                                                                  return const SizedBox.shrink();
-                                                                                                }
-
-                                                                                                List<int> horarios = (elemente['horarios'] ?? []).cast<int>();
-                                                                                                final conteudo = (elemente['conteudo'] ?? '');
-
-                                                                                                if (controllers.length <= dataIndex) {
-                                                                                                  controllers.add(TextEditingController(text: conteudo));
-                                                                                                }
-
-                                                                                                final controller = controllers[index];
-
-                                                                                                return Column(
-                                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                  children: [
-                                                                                                    // Text('Total de Controladores: ${controllers.length.toString()}'),
-                                                                                                    // Text('Conteúdo Atual: $conteudo'),
-                                                                                                    // Text('Index: ${index.toString()}'),
-                                                                                                    _buildLabel('${item.descricao.toString()}:'),
-                                                                                                    TextFormField(
-                                                                                                      controller: controller,
-                                                                                                      maxLines: 8,
-                                                                                                      decoration: InputDecoration(
-                                                                                                        focusedBorder: OutlineInputBorder(
-                                                                                                          borderSide: const BorderSide(color: Colors.grey),
-                                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                                        ),
-                                                                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                                        border: OutlineInputBorder(
-                                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      onChanged: (value) {
-                                                                                                        setState(() {
-                                                                                                          elemente['conteudo'] = value;
-                                                                                                        });
-                                                                                                      },
-                                                                                                      validator: (value) {
-                                                                                                        if (value!.isEmpty) {
-                                                                                                          return 'Por favor, insira o conteúdo';
-                                                                                                        }
-                                                                                                        return null;
-                                                                                                      },
-                                                                                                    ),
-                                                                                                    Padding(
-                                                                                                      padding: const EdgeInsets.only(top: 8.0),
-                                                                                                      child: Text(
-                                                                                                        'Horário de ${item.descricao.toString()}:',
-                                                                                                        style: const TextStyle(
-                                                                                                          fontWeight: FontWeight.w800,
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                    Padding(
-                                                                                                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                                                                                      child: Container(
-                                                                                                        decoration: BoxDecoration(
-                                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                                          border: Border.all(
-                                                                                                            color: Colors.grey,
-                                                                                                            width: 1.0,
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                        child: MultiSelectDialogField<int>(
-                                                                                                          items: removeHorariosRepetidos(
-                                                                                                            listaOriginal: listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!,
-                                                                                                          )!
-                                                                                                              .map(
-                                                                                                                (objeto) => MultiSelectItem<int>(
-                                                                                                                  int.parse(objeto.horario.id),
-                                                                                                                  objeto.horario.descricao,
-                                                                                                                ),
-                                                                                                              )
-                                                                                                              .toList(),
-                                                                                                          listType: MultiSelectListType.CHIP,
-                                                                                                          initialValue: horarios,
-                                                                                                          searchIcon: const Icon(Icons.search),
-                                                                                                          title: const Text('Horários'),
-                                                                                                          searchHint: 'Pesquisar',
-                                                                                                          cancelText: const Text(
-                                                                                                            'Cancelar',
-                                                                                                            style: TextStyle(
-                                                                                                              fontWeight: FontWeight.bold,
-                                                                                                              color: AppTema.primaryAzul,
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                          confirmText: const Text(
-                                                                                                            'Confirmar',
-                                                                                                            style: TextStyle(
-                                                                                                              fontWeight: FontWeight.bold,
-                                                                                                              color: AppTema.primaryAzul,
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                          buttonText: const Text('Selecione'),
-                                                                                                          buttonIcon: const Icon(Icons.arrow_drop_down),
-                                                                                                          selectedColor: AppTema.secondaryAmarelo,
-                                                                                                          selectedItemsTextStyle: const TextStyle(
-                                                                                                            color: Colors.white,
-                                                                                                          ),
-                                                                                                          onConfirm: (List<int> selected) async {
-                                                                                                            bool status = await validatePolivalenciaHorarios(
-                                                                                                              context,
-                                                                                                              selected,
-                                                                                                            );
-                                                                                                            if (!status) {
-                                                                                                              return;
-                                                                                                            }
-                                                                                                            setState(() {
-                                                                                                              horarios = selected;
-                                                                                                              elemente['horarios'] = selected;
-                                                                                                            });
-                                                                                                          },
-                                                                                                          validator: (selected) {
-                                                                                                            if (selected == null || selected.isEmpty) {
-                                                                                                              return 'Por favor, selecione ao menos um horário';
-                                                                                                            }
-                                                                                                            return null;
-                                                                                                          },
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                  ],
-                                                                                                );
-                                                                                              }).toList(),
-                                                                                            ),
-                                                                                          ),
-                                                                                          const Divider(),
-                                                                                        ],
-                                                                                      );
-                                                                                    }).toList(),
-                                                                                  )
-                                                                                : const Center(
-                                                                                    child: Padding(
-                                                                                      padding: EdgeInsets.all(8.0),
-                                                                                      child: Column(
-                                                                                        children: [
-                                                                                          Padding(
-                                                                                            padding: EdgeInsets.all(8.0),
-                                                                                            child: CircularProgressIndicator(
-                                                                                              color: AppTema.primaryAmarelo,
-                                                                                            ),
-                                                                                          ),
-                                                                                          Text('Carregando...'),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                          ),
-                                                                        )
-                                                                      : const SizedBox(),
-                                                                ],
-                                                              )
-                                                            : const SizedBox(),
-
-                                                        // !! METODOLOGIA !!
-                                                        Container(
-                                                          margin:
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 18.0,
+                                                                ),
+                                                                CustomConteudoPolivalencia(
+                                                                  context:
+                                                                      context,
+                                                                  items:
+                                                                      selectedDisciplinas,
+                                                                  relacaoDiaHorario:
+                                                                      listaFiltradaDeHorariosPorHorariosDaColunaDaGestao ??
+                                                                          [],
+                                                                ),
+                                                              ],
+                                                            )
+                                                          : const SizedBox(),
+                                                      Container(
+                                                        margin: const EdgeInsets
+                                                            .only(
+                                                            bottom: 10,
+                                                            top: 15),
+                                                        child: const Align(
+                                                          alignment: Alignment
+                                                              .centerLeft,
+                                                          child: Text(
+                                                            'Metodologia',
+                                                            style: TextStyle(
+                                                                fontSize: 16,
+                                                                color: Colors
+                                                                    .black),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      TextFormField(
+                                                        controller:
+                                                            _metodologiaController,
+                                                        validator: (value) {
+                                                          if (value!.isEmpty) {
+                                                            return 'Por favor, preencha a metodologia';
+                                                          }
+                                                          return null;
+                                                        },
+                                                        maxLines: 8,
+                                                        decoration:
+                                                            InputDecoration(
+                                                          fillColor: AppTema
+                                                              .backgroundColorApp,
+                                                          filled: true,
+                                                          focusedBorder:
+                                                              OutlineInputBorder(
+                                                            borderSide:
+                                                                const BorderSide(
+                                                              color:
+                                                                  Colors.grey,
+                                                            ),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        8.0),
+                                                          ),
+                                                          contentPadding:
                                                               const EdgeInsets
-                                                                  .only(
-                                                                  bottom: 10,
-                                                                  top: 15),
-                                                          child: const Align(
-                                                            alignment: Alignment
-                                                                .centerLeft,
-                                                            child: Text(
-                                                              'Metodologia',
-                                                              style: TextStyle(
-                                                                  fontSize: 16,
-                                                                  color: Colors
-                                                                      .black),
-                                                            ),
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      10,
+                                                                  vertical: 5),
+                                                          border:
+                                                              OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        8.0),
                                                           ),
                                                         ),
-                                                        TextFormField(
-                                                          controller:
-                                                              _metodologiaController,
-                                                          validator: (value) {
-                                                            if (value!
-                                                                .isEmpty) {
-                                                              return 'Por favor, preencha a metodologia';
-                                                            }
-                                                            return null;
-                                                          },
-                                                          maxLines: 8,
-                                                          decoration:
-                                                              InputDecoration(
-                                                            fillColor: AppTema
-                                                                .backgroundColorApp,
-                                                            filled: true,
-                                                            focusedBorder:
-                                                                OutlineInputBorder(
-                                                              borderSide:
-                                                                  const BorderSide(
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8.0),
-                                                            ),
-                                                            contentPadding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        10,
-                                                                    vertical:
-                                                                        5),
-                                                            border:
-                                                                OutlineInputBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8.0),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        /*Container(
-                                                                            margin: const EdgeInsets.only(
-                                                                                bottom: 10, top: 15),
-                                                                            child: const Align(
-                                                                              alignment:
-                                                                                  Alignment.centerLeft,
-                                                                              child: Text(
-                                                                                'Campos de Experiência',
-                                                                                style: TextStyle(
-                                                                                    fontSize: 16,
-                                                                                    color: Colors.black),
-                                                                              ),
-                                                                            ),
-                                                                          ),
-                                                                          CustomDropdownExperiencia(
-                                                                              returnoSelcionadas:
-                                                                                  selectedExperiencias,
-                                                                              onSelectionChanged:
-                                                                                  _handleSelectionChanged),*/
-
-                                                        const SizedBox(
-                                                            height: 16.0),
-                                                        Column(
-                                                          children: [
-                                                            ///Text('isStatus: $isStatus'),
-                                                            isStatus != true
-                                                                ? SizedBox(
-                                                                    width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width,
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 16.0),
+                                                      Column(
+                                                        children: [
+                                                          isStatus != true
+                                                              ? SizedBox(
+                                                                  width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width,
+                                                                  child:
+                                                                      ElevatedButton(
+                                                                    onPressed:
+                                                                        () async {
+                                                                      _validateDropdown(
+                                                                          _aula_selecionada);
+                                                                      if (_formKey
+                                                                              .currentState!
+                                                                              .validate() &&
+                                                                          (_errorText == null ||
+                                                                              _errorText == '')) {
+                                                                        await atualizarAula();
+                                                                      }
+                                                                    },
+                                                                    style: ElevatedButton
+                                                                        .styleFrom(
+                                                                      backgroundColor:
+                                                                          AppTema
+                                                                              .primaryDarkBlue,
+                                                                      padding: const EdgeInsets
+                                                                          .symmetric(
+                                                                          horizontal:
+                                                                              24.0,
+                                                                          vertical:
+                                                                              12.0),
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(8.0),
+                                                                      ),
+                                                                    ),
                                                                     child:
-                                                                        ElevatedButton(
-                                                                      onPressed:
-                                                                          () async {
-                                                                        _validateDropdown(
-                                                                            _aula_selecionada);
-                                                                        if (_formKey.currentState!.validate() &&
-                                                                            (_errorText == null ||
-                                                                                _errorText == '')) {
-                                                                          await atualizarAula();
-                                                                        }
-                                                                      },
-                                                                      style: ElevatedButton
-                                                                          .styleFrom(
-                                                                        backgroundColor:
-                                                                            AppTema.primaryDarkBlue,
-                                                                        padding: const EdgeInsets
-                                                                            .symmetric(
-                                                                            horizontal:
-                                                                                24.0,
-                                                                            vertical:
-                                                                                12.0),
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(8.0),
-                                                                        ),
+                                                                        const Text(
+                                                                      'Salvar',
+                                                                      style:
+                                                                          TextStyle(
+                                                                        color: Colors
+                                                                            .white,
                                                                       ),
-                                                                      child:
-                                                                          const Text(
-                                                                        'Salvar',
-                                                                        style:
-                                                                            TextStyle(
-                                                                          color:
-                                                                              Colors.white,
-                                                                        ),
+                                                                    ),
+                                                                  ))
+                                                              : SizedBox(
+                                                                  width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width,
+                                                                  child:
+                                                                      ElevatedButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      return;
+                                                                    },
+                                                                    style: ElevatedButton
+                                                                        .styleFrom(
+                                                                      backgroundColor:
+                                                                          AppTema
+                                                                              .primaryDarkBlue,
+                                                                      padding: const EdgeInsets
+                                                                          .symmetric(
+                                                                          horizontal:
+                                                                              28.0,
+                                                                          vertical:
+                                                                              2.0),
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(8.0),
                                                                       ),
-                                                                    ))
-                                                                : SizedBox(
-                                                                    width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width,
+                                                                    ),
                                                                     child:
-                                                                        ElevatedButton(
-                                                                      onPressed:
-                                                                          () {
-                                                                        return;
-                                                                      },
-                                                                      style: ElevatedButton
-                                                                          .styleFrom(
-                                                                        backgroundColor:
-                                                                            AppTema.primaryDarkBlue,
-                                                                        padding: const EdgeInsets
-                                                                            .symmetric(
-                                                                            horizontal:
-                                                                                28.0,
-                                                                            vertical:
-                                                                                2.0),
-                                                                        shape:
-                                                                            RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(8.0),
-                                                                        ),
-                                                                      ),
+                                                                        const SizedBox(
+                                                                      width: 16,
+                                                                      height:
+                                                                          16,
                                                                       child:
-                                                                          const SizedBox(
-                                                                        width:
-                                                                            16,
-                                                                        height:
-                                                                            16,
-                                                                        child:
-                                                                            CircularProgressIndicator(
-                                                                          strokeWidth:
-                                                                              2.0,
-                                                                          color:
-                                                                              Colors.white,
-                                                                        ),
+                                                                          CircularProgressIndicator(
+                                                                        strokeWidth:
+                                                                            2.0,
+                                                                        color: Colors
+                                                                            .white,
                                                                       ),
                                                                     ),
                                                                   ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ))
-                                                  ])
-                                            : const Text('')
+                                                                ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              )
+                                            : const SizedBox()
                                       ],
                                     ),
                                   ),
@@ -2114,71 +1511,6 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
                 color: AppTema.primaryAmarelo,
               ),
             ),
-    );
-  }
-
-  Widget _buildDisciplinaFields(
-      Disciplina item, Map<String, dynamic> elemente) {
-    String conteudo = elemente['conteudo'] ?? '';
-
-    TextEditingController conteudoController =
-        TextEditingController(text: conteudo);
-
-    conteudoController.addListener(() {
-      setState(() {
-        elemente['conteudo'] = conteudoController.text;
-      });
-    });
-
-    return Column(
-      children: [
-        _buildLabel('${item.descricao.toString()}:'),
-        _buildTextField(conteudoController, 'Por favor, preencha o conteúdo'),
-      ],
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10, top: 15),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller, String validationMessage) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: controller,
-          validator: (value) {
-            if (value!.isEmpty) {
-              return validationMessage;
-            }
-            return null;
-          },
-          maxLines: 8,
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

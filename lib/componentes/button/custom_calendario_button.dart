@@ -1,7 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 
 class CustomCalendarioButton extends StatefulWidget {
@@ -14,7 +12,6 @@ class CustomCalendarioButton extends StatefulWidget {
   final DateTime? onDataSelected;
   final void Function(DateTime selectedDate)? onDateSelected;
   final String? label;
-
   CustomCalendarioButton({
     super.key,
     this.initialDate,
@@ -27,14 +24,12 @@ class CustomCalendarioButton extends StatefulWidget {
     this.onDateSelected,
     this.label,
   });
-
   @override
   _CustomCalendarioButtonState createState() => _CustomCalendarioButtonState();
 }
 
 class _CustomCalendarioButtonState extends State<CustomCalendarioButton> {
   DateTime? _selectedDate;
-
   @override
   void initState() {
     super.initState();
@@ -77,29 +72,18 @@ class _CustomCalendarioButtonState extends State<CustomCalendarioButton> {
       'Sexta': DateTime.friday,
       'Sábado': DateTime.saturday,
     };
-
     while (!diasHabilitados.contains(diaMap.keys.firstWhere(
       (key) => diaMap[key] == initialDate.weekday,
     ))) {
       initialDate = initialDate.add(const Duration(days: 1));
     }
-
     return initialDate;
   }
 
   Future<void> _mostrarCalendario(BuildContext context) async {
     final DateTime firstDate = _getFirstDate();
     final DateTime lastDate = _getLastDate();
-
     final List<String> diasHabilitados = widget.semanas ?? [];
-
-    // print('firstDate: $firstDate');
-    // print('lastDate: $lastDate');
-    // print('diasHabilitados: $diasHabilitados');
-
-    DateTime validInitialDate =
-        _getValidInitialDate(_selectedDate ?? DateTime.now(), diasHabilitados);
-
     final Map<String, int> diaMap = {
       'Domingo': DateTime.sunday,
       'Segunda': DateTime.monday,
@@ -110,29 +94,41 @@ class _CustomCalendarioButtonState extends State<CustomCalendarioButton> {
       'Sábado': DateTime.saturday,
     };
 
+    // Definir initialDate baseado no estado ou agora
+    DateTime initialDateCandidate = _selectedDate ?? DateTime.now();
+
+    // Garantir que initialDateCandidate esteja dentro do range [firstDate, lastDate]
+    if (initialDateCandidate.isBefore(firstDate)) {
+      initialDateCandidate = firstDate;
+    } else if (initialDateCandidate.isAfter(lastDate)) {
+      initialDateCandidate = lastDate;
+    }
+
+    // Agora ajustar para o próximo dia da semana válido
+    DateTime validInitialDate =
+        _getValidInitialDate(initialDateCandidate, diasHabilitados);
+
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: validInitialDate,
       firstDate: firstDate,
       lastDate: lastDate,
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTema.primaryDarkBlue,
-              onPrimary: Colors.white,
-              onSurface: AppTema.primaryDarkBlue,
-            ),
-            dialogBackgroundColor: Colors.white,
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: AppTema.primaryDarkBlue,
+            onPrimary: Colors.white,
+            onSurface: AppTema.primaryDarkBlue,
           ),
-          child: child!,
-        );
-      },
-      selectableDayPredicate: (DateTime date) {
-        // Verifica se o dia da semana está na lista de dias habilitados
+          dialogBackgroundColor: Colors.white,
+        ),
+        child: child!,
+      ),
+      selectableDayPredicate: (date) {
         return diasHabilitados.contains(
           diaMap.keys.firstWhere(
             (key) => diaMap[key] == date.weekday,
+            orElse: () => '',
           ),
         );
       },
@@ -142,7 +138,6 @@ class _CustomCalendarioButtonState extends State<CustomCalendarioButton> {
       setState(() {
         _selectedDate = pickedDate;
       });
-
       if (widget.onDateSelected != null) {
         widget.onDateSelected!(pickedDate);
       }

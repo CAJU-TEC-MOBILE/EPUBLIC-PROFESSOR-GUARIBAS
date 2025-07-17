@@ -1,17 +1,12 @@
-// No início do arquivo build.gradle
 import java.text.SimpleDateFormat
 import java.util.Date
-
 plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
-
 def getEnvVar(String key) {
     def envFile = new File(rootDir.parentFile, ".env")
-    //println "Root dir: $rootDir"
-    //println "Looking for .env in: ${envFile.absolutePath}"
     if (envFile.exists()) {
         def props = new Properties()
         envFile.withInputStream { props.load(it) }
@@ -29,14 +24,8 @@ def getEnvVar(String key) {
 def getLocalProperty(String key) {
     def localPropertiesFile = file("../../android/local.properties")   
     if (localPropertiesFile.exists()) {
-        //println "Arquivo 'local.properties' encontrado em: ${localPropertiesFile.absolutePath}"
         def properties = new Properties()
         localPropertiesFile.withInputStream { properties.load(it) }
-
-        // Verifique as chaves disponíveis
-        //println "Propriedades carregadas: ${properties}"
-
-        // Verifique se estamos acessando corretamente as propriedades
         def value = properties.getProperty(key)
         println "Propriedade '$key' encontrada: $value"
         return value
@@ -47,32 +36,29 @@ def getLocalProperty(String key) {
 }
 
 android {
-    
     namespace = 'br.com.servidorcaju.guaribas'
-    compileSdkVersion = 36
-    // ndkVersion = "25.1.8937393"
+    compileSdkVersion = 35
     ndkVersion = "26.3.11579264"
-    // ndkVersion flutter.ndkVersion
     defaultConfig {
  
         applicationId = 'br.com.servidorcaju.guaribas'
-        minSdkVersion = 23
-        targetSdkVersion = 36
-        versionCode 10
+        minSdkVersion = 21
+        targetSdkVersion = 35
+        versionCode 26
         versionName "5.0.11.5949"
  
         multiDexEnabled true
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86_64", "x86"
+        }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
     }
-
     signingConfigs {
         release {
             storeFile file(getLocalProperty("storeFile"))
@@ -81,40 +67,25 @@ android {
             keyPassword getLocalProperty("keyPassword")
         }
     }
-
-
    buildTypes {
     debug {
         signingConfig = signingConfigs.debug
     }
-
     release {
-            // Temporariamente usando a chave de debug para evitar erro de senha
             signingConfig signingConfigs.release
-
-
-            minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
-            // Configuração para renomear o APK gerado
             applicationVariants.all { variant ->
                 variant.outputs.all { output ->
-                    // Pega as variáveis diretamente do arquivo .env
                     def appName = getEnvVar("NAME_APP")
                     def appVersion = getEnvVar("VERSAO")
-
-                    // Garante que ambas as variáveis foram carregadas corretamente
                     if (appName == null || appVersion == null) {
                         throw new GradleException("As variáveis APP_TITLE e APP_VERSION não foram encontradas no arquivo .env.")
                     }
-
                     appName = appName.replaceAll("\"", "")
                     appVersion = appVersion.replaceAll("\"", "")
-
                     def dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss")
                     def dateStr = dateFormat.format(new Date())
-
                     def apkName = "${appName}-${appVersion}-${variant.buildType.name}-${dateStr}.apk"
                     outputFileName = apkName
                     println "outputFileName: $outputFileName"
@@ -122,18 +93,12 @@ android {
             }
         }
     }
-
-}
-
-dependencies {
-    implementation 'androidx.core:core-ktx:1.10.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.google.android.play:integrity:1.4.0'
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation "androidx.multidex:multidex:2.0.1"
 }

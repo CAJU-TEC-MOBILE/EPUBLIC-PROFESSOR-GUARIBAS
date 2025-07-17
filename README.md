@@ -27,3 +27,12 @@ Para criar os ícones do aplicativo, rode o seguinte comando:
 ```
 flutter pub run flutter_launcher_icons:main
 ```
+
+```
+cd build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib
+```
+
+```
+zip -r ../../../../../../symbols.zip .
+```
+ 

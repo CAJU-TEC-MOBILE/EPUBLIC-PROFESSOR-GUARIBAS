@@ -6,6 +6,7 @@ import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
 import 'package:professor_acesso_notifiq/services/adapters/auth_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
 import '../../services/camera/camera_controller.dart';
+import '../../services/controller/auth_controller.dart';
 import '../../services/directories/directories_controller.dart';
 import 'connection_indicator.dart';
 
@@ -17,6 +18,7 @@ class CustomUserInfoDrawer extends StatefulWidget {
 }
 
 class _CustomUserInfoDrawerState extends State<CustomUserInfoDrawer> {
+  final authController = AuthController();
   AuthModel? authModel;
   GestaoAtiva? gestaoAtivaModel;
   double fontText = 16.0;
@@ -72,7 +74,8 @@ class _CustomUserInfoDrawerState extends State<CustomUserInfoDrawer> {
   }
 
   Future<void> getInformacoes() async {
-    authModel = AuthServiceAdapter().exibirAuth();
+    await authController.init();
+    authModel = await authController.authFirst();
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
     await getUserImage();
     if (gestaoAtivaModel != null) {

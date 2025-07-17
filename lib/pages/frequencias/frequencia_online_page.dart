@@ -439,7 +439,7 @@ class _FrequenciaOnlinePageState extends State<FrequenciaOnlinePage>
       final tempFile = File(tempFilePath);
       await tempFile.writeAsBytes(response.bodyBytes);
 
-      await OpenFilex.open(tempFilePath);
+      // await OpenFilex.open(tempFilePath);
       setState(() => dataFrequencias![index]['isBaixa'] = false);
       return;
     }

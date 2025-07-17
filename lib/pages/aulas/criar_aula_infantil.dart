@@ -121,6 +121,14 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
   }
 
   Future<void> _salvarAula() async {
+    if (_diaDaSemana == null) {
+      CustomSnackBar.showErrorSnackBar(
+        context,
+        'Por favor, selecione uma data',
+      );
+      return;
+    }
+
     var aula = Aula(
       id: '',
       e_aula_infantil: 1,
@@ -436,9 +444,10 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                     firstDate: DateTime(2000),
                                     lastDate: DateTime(2100),
                                     semanas: semanas!,
-                                    onDiaSelected: (String diaSemana) =>
-                                        setState(
-                                            () => _diaDaSemana = diaSemana),
+                                    onDiaSelected: (String diaSemana) {
+                                      print("_diaDaSemana: $_diaDaSemana");
+                                      setState(() => _diaDaSemana = diaSemana);
+                                    },
                                     onDateSelected: (selectedDate) {
                                       setState(() => _dataSelecionada =
                                           selectedDate.toLocal());
@@ -562,7 +571,6 @@ class _CriarAulaInfantilPageState extends State<CriarAulaInfantilPage> {
                                             _horario_selecionado = novaSelecao;
                                           });
                                         },
-                                        focusColor: Colors.black,
                                         decoration: InputDecoration(
                                           filled: true,
                                           fillColor: AppTema.backgroundColorApp,

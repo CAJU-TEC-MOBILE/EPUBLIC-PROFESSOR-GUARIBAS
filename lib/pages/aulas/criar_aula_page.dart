@@ -1,10 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'package:professor_acesso_notifiq/componentes/autorizacoes/aviso_de_regra_autorizacoes_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
 import 'package:professor_acesso_notifiq/constants/autorizacoes/autorizacoes_status_const.dart';
 import 'package:professor_acesso_notifiq/constants/emojis.dart';
@@ -17,6 +16,7 @@ import 'package:professor_acesso_notifiq/functions/boxs/gestoes/filtrar_etapas_p
 import 'package:professor_acesso_notifiq/functions/boxs/horarios/remover_horarios_repetidos.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/autorizacao_model.dart';
+import 'package:professor_acesso_notifiq/models/avaliador_model.dart';
 import 'package:professor_acesso_notifiq/models/disciplina_model.dart';
 import 'package:professor_acesso_notifiq/models/etapa_model.dart';
 import 'package:professor_acesso_notifiq/models/gestao_ativa_model.dart';
@@ -27,12 +27,23 @@ import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_
 import 'package:professor_acesso_notifiq/services/adapters/regras_logicas/autorizacoes/listar_unica_autorizacao_por_etapa_e_gestao_e_ultimoItem_regra_logica.dart';
 import 'package:professor_acesso_notifiq/services/http/autorizacoes/autorizacoes_listar_http.dart';
 import '../../componentes/button/custom_calendario_button.dart';
+import '../../componentes/dialogs/custom_disciplinas_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
+import '../../componentes/global/preloader.dart';
 import '../../help/data_time.dart';
 import '../../models/auth_model.dart';
-import '../../services/adapters/auth_service_adapter.dart';
+import '../../models/solicitacao_model.dart';
+import '../../repository/autorizacao_repository.dart';
+import '../../services/controller/auth_controller.dart';
+import '../../services/controller/avaliador_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
 import '../../services/controller/pedido_controller.dart';
+import '../../services/controller/solicitacao_controller.dart';
+import '../../utils/constants.dart';
+import '../../utils/datetime_utils.dart';
+import '../../wigets/cards/custom_solicitar_showbottomsheet.dart';
+import '../../wigets/custom_periodo_card.dart';
+import '../../wigets/polivalencia/custom_conteudo_polivalencia.dart';
 
 class CriarAulaPage extends StatefulWidget {
   final String? instrutorDisciplinaTurmaId;
@@ -47,7 +58,13 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   final TextEditingController _metodologiaController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final pedidoController = PedidoController();
-  AuthModel authModel = AuthServiceAdapter().exibirAuth();
+  final authController = AuthController();
+  final avaliadorController = AvaliadorController();
+  final solicitacaoController = SolicitacaoController();
+  final autorizacaoRepository = AutorizacaoRepository();
+
+  AuthModel authModel = AuthModel.vazio();
+  Etapa etapa = Etapa.vazio();
 
   var _disciplinas_selecionada;
   String? _errorText;
@@ -70,8 +87,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   List<Etapa>? listaDeEtapas;
   Etapa? etapaSelecionada;
   GestaoAtiva? gestaoAtivaModel;
-  List<AutorizacaoModel> autorizacoesDoUsuario =
-      AutorizacoesServiceAdapter().listar();
+  List<AutorizacaoModel> autorizacoesDoUsuario = [];
   AutorizacaoModel? autorizacaoSelecionada;
   String statusDaAutorizacao = 'INICIO';
 
@@ -79,6 +95,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   List<String> selectedExperiencias = [];
   List<Disciplina> disciplinas = [];
   List<Disciplina> selectedDisciplinas = [];
+  List<AvaliadorModel> avaliadores = [];
+  List<SolicitacaoModel> solicitacoes = [];
   List<dynamic> selectorData = [];
   final List<int> _horariosSelecionados = [];
   List<dynamic> horarioDaDisciplinas = [];
@@ -88,6 +106,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   String situacaoStatus = '';
   String circuitoId = '';
   bool statusPeriudo = false;
+  bool statusPeriodo = false;
 
   Future<void> _situacao() async {
     await pedidoController.init();
@@ -153,7 +172,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
   void initState() {
     super.initState();
     _situacao();
-
+    _auth();
     getDisciplinas();
     horarios_data = _horariosBox.get('horarios');
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
@@ -177,7 +196,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     await AutorizacoesServiceAdapter()
         .salvar(responseDecode['autorizacoes_atualizadas']);
     setState(() {
-      print('setState de autorizacoesDoUsuario');
       autorizacoesDoUsuario = AutorizacoesServiceAdapter().listar();
     });
   }
@@ -213,74 +231,85 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     }
   }
 
-  Future<void> _salvarAula() async {
-    print("TOTAL: ${selectedDisciplinas.length.toString()}");
-    if (selectedDisciplinas.isEmpty && gestaoAtivaModel!.is_polivalencia == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: AppTema.primaryAmarelo,
-          content: Row(
-            children: [
-              Text(
-                'Adicione ao menos um campo de conteúdo!',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-      return;
-    }
+  Future<void> _salvarAula(BuildContext context) async {
+    try {
+      if (selectedDisciplinas.isEmpty &&
+          gestaoAtivaModel!.is_polivalencia == 1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            CustomSnackBar.showInfoSnackBar(
+              context,
+              'Adicione ao menos um campo de conteúdo!',
+            );
+          }
+        });
+        return;
+      }
 
-    var aula = Aula(
-      id: '',
-      e_aula_infantil: 0,
-      instrutor_id: gestaoAtivaModel?.idt_instrutor_id.toString(),
-      disciplina_id: gestaoAtivaModel?.idt_disciplina_id.toString(),
-      turma_id: gestaoAtivaModel?.idt_turma_id.toString(),
-      tipoDeAula: _aula_selecionada.toString(),
-      dataDaAula: corrigirDataCompletaAmericanaParaAnoMesDiaSomente(
-          dataString: _dataSelecionada.toString()),
-      horarioID: _horario_selecionado.toString(),
-      horarios_infantis:
-          _horario_selecionado != null ? [_horario_selecionado] : [],
-      conteudo: _conteudoController.text.toString(),
-      metodologia: _metodologiaController.text.toString(),
-      saberes_conhecimentos: '',
-      dia_da_semana: _diaDaSemana.toString(),
-      situacao: 'Aguardando confirmação',
-      criadaPeloCelular: gerarUuidIdentification().toString(),
-      etapa_id: _etapa_selecionada.toString(),
-      instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
-      campos_de_experiencias: selectedExperiencias.toString(),
-      is_polivalencia: gestaoAtivaModel!.is_polivalencia ?? 0,
-      eixos: '',
-      estrategias: '',
-      recursos: '',
-      atividade_casa: '',
-      atividade_classe: '',
-      experiencias: selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
-      observacoes: '',
-    );
-    bool status = await AulasOfflineOnlineServiceAdapter().salvar(
+      if (_diaDaSemana == null) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Por favor, selecione uma data',
+        );
+        return;
+      }
+
+      var aula = Aula(
+        id: '',
+        e_aula_infantil: 0,
+        instrutor_id: gestaoAtivaModel?.idt_instrutor_id.toString(),
+        disciplina_id: gestaoAtivaModel?.idt_disciplina_id.toString(),
+        turma_id: gestaoAtivaModel?.idt_turma_id.toString(),
+        tipoDeAula: _aula_selecionada.toString(),
+        dataDaAula: corrigirDataCompletaAmericanaParaAnoMesDiaSomente(
+            dataString: _dataSelecionada.toString()),
+        horarioID: _horario_selecionado.toString(),
+        horarios_infantis:
+            _horario_selecionado != null ? [_horario_selecionado] : [],
+        conteudo: _conteudoController.text.toString(),
+        metodologia: _metodologiaController.text.toString(),
+        saberes_conhecimentos: '',
+        dia_da_semana: _diaDaSemana.toString(),
+        situacao: 'Aguardando confirmação',
+        criadaPeloCelular: gerarUuidIdentification().toString(),
+        etapa_id: _etapa_selecionada.toString(),
+        instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
+        campos_de_experiencias: selectedExperiencias.toString(),
+        is_polivalencia: gestaoAtivaModel!.is_polivalencia ?? 0,
+        eixos: '',
+        estrategias: '',
+        recursos: '',
+        atividade_casa: '',
+        atividade_classe: '',
+        experiencias:
+            selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
+        observacoes: '',
+        circuito_nota_id: gestaoAtivaModel!.circuito_nota_id.toString(),
+      );
+      bool status = await AulasOfflineOnlineServiceAdapter().salvar(
         novaAula: aula,
         isPolivalencia: gestaoAtivaModel!.is_polivalencia,
-        disciplina: selectedDisciplinas);
+        disciplina: selectedDisciplinas,
+      );
 
-    if (status != true) {
+      if (status != true) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Já existe uma aula criada para este dia. Por favor, escolha uma data diferente.',
+        );
+        return;
+      }
+      CustomSnackBar.showSuccessSnackBar(
+        context,
+        'Aula criada com sucesso!',
+      );
+      Navigator.pushNamed(context, '/index-fundamental');
+    } catch (error) {
       CustomSnackBar.showErrorSnackBar(
         context,
-        'Já existe uma aula criada para este dia. Por favor, escolha uma data diferente.',
+        error.toString(),
       );
-      return;
     }
-    CustomSnackBar.showSuccessSnackBar(
-      context,
-      'Aula criada com sucesso!',
-    );
-    Navigator.pushNamed(context, '/index-fundamental');
   }
 
   DateTime _ajustarDataParaDiasMaisProximoDoCampoRelacoesDiasHorarios(
@@ -377,6 +406,11 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     }
   }
 
+  Future<void> _auth() async {
+    await authController.init();
+    authModel = await authController.authFirst();
+  }
+
   void _showMultiSelectDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -427,7 +461,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                   Navigator.of(context).pop(true);
                 },
                 child: const Text(
-                  'Limpar Seleções',
+                  'Cancelar',
                   style: TextStyle(color: AppTema.primaryDarkBlue),
                 ),
               ),
@@ -480,19 +514,27 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
     setState(() {});
   }
 
-  Future<void> selecaoEtapa({required int? novaSelecao}) async {
+  Future<void> selecaoEtapa({required int? value}) async {
     try {
-      _etapa_selecionada = novaSelecao;
+      if (value == null) {
+        return;
+      }
+      _etapa_selecionada = value;
 
       final etapaSelecionada = listaDeEtapas?.firstWhere(
-        (e) => e.id.toString() == novaSelecao.toString(),
+        (e) => e.id.toString() == value.toString(),
       );
 
       if (etapaSelecionada == null) {
         throw Exception('Etapa selecionada não encontrada na lista de etapas.');
       }
 
+      etapa = etapaSelecionada;
+
+      await selecaoDeEtapa(etapaId: etapa.id);
+
       setState(() {
+        etapa;
         _etapa_selecionada;
         etapa_selecionada_objeto = etapaSelecionada;
 
@@ -515,7 +557,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       await gestaoAtivaDias();
     } catch (e) {
       debugPrint(
-        'Erro ao processar a seleção da etapa ($novaSelecao): $e',
+        'Erro ao processar a seleção da etapa ($value): $e',
       );
     }
   }
@@ -546,6 +588,60 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
       }
     }
     return true;
+  }
+
+  Future<void> selecaoDeEtapa({required etapaId}) async {
+    etapa = listaDeEtapas!
+        .where((item) => item.id.toString() == etapaId.toString())
+        .first;
+
+    if (etapa.id == '') {
+      return;
+    }
+
+    DateTime fim = DateTime.parse(etapa.periodo_final);
+    DateTime dataAtual = DateTime.now();
+
+    bool status = await autorizacaoRepository.existeStatusEtapaId(
+      status: 'APROVADO',
+      etapaId: etapaId,
+    );
+
+    if (status) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+
+    if (dataAtual.isBefore(fim)) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+
+    statusPeriodo = DateTimeUtils.isDataAtualNoPeriodo(
+      dataInicial: etapa.periodo_inicial,
+      dataFinal: etapa.periodo_final,
+    );
+
+    if (statusPeriodo) {
+      setState(() => statusPeriodo = false);
+      return;
+    }
+
+    setState(() => statusPeriodo = true);
+  }
+
+  Future<void> _avaliadores() async {
+    await avaliadorController.init();
+    avaliadores = await avaliadorController.avaliadorPorConfiguracao(
+      configuracaoId: gestaoAtivaModel!.configuracao_id.toString(),
+    );
+    setState(() => avaliadores);
+  }
+
+  Future<void> _solicitacoes() async {
+    await solicitacaoController.init();
+    solicitacoes = await solicitacaoController.all();
+    setState(() => avaliadores);
   }
 
   @override
@@ -583,7 +679,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                               Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 child: const Text(
-                                  'Selecione a etapa',
+                                  'Etapas',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black,
@@ -591,13 +687,12 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                 ),
                               ),
                               DropdownButtonFormField<int>(
-                                value: _etapa_selecionada,
                                 elevation: 1,
-                                onChanged: (int? novaSelecao) async =>
-                                    await selecaoEtapa(
-                                  novaSelecao: novaSelecao,
-                                ),
-                                focusColor: AppTema.primaryDarkBlue,
+                                onChanged: (int? value) async {
+                                  await selecaoEtapa(
+                                    value: value,
+                                  );
+                                },
                                 dropdownColor: AppTema.primaryWhite,
                                 decoration: InputDecoration(
                                   filled: true,
@@ -643,7 +738,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                       child: Text(
                                         objeto.descricao,
                                         style: const TextStyle(
-                                            color: AppTema.primaryDarkBlue),
+                                          color: AppTema.primaryDarkBlue,
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -656,112 +752,49 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                   return null;
                                 },
                               ),
-                              _etapa_selecionada != null &&
-                                      situacaoStatus != 'PENDENTE'
-                                  ? Container(
-                                      margin: const EdgeInsets.only(
-                                          top: 10, bottom: 10),
-                                      child: Card(
-                                        elevation: 0.0,
-                                        color: AppTema.primaryAmarelo,
-                                        child: Container(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              15, 15, 15, 15),
-                                          child: Column(
-                                            children: [
-                                              const Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  'Informações sobre esta etapa ',
-                                                  style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: AppTema
-                                                          .primaryDarkBlue),
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                height: 5,
-                                              ),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  texto1_etapa.toString(),
-                                                  style: const TextStyle(
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                height: 3,
-                                              ),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  texto2_etapa.toString(),
-                                                  style: const TextStyle(
-                                                    color:
-                                                        AppTema.primaryDarkBlue,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                              etapa.id != '' && gestaoAtivaModel != null
+                                  ? Column(
+                                      children: [
+                                        const SizedBox(height: 8.0),
+                                        CustomPeriodoCard(
+                                          etapa: etapa,
+                                          isBloqueada: statusPeriodo,
+                                          onPressed: () async {
+                                            showLoading(context);
+                                            await _avaliadores();
+                                            await _solicitacoes();
+                                            await Future.delayed(Duration(
+                                              seconds: 1,
+                                            ));
+                                            hideLoading(context);
+                                            CustomSolicitarShowBottomSheet.show(
+                                              gestaoAtiva: gestaoAtivaModel!,
+                                              context,
+                                              etapa: etapa,
+                                              avaliadores: avaliadores,
+                                              solicitacoes: solicitacoes,
+                                            );
+                                          },
                                         ),
-                                      ),
+                                      ],
                                     )
                                   : const SizedBox(),
                               etapa_selecionada_objeto != null &&
-                                      situacaoStatus != 'APROVADO' &&
-                                      statusPeriudo != true
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 16.0),
-                                      child: AvisoDeRegraAutorizacoesComponente(
-                                        etapa_selecionada_objeto:
-                                            etapa_selecionada_objeto,
-                                        autorizacaoSelecionada:
-                                            autorizacaoSelecionada,
-                                        statusDaAutorizacao:
-                                            statusDaAutorizacao,
-                                        dataLogicaExpiracao:
-                                            verificarSeDataAtualEmaior(
-                                          data: autorizacaoSelecionada!
-                                              .dataExpiracao
-                                              .toString(),
-                                        ),
-                                        dataEtapaValida: data_etapa_valida,
-                                        etapaId:
-                                            etapa_selecionada_objeto != null
-                                                ? etapa_selecionada_objeto!.id
-                                                : '',
-                                        instrutorDisciplinaTurmaID:
-                                            gestaoAtivaModel!.idt_id.toString(),
-                                        statusPeriudo: statusPeriudo,
-                                      ),
-                                    )
-                                  : const SizedBox(),
-                              ((data_etapa_valida &&
-                                          etapa_selecionada_objeto != null) ||
-                                      (etapa_selecionada_objeto != null &&
-                                          situacaoStatus == 'APROVADO' &&
-                                          !verificarSeDataAtualEmaior(
-                                              data: autorizacaoSelecionada!
-                                                  .dataExpiracao
-                                                  .toString())))
+                                      statusPeriodo != true
                                   ? Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                           Container(
                                             margin: const EdgeInsets.only(
-                                                bottom: 10),
+                                              bottom: 10,
+                                            ),
                                             child: const Text(
                                               'Tipo de Aula',
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black),
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
                                             ),
                                           ),
                                           InputDecorator(
@@ -780,7 +813,8 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                               ),
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
-                                                      horizontal: 16.0),
+                                                horizontal: 16.0,
+                                              ),
                                             ),
                                             child: DropdownButtonHideUnderline(
                                               child: DropdownButton<String>(
@@ -800,16 +834,10 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                   Icons.arrow_drop_down,
                                                   color: Colors.black,
                                                 ),
-                                                items: <String>[
-                                                  'Aula Normal',
-                                                  'Aula Remota',
-                                                  'Reposição',
-                                                  'Aula Extra',
-                                                  'Substituição',
-                                                  'Aula Antecipada',
-                                                  'Aula Extra-Atividade',
-                                                  'Recuperação',
-                                                ].map<DropdownMenuItem<String>>(
+                                                items: Constants.tiposDeAulas
+                                                    .map<
+                                                        DropdownMenuItem<
+                                                            String>>(
                                                   (String opcao) {
                                                     return DropdownMenuItem<
                                                         String>(
@@ -838,10 +866,11 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                             margin: const EdgeInsets.only(
                                                 bottom: 10),
                                             child: const Text(
-                                              'Data da Aula',
+                                              'Selecione uma data',
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black),
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
                                             ),
                                           ),
                                           Column(
@@ -868,6 +897,9 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                               ),
                                               _diaDaSemana != null
                                                   ? Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         const SizedBox(
                                                           height: 16.0,
@@ -889,27 +921,23 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             ),
                                                           ),
                                                         ),
-                                                        Align(
-                                                          alignment: Alignment
-                                                              .centerLeft,
-                                                          child: Card(
-                                                            color: AppTema
-                                                                .backgroundColorApp,
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .fromLTRB(
-                                                                      10,
-                                                                      5,
-                                                                      10,
-                                                                      5),
-                                                              child: Text(
-                                                                _diaDaSemana
-                                                                    .toString(),
-                                                                style:
-                                                                    const TextStyle(
-                                                                  fontSize: 16,
-                                                                ),
+                                                        Card(
+                                                          color: AppTema
+                                                              .backgroundColorApp,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .fromLTRB(
+                                                                    10,
+                                                                    5,
+                                                                    10,
+                                                                    5),
+                                                            child: Text(
+                                                              _diaDaSemana
+                                                                  .toString(),
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 16,
                                                               ),
                                                             ),
                                                           ),
@@ -918,7 +946,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                     )
                                                   : const SizedBox(),
                                               _diaDaSemana != null
-                                                  ? const SizedBox(height: 16)
+                                                  ? const SizedBox(height: 0)
                                                   : const SizedBox(height: 0),
                                               const SizedBox(height: 16),
                                               gestaoAtivaModel
@@ -940,7 +968,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                               10),
                                                                   child:
                                                                       const Text(
-                                                                    'Selecione o Horário',
+                                                                    'Selecione um horário',
                                                                     style: TextStyle(
                                                                         fontSize:
                                                                             16,
@@ -963,9 +991,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                                     setState(() =>
                                                                         _horario_selecionado =
                                                                             novaSelecao),
-                                                                focusColor:
-                                                                    Colors
-                                                                        .black,
                                                                 decoration:
                                                                     InputDecoration(
                                                                   filled: true,
@@ -1056,206 +1081,66 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                       1
                                                   ? Column(
                                                       children: [
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  top: 8.0,
-                                                                  bottom: 8.0),
-                                                          child: TextButton(
-                                                            onPressed: () =>
-                                                                _showMultiSelectDialog(
-                                                                    context),
-                                                            style:
-                                                                OutlinedButton
-                                                                    .styleFrom(
-                                                              backgroundColor:
-                                                                  AppTema
-                                                                      .primaryAmarelo,
-                                                              fixedSize:
-                                                                  const Size(
-                                                                      400.0,
-                                                                      48.0),
-                                                              side: const BorderSide(
-                                                                  width: 1.0,
-                                                                  color: AppTema
-                                                                      .primaryAmarelo),
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            8.0),
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            await showDialog(
+                                                              context: context,
+                                                              builder: (context) =>
+                                                                  CustomDisciplinasDialog(
+                                                                selectedDisciplinas:
+                                                                    selectedDisciplinas,
+                                                                onSelectedDisciplinas:
+                                                                    (disciplinas) {
+                                                                  setState(() {
+                                                                    selectedDisciplinas =
+                                                                        disciplinas;
+                                                                  });
+                                                                },
+                                                              ),
+                                                            );
+                                                          },
+                                                          style: OutlinedButton
+                                                              .styleFrom(
+                                                            backgroundColor: AppTema
+                                                                .primaryAmarelo,
+                                                            fixedSize:
+                                                                const Size(
+                                                                    400.0,
+                                                                    48.0),
+                                                            side:
+                                                                const BorderSide(
+                                                              width: 1.0,
+                                                              color: AppTema
+                                                                  .primaryAmarelo,
+                                                            ),
+                                                            shape:
+                                                                RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                8.0,
                                                               ),
                                                             ),
-                                                            child: const Text(
-                                                              'Selecione as disciplinas dessa aula',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .black),
+                                                          ),
+                                                          child: const Text(
+                                                            'Selecione as disciplinas dessa aula',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
                                                             ),
                                                           ),
                                                         ),
-                                                        Container(
-                                                          margin:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  bottom: 10,
-                                                                  top: 15),
-                                                          child: const Align(
-                                                            alignment: Alignment
-                                                                .centerLeft,
-                                                            child: Text(
-                                                              'Conteúdos',
-                                                              style: TextStyle(
-                                                                  fontSize: 16,
-                                                                  color: Colors
-                                                                      .black),
-                                                            ),
-                                                          ),
+                                                        const SizedBox(
+                                                          height: 18.0,
                                                         ),
-                                                        selectedDisciplinas
-                                                                .isNotEmpty
-                                                            ? Card(
-                                                                color: AppTema
-                                                                    .backgroundColorApp,
-                                                                elevation: 8.0,
-                                                                child: Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          8.0),
-                                                                  child: Column(
-                                                                    children:
-                                                                        selectedDisciplinas
-                                                                            .map((item) {
-                                                                      return Column(
-                                                                        crossAxisAlignment:
-                                                                            CrossAxisAlignment.start,
-                                                                        children: [
-                                                                          Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.symmetric(vertical: 4.0),
-                                                                            child:
-                                                                                Column(
-                                                                              children: item.data!.map((elemente) {
-                                                                                List<int> horarios = (elemente['horarios'] ?? []).cast<int>();
-                                                                                return Column(
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                  children: [
-                                                                                    _buildLabel('${item.descricao.toString()}:'),
-                                                                                    TextFormField(
-                                                                                      maxLines: 8,
-                                                                                      decoration: InputDecoration(
-                                                                                        focusedBorder: OutlineInputBorder(
-                                                                                          borderSide: const BorderSide(color: Colors.grey),
-                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                        ),
-                                                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                        border: OutlineInputBorder(
-                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                        ),
-                                                                                      ),
-                                                                                      onChanged: (value) {
-                                                                                        setState(() {
-                                                                                          elemente['conteudo'] = value;
-                                                                                        });
-                                                                                      },
-                                                                                      validator: (value) {
-                                                                                        if (value!.isEmpty) {
-                                                                                          return 'Por favor, preencha o campo';
-                                                                                        }
-                                                                                        return null;
-                                                                                      },
-                                                                                    ),
-                                                                                    Padding(
-                                                                                      padding: const EdgeInsets.only(top: 8.0),
-                                                                                      child: Text(
-                                                                                        'Horário de ${item.descricao.toString()}:',
-                                                                                        style: const TextStyle(
-                                                                                          fontWeight: FontWeight.w800,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                    Padding(
-                                                                                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                                                                      child: Container(
-                                                                                        decoration: BoxDecoration(
-                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                          border: Border.all(
-                                                                                            color: Colors.grey,
-                                                                                            width: 1.0,
-                                                                                          ),
-                                                                                        ),
-                                                                                        child: MultiSelectDialogField<int>(
-                                                                                          items: removeHorariosRepetidos(listaOriginal: listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!)!
-                                                                                              .map(
-                                                                                                (objeto) => MultiSelectItem<int>(
-                                                                                                  int.parse(objeto.horario.id),
-                                                                                                  objeto.horario.descricao,
-                                                                                                ),
-                                                                                              )
-                                                                                              .toList(),
-                                                                                          listType: MultiSelectListType.CHIP,
-                                                                                          initialValue: horarios,
-                                                                                          searchIcon: const Icon(Icons.search),
-                                                                                          title: const Text('Horários'),
-                                                                                          searchHint: 'Pesquisar',
-                                                                                          cancelText: const Text(
-                                                                                            'Cancelar',
-                                                                                            style: TextStyle(
-                                                                                              fontWeight: FontWeight.bold,
-                                                                                              color: AppTema.primaryAzul,
-                                                                                            ),
-                                                                                          ),
-                                                                                          confirmText: const Text(
-                                                                                            'Confirmar',
-                                                                                            style: TextStyle(
-                                                                                              fontWeight: FontWeight.bold,
-                                                                                              color: AppTema.primaryAzul,
-                                                                                            ),
-                                                                                          ),
-                                                                                          buttonText: const Text('Selecione'),
-                                                                                          buttonIcon: const Icon(Icons.arrow_drop_down),
-                                                                                          selectedColor: AppTema.secondaryAmarelo,
-                                                                                          selectedItemsTextStyle: const TextStyle(
-                                                                                            color: Colors.white,
-                                                                                          ),
-                                                                                          onConfirm: (List<int> selected) async {
-                                                                                            bool status = await validatePolivalenciaHorarios(
-                                                                                              context,
-                                                                                              selected,
-                                                                                            );
-                                                                                            if (!status) {
-                                                                                              return;
-                                                                                            }
-                                                                                            setState(() {
-                                                                                              horarios = selected;
-                                                                                              elemente['horarios'] = selected;
-                                                                                            });
-                                                                                          },
-                                                                                          validator: (selected) {
-                                                                                            if (selected == null || selected.isEmpty) {
-                                                                                              return 'Por favor, selecione ao menos um horário';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                );
-                                                                              }).toList(),
-                                                                            ),
-                                                                          ),
-                                                                          const Divider(),
-                                                                        ],
-                                                                      );
-                                                                    }).toList(),
-                                                                  ),
-                                                                ),
-                                                              )
-                                                            : const SizedBox(),
+                                                        CustomConteudoPolivalencia(
+                                                          context: context,
+                                                          items:
+                                                              selectedDisciplinas,
+                                                          relacaoDiaHorario:
+                                                              listaFiltradaDeHorariosPorHorariosDaColunaDaGestao ??
+                                                                  [],
+                                                        ),
                                                       ],
                                                     )
                                                   : const SizedBox(),
@@ -1392,7 +1277,9 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                             .validate() &&
                                                         (_errorText == null ||
                                                             _errorText == '')) {
-                                                      await _salvarAula();
+                                                      await _salvarAula(
+                                                        context,
+                                                      );
                                                     }
                                                   },
                                                   style:
@@ -1421,7 +1308,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                             ],
                                           )
                                         ])
-                                  : const Text('')
+                                  : const SizedBox()
                             ],
                           ),
                         ),
@@ -1431,23 +1318,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _buildDisciplinaFields(
-      Disciplina item, Map<String, dynamic> elemente) {
-    TextEditingController conteudoController =
-        TextEditingController(text: elemente['conteudo']);
-
-    conteudoController.addListener(() {
-      elemente['conteudo'] = conteudoController.text;
-    });
-
-    return Column(
-      children: [
-        _buildLabel('${item.descricao}:'),
-        _buildTextField(conteudoController, 'Por favor, preencha o conteúdo'),
-      ],
     );
   }
 
@@ -1463,35 +1333,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller, String validationMessage) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: controller,
-          maxLines: 8,
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-          validator: (value) {
-            if (value!.isEmpty) {
-              return validationMessage;
-            }
-            return null;
-          },
-        ),
-      ],
     );
   }
 }

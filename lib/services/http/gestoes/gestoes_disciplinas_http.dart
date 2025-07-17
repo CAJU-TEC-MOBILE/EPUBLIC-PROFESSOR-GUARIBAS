@@ -10,26 +10,23 @@ import '../../../models/instrutor_model.dart';
 import '../../controller/Instrutor_controller.dart';
 import '../../controller/ano_selecionado_controller.dart';
 import '../../controller/gestao_disciplina_controller.dart';
+import '../../shared_preference_service.dart';
 
 class GestaoDisciplinaHttp {
-  final Box authBox = Hive.box('auth');
-
-  Future<Map<dynamic, dynamic>?> _getAuthData() async {
-    return authBox.get('auth');
-  }
+  final preference = SharedPreferenceService();
 
   Future<http.Response> getGestaoDisciplinas() async {
     final instrutorController = InstrutorController();
     final gestaoDisciplinaController = GestaoDisciplinaController();
     final anoSelecionadoController = AnoSelecionadoController();
- 
+
     await Future.wait([
       instrutorController.init(),
       gestaoDisciplinaController.init(),
       anoSelecionadoController.init(),
+      preference.init()
     ]);
-
-    Map<dynamic, dynamic>? authData = await _getAuthData();
+    String? token = await preference.getToken();
     List<Instrutor> instrutores = instrutorController.getAllInstrutores();
 
     if (instrutores.isEmpty) {
@@ -40,19 +37,20 @@ class GestaoDisciplinaHttp {
     final instrutorId = instrutor.id.toString();
     final instrutorToken = instrutor.token.toString();
     final anoId = int.parse(instrutor.anoId);
-    final tokenAutorizacao = authData?['token_atual'] ?? instrutorToken;
+    final tokenAutorizacao = token ?? instrutorToken;
 
     Ano? ano = await anoSelecionadoController.getAnoSelecionadoAno();
     ano ??= Ano(id: anoId, descricao: 'Ano selecionado', situacao: '1');
 
-    final url = Uri.parse('${ApiBaseURLService.baseUrl}/notifiq-professor/aulas/gestoes/instrutores-disciplinas-gestao-ano/$instrutorId/${ano.id}');
-    
+    final url = Uri.parse(
+        '${ApiBaseURLService.baseUrl}/notifiq-professor/aulas/gestoes/instrutores-disciplinas-gestao-ano/$instrutorId/${ano.id}');
+
     try {
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $tokenAutorizacao'},
       );
-      
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
         List<dynamic> data = jsonResponse['data'];
@@ -73,7 +71,8 @@ class GestaoDisciplinaHttp {
         }
         return response;
       } else {
-        return http.Response('Erro: Não foi possível buscar as gestões.', response.statusCode);
+        return http.Response(
+            'Erro: Não foi possível buscar as gestões.', response.statusCode);
       }
     } catch (e) {
       print('Erro ao buscar gestões: $e');

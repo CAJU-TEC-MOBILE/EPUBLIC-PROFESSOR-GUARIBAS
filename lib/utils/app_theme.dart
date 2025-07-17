@@ -16,7 +16,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
-      primaryColor: primaryColor,
+      // primaryColor: primaryColor,
       scaffoldBackgroundColor: Colors.white,
       appBarTheme: AppBarTheme(
         backgroundColor: primaryColor,
@@ -33,7 +33,7 @@ class AppTheme {
           horizontal: 16,
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primaryColor),
+          // borderSide: BorderSide(color: primaryColor),
           borderRadius: BorderRadius.circular(8.0),
         ),
         focusedBorder: OutlineInputBorder(

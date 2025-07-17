@@ -122,7 +122,7 @@ class _CustomMultiSelectDropdownState extends State<CustomMultiSelectDropdown> {
                   clearSelectedDisciplinas();
                   Navigator.of(context).pop(true);
                 },
-                child: const Text('Limpar Seleções'),
+                child: const Text('Cancelar'),
               ),
               TextButton(
                 onPressed: () {

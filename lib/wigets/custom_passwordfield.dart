@@ -14,6 +14,7 @@ class CustomPasswordField extends StatefulWidget {
   final TextStyle? labelStyle;
   final EdgeInsetsGeometry contentPadding;
   final String? Function(String?)? validator;
+  final bool? enabled;
 
   const CustomPasswordField({
     super.key,
@@ -29,6 +30,7 @@ class CustomPasswordField extends StatefulWidget {
       horizontal: 10.0,
     ),
     this.validator,
+    this.enabled,
   });
 
   @override
@@ -50,6 +52,7 @@ class _CustomPasswordFieldState extends State<CustomPasswordField> {
       controller: widget.controller,
       obscureText: _obscureText,
       validator: widget.validator,
+      enabled: widget.enabled,
       decoration: InputDecoration(
         labelText: 'Senha',
         prefixIcon: const Icon(Icons.lock),

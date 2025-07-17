@@ -1,10 +1,12 @@
+import 'dart:ffi';
 import 'package:professor_acesso_notifiq/models/matricula_model.dart';
 import 'package:professor_acesso_notifiq/models/models_online/falta_model_online.dart';
 import 'dart:async';
-
 import 'package:professor_acesso_notifiq/services/http/faltas/faltas_da_aula_online_enviar_http.dart';
+import '../../shared_preference_service.dart';
 
 class FaltasDaAulaOnlineEnviarService {
+  final preference = SharedPreferenceService();
   Future<void> setExecutar({
     required List<dynamic>? dataFrequencias,
     required String aulaId,
@@ -21,7 +23,6 @@ class FaltasDaAulaOnlineEnviarService {
     required List<bool?> isLiked,
     required List<dynamic> justificavasDaMatricula,
   }) async {
-    //print('-------------------SALVANDO FREQUẼNCIA ONLINE---------------');
     List<dynamic>? listFaltasSemJustificavasDaMatricula = [];
     bool addItem = true;
     for (var element in isLiked) {
@@ -40,7 +41,6 @@ class FaltasDaAulaOnlineEnviarService {
         ),
       );
     }
-
     matriculasDaTurmaAtiva.asMap().forEach((index, matricula) {
       bool salvar = true;
       bool atualizarJustificativa = false;
@@ -63,55 +63,28 @@ class FaltasDaAulaOnlineEnviarService {
           indexFalta = indexFaltaAtual;
           faltaIdAula = falta.aula_id;
           deletarFalta = true;
-
           if (falta.justificativa_id.toString() !=
               justificavasDaMatricula[index].toString()) {
-            // ignore: prefer_interpolation_to_compose_strings, avoid_print
             print('diferente justificativa');
             atualizarJustificativa = true;
             deletarFalta = false;
           }
         }
       });
-      //print('listFaltasSemJustificavasDaMatricula: ${listFaltasSemJustificavasDaMatricula}');
       if (faltasOnlines[indexFalta].aula_id.toString() == aula_id.toString() &&
           salvar == false &&
           deletarFalta == false &&
           atualizarJustificativa == true) {
-        // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print('Atualizando ' +
-        //     matriculasDaTurmaAtiva[index].aluno_nome.toString());
-        // // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print('antes => ' +
-        //     faltasOnlines[indexFalta].justificativa_id.toString());
-
         faltasOnlines[indexFalta].justificativa_id =
             justificavasDaMatricula[index].toString();
-        // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print('depois => ' +
-        //     faltasOnlines[indexFalta].justificativa_id.toString());
       } else if (faltaIdAula.toString() == aula_id.toString() &&
           salvar == false &&
           deletarFalta == true &&
           atualizarJustificativa == false &&
           isLiked[index] != false) {
-        // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print('Deletando ' +
-        //     matriculasDaTurmaAtiva[index].aluno_nome.toString() +
-        //     '--' +
-        //     faltasOnlines[indexFalta].matricula_id);
-        // // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print('indexFalta: $indexFalta');
-        // // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print('faltasOnlines.length: ${faltasOnlines.length}');
-        // // ignore: prefer_interpolation_to_compose_strings, avoid_print
-        // print(
-        //     'faltasOnlines[indexFalta].matricula_id: ${faltasOnlines[indexFalta].matricula_id}');
         faltasOnlines.removeAt(indexFalta);
       } else {
         if (isLiked[index] == false && salvar == true) {
-          // ignore: prefer_interpolation_to_compose_strings, avoid_print
-          // print('criando ' + matricula.aluno_nome.toString());
           faltasOnlines.add(FaltaModelOnline(
             id: 'nova_aula',
             justificativa_id: justificavasDaMatricula[index].toString(),
@@ -129,14 +102,8 @@ class FaltasDaAulaOnlineEnviarService {
       listaFaltasSemJustificavasDaMatricula:
           listFaltasSemJustificavasDaMatricula,
     );
-    // ignore: prefer_interpolation_to_compose_strings, avoid_print
-    // print('---------------FINAL----------------');
-
     if (faltasOnlines.isNotEmpty) {
-      // ignore: prefer_interpolation_to_compose_strings, avoid_print
-      // print('faltasOnlines.length: ${faltasOnlines.length}');
       faltasOnlines.asMap().forEach((index, element) {
-        // ignore: prefer_interpolation_to_compose_strings, avoid_print
         print('index: ' +
             index.toString() +
             '° - matricula_id: ' +

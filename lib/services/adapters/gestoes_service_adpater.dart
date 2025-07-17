@@ -87,10 +87,10 @@ class GestoesService {
           });
         }
 
-        Future.microtask(() {
-          CustomSnackBar.showSuccessSnackBar(
-              context, 'Gestões atualizadas com sucesso!');
-        });
+        // Future.microtask(() {
+        //   CustomSnackBar.showSuccessSnackBar(
+        //       context, 'Gestões atualizadas com sucesso!');
+        // });
       } else if (response.statusCode == 401) {
         removerDadosAuth();
         Future.microtask(() {
@@ -201,7 +201,6 @@ class GestoesService {
 
     if (storedGestoes != null && storedGestoes.length > 0) {
       await gestoesBox.clear();
-      print('---------------BOX GESTÕES (CLEAR)--------------');
     }
 
     await gestoesBox.put('gestoes', gestoes);

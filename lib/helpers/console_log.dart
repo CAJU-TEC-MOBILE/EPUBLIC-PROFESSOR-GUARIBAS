@@ -12,7 +12,7 @@ class ConsoleLog {
     String colorCode = tipo.getCor();
     String resetColor = '\x1B[0m';
     debugPrint(
-      '================\n$colorCode$titulo: \n $mensagem$resetColor\n================',
+      '================\n$colorCode$titulo: $mensagem$resetColor\n================',
     );
   }
 

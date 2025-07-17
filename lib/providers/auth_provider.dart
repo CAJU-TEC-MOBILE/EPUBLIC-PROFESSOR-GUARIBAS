@@ -49,18 +49,17 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
 
-      hideLoading(context);
-
       if (!success) {
+        hideLoading(context);
         enabledTextFormField = true;
         isLoading = false;
         notifyListeners();
-        hideLoading(context);
         return false;
       }
 
       enabledTextFormField = true;
       isLoading = false;
+      hideLoading(context);
       notifyListeners();
       CustomSnackBar.showSuccessSnackBar(context, 'Logado com sucesso!');
       Navigator.pushReplacementNamed(context, '/home');
@@ -68,6 +67,8 @@ class AuthProvider with ChangeNotifier {
     } catch (error) {
       enabledTextFormField = true;
       isLoading = false;
+      hideLoading(context);
+      notifyListeners();
       ConsoleLog.mensagem(
         titulo: 'auth-provider-login',
         mensagem: error.toString(),

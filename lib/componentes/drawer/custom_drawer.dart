@@ -13,14 +13,14 @@ import '../../pages/usuarioPage.dart';
 import '../../services/adapters/auth_service_adapter.dart';
 import '../../services/controller/professor_controller.dart';
 import '../../services/shared_preference_service.dart';
+import '../../wigets/dialog/custom_status_dialog.dart';
 import '../dropdown/custom_anos_dropdown.dart';
 import 'custom_user_info_drawer.dart';
+import 'package:flutter_material_design_icons/flutter_material_design_icons.dart';
 
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({super.key});
-
   @override
-  // ignore: library_private_types_in_public_api
   _CustomDrawerState createState() => _CustomDrawerState();
 }
 
@@ -35,10 +35,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
   Professor? professor;
   File? _image;
   bool isLoadingImage = false;
-
   Map<dynamic, dynamic> authData = {};
   late Box _authBox;
-
   @override
   void initState() {
     super.initState();
@@ -76,11 +74,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
     try {
       ProfessorController professorController = ProfessorController();
       AuthServiceAdapter authService = AuthServiceAdapter();
-
       await professorController.init();
-
       Professor? professorData = await professorController.getProfessor();
-
       if (professorData != null) {
         setState(() {
           professor = professorData;
@@ -117,16 +112,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   children: [
                     const CustomUserInfoDrawer(),
                     const SizedBox(height: 4.0),
-                    Text(
-                      professor!.nome.toString(),
-                      style: const TextStyle(
-                        color: AppTema.primaryDarkBlue,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    professor != null
+                        ? Text(
+                            professor!.nome.toString(),
+                            style: const TextStyle(
+                              color: AppTema.primaryDarkBlue,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const SizedBox(),
                     const SizedBox(height: 4.0),
-                    //const CustomAnoDropdown(),
                     const CustomAnosDropdown(),
                   ],
                 ),
@@ -146,7 +142,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.home),
+              leading: const Icon(MdiIcons.home),
               title: const Text('Home'),
               onTap: () {
                 Navigator.push(
@@ -158,7 +154,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.list_alt),
+              leading: const Icon(MdiIcons.listBox),
               title: const Text('Pedidos'),
               onTap: () {
                 Navigator.push(
@@ -181,77 +177,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 );
               },
             ),
-            // ListTile(
-            //   leading: const Icon(Icons.settings),
-            //   title: const Text('Configuração'),
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => const SobreAppPage(),
-            //       ),
-            //     );
-            //   },
-            // ),
-            const Divider(),
+            const Divider(
+              color: Colors.grey,
+            ),
             ListTile(
-              leading: const Icon(Icons.logout),
+              leading: const Icon(MdiIcons.logoutVariant),
               title: const Text('Sair'),
               onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      backgroundColor: AppTema.primaryWhite,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(8.0),
-                        ),
-                      ),
-                      content: const Text(
-                        'Deseja realmente sair do aplicativo?',
-                        style: TextStyle(color: AppTema.primaryDarkBlue),
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            backgroundColor: AppTema.primaryWhite,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                8.0,
-                              ),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text(
-                            'Cancelar',
-                            style: TextStyle(color: AppTema.primaryDarkBlue),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            await preference.init();
-                            await removerDadosAuth();
-                            await preference.limparDados();
-                            Navigator.pushReplacementNamed(context, '/login');
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                8.0,
-                              ),
-                            ),
-                          ),
-                          child: const Text(
-                            'Sair',
-                            style: TextStyle(color: AppTema.primaryDarkBlue),
-                          ),
-                        ),
-                      ],
-                    );
+                CustomStatusDialog.informacao(
+                  context,
+                  mensagem: 'Tem certeza que deseja sair?',
+                  onConfirm: () async {
+                    await preference.init();
+                    await removerDadosAuth();
+                    await preference.limparDados();
+                    Navigator.pushReplacementNamed(context, '/login');
                   },
                 );
               },

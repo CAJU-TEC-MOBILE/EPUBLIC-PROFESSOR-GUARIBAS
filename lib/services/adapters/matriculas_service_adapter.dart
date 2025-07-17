@@ -12,10 +12,10 @@ class MatriculasServiceAdapter {
       matriculasBox.add(matricula);
     }
 
-    List<Matricula> matriculasData = matriculasBox.values.toList();
+    // List<Matricula> matriculasData = matriculasBox.values.toList();
 
-    print("-----------------TODAS AS MATRÍCULAS SALVAS---------------------");
-    print('TOTAL DE MATRÍCULAS: ${matriculasData.length}');
+    // print("-----------------TODAS AS MATRÍCULAS SALVAS---------------------");
+    // print('TOTAL DE MATRÍCULAS: ${matriculasData.length}');
   }
 
   Future<List<Matricula>> listar() async {
@@ -31,6 +31,6 @@ class MatriculasServiceAdapter {
     if (matriculasData != null && matriculasData.isNotEmpty) {
       await matriculasBox.clear();
     }
-    print('---------------BOX MATRÍCULAS (CLEAR)---------------');
+    // print('---------------BOX MATRÍCULAS (CLEAR)---------------');
   }
 }

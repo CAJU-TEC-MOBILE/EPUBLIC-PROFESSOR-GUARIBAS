@@ -779,7 +779,6 @@ class _AulaInfantilAtualizarPageState extends State<AulaInfantilAtualizarPage> {
                                                     setState(() =>
                                                         _horario_selecionado =
                                                             novaSelecao),
-                                                focusColor: Colors.black,
                                                 decoration: InputDecoration(
                                                   filled: true,
                                                   fillColor: AppTema

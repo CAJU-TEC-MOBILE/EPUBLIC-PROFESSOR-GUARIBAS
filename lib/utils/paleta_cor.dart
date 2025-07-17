@@ -1,11 +1,11 @@
-// utils/app_tema.dart
 import 'package:flutter/material.dart';
 
 class PaletaCor {
+  static const Color primaryError = Color(0xFFFF6050);
   static const Color primaryDarkBlue = Color(0xFF1B2A48);
   static const Color primaryFrequencia = Color(0xFF1E27C3);
   static const Color primaryWhite = Color(0xFFFFFFFF);
-  static const Color backgroundColorApp = Color(0xFFF5F6F8); // Cor do fundo
+  static const Color backgroundColorApp = Color(0xFFF5F6F8);
   static const Color primaryAmarelo = Color.fromARGB(0xFF, 0xEB, 0xB1, 0x0F);
   static const Color secondaryAmarelo = Color.fromARGB(255, 219, 178, 67);
   static const Color primaryAzul = Color.fromARGB(255, 8, 90, 230);
@@ -13,6 +13,8 @@ class PaletaCor {
   static const Color error = Color.fromARGB(255, 243, 76, 64);
   static const Color texto = Color.fromARGB(255, 0, 0, 0);
   static const double fontSize = 16.0;
+  static const Color grey = Colors.grey;
+
   static const FontWeight fontWeight = FontWeight.normal;
   static const List<Color> coresParaGraficos = [
     Colors.amber,

@@ -39,14 +39,13 @@ class HorarioController {
   }
 
   Future<String> getDescricaoHorario(int id) async {
-    await init();
     final horarios = _horarioBox.values.toList();
 
     if (horarios.isEmpty) {
       return 'Nenhum horário disponível.';
     }
 
-    final horario = horarios[0].firstWhere(
+    final horario = horarios.firstWhere(
       (h) => h['id'].toString() == id.toString(),
       orElse: () => null,
     );

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:professor_acesso_notifiq/componentes/global/botao_principal_grande.dart';
-import 'package:professor_acesso_notifiq/componentes/global/user_info_componente.dart';
 import 'package:professor_acesso_notifiq/componentes/graficos/doughnut_grafico_disciplinas_por_gestao_componente.dart';
 import 'package:professor_acesso_notifiq/componentes/graficos/stacked_bar_grafico_disciplinas_por_gestao_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
@@ -10,7 +8,6 @@ import 'package:professor_acesso_notifiq/pages/aulas/sem_relacao_dia_horario_par
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import '../componentes/dialogs/custom_dialogs.dart';
-import '../componentes/drawer/custom_drawer.dart';
 import '../models/gestao_disciplina_model.dart';
 import '../services/controller/disciplina_controller.dart';
 import '../services/controller/gestao_disciplina_controller.dart';
@@ -19,7 +16,6 @@ import '../services/http/gestoes/gestoes_disciplinas_http.dart';
 class PrincipalPage extends StatefulWidget {
   final String? gestaoId;
   const PrincipalPage({super.key, this.gestaoId});
-
   @override
   State<PrincipalPage> createState() => _PrincipalPageState();
 }
@@ -44,21 +40,16 @@ class _PrincipalPageState extends State<PrincipalPage> {
       setState(() => disciplinas = []);
       return;
     }
-
     final DisciplinaController disciplinaController = DisciplinaController();
     await disciplinaController.init();
-
     String turmaId = gestaoAtivaModel!.idt_turma_id.toString();
     String idtId = gestaoAtivaModel!.idt_id.toString();
-
     disciplinas = await disciplinaController.getAllDisciplinasPeloTurmaId(
       turmaId: turmaId,
       idtId: idtId,
     );
-
     descricaoString =
         disciplinas.map((disciplina) => disciplina.descricao).join(', ');
-
     setState(() => descricaoString);
   }
 
@@ -68,11 +59,9 @@ class _PrincipalPageState extends State<PrincipalPage> {
             ? '/criarAulaInfantil'
             : '/criarAula'
         : '/semRelacaoDiaHorarioParaCriar';
-
     final arguments = gestaoAtivaModel!.relacoesDiasHorarios.isNotEmpty
         ? {'instrutorDisciplinaTurmaId': widget.gestaoId.toString()}
         : null;
-
     if (route == '/semRelacaoDiaHorarioParaCriar') {
       Navigator.push(
         context,
@@ -106,18 +95,13 @@ class _PrincipalPageState extends State<PrincipalPage> {
     GestaoDisciplinaController gestaoDisciplinaController =
         GestaoDisciplinaController();
     await gestaoDisciplinaController.init();
-    //await Future.delayed(const Duration(seconds: 3));
-
     setState(() {});
-
     List<dynamic>? lista = await gestaoDisciplinaController.getFranquiaPeloId(
       id: gestaoAtivaModel!.configuracao_id.toString(),
     );
-
     if (lista == null) {
       return;
     }
-
     int i = 0;
     double newHeight = heightCardAtual;
     for (var item in lista) {
@@ -127,7 +111,6 @@ class _PrincipalPageState extends State<PrincipalPage> {
         }
       }
     }
-
     setState(() {
       heightCardAtual = newHeight;
     });
@@ -138,12 +121,8 @@ class _PrincipalPageState extends State<PrincipalPage> {
       GestaoDisciplinaController gestaoDisciplinaController =
           GestaoDisciplinaController();
       await gestaoDisciplinaController.init();
-      //await Future.delayed(const Duration(seconds: 3));
-
       List<dynamic> lista = await gestaoDisciplinaController.getFranquias();
-
       int i = 0;
-
       if (lista.isNotEmpty) {
         for (var item in lista) {
           if (item is Map<String, dynamic>) {
@@ -151,7 +130,6 @@ class _PrincipalPageState extends State<PrincipalPage> {
           }
         }
       }
-
       setState(() => heightCardTotal);
     } catch (e) {
       print('error-todas-as-franquias: $e');
@@ -160,7 +138,6 @@ class _PrincipalPageState extends State<PrincipalPage> {
 
   @override
   Widget build(BuildContext context) {
-    //print(widget.gestaoId);
     return Scaffold(
       backgroundColor: AppTema.backgroundColorApp,
       appBar: AppBar(
@@ -281,68 +258,10 @@ class _PrincipalPageState extends State<PrincipalPage> {
                 ),
               ),
             ),
-            // Container(
-            //   padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
-            //   child: Row(
-            //     // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            //     children: [
-            //       gestaoAtivaModel!.relacoesDiasHorarios.isNotEmpty
-            //           ? BotaoPrincipalGrande(
-            //               texto: 'Criar Aula',
-            //               icon: Icons.add,
-            //               cor: AppTema.primaryAmarelo,
-            //               onPressed: () => Navigator.pushNamed(
-            //                 context,
-            //                 gestaoAtivaModel!.is_infantil == true
-            //                     ? '/criarAulaInfantil'
-            //                     : '/criarAula',
-            //                 arguments: {
-            //                   'instrutorDisciplinaTurmaId':
-            //                       widget.gestaoId.toString()
-            //                 },
-            //               ),
-            //             )
-            //           : BotaoPrincipalGrande(
-            //               texto: 'Criar Aula',
-            //               icon: Icons.add,
-            //               cor: AppTema.primaryAmarelo,
-            //               onPressed: () => Navigator.push(
-            //                 context,
-            //                 MaterialPageRoute(
-            //                     builder: (context) =>
-            //                         SemRelacaoDiaHorarioParaCriar()),
-            //               ),
-            //             ),
-            //       BotaoPrincipalGrande(
-            //         texto: 'Ver Aulas',
-            //         icon: Icons.list,
-            //         cor: AppTema.primaryAmarelo,
-            //         onPressed: () => Navigator.pushNamed(
-            //             context,
-            //             gestaoAtivaModel!.is_infantil == true
-            //                 ? '/listagemAulasInfantil'
-            //                 : '/listagemAulas',
-            //             arguments: {
-            //               'instrutorDisciplinaTurmaId':
-            //                   widget.gestaoId.toString()
-            //             }),
-            //       ),
-            //       // BotaoPrincipalGrande(
-            //       //   texto: 'Gráficos',
-            //       //   icon: Icons.bar_chart,
-            //       //   cor: AppTema.primaryAmarelo,
-            //       //   onPressed: () =>
-            //       //       {Navigator.pushNamed(context, '/graficos')},
-            //       // ),
-            //     ],
-            //   ),
-            // ),
             Container(
               color: AppTema.backgroundColorApp,
               child: Column(
                 children: [
-                  // Text('heightCardAtual: $heightCardAtual'),
                   Container(
                     padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
                     height: heightCardAtual,
@@ -401,7 +320,6 @@ class _PrincipalPageState extends State<PrincipalPage> {
                       ),
                     ),
                   ),
-                  // Text('heightCardTotal: $heightCardTotal'),
                   Container(
                     padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
                     height: MediaQuery.of(context).size.height,
@@ -465,119 +383,6 @@ class _PrincipalPageState extends State<PrincipalPage> {
                 ],
               ),
             ),
-            /* Container(
-              padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
-              height: 400,
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                color: const Color.fromARGB(255, 228, 225, 225),
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 128, 118, 88),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(8.0),
-                          topRight: Radius.circular(8.0),
-                        ),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Disciplinas por gestão',
-                              style: TextStyle(
-                                  color: AppTema.primaryAmarelo,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Franquia atual',
-                              style: TextStyle(
-                                  color: AppTema.primaryAmarelo,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: DoughnutGraficoDisciplinasPorGestaoComponente(
-                        todasAsFranquias: false,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),*/
-            /*Container(
-              padding: const EdgeInsets.only(top: 10, left: 5, right: 5),
-              height: 500,
-              child: SizedBox(
-                width: double.infinity,
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  color: const Color.fromARGB(255, 228, 225, 225),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          color: Color.fromARGB(255, 217, 168, 6),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(8.0),
-                            topRight: Radius.circular(8.0),
-                          ),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Disciplinas por gestão',
-                                style: TextStyle(
-                                    color: AppTema.primaryAmarelo,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Todas as franquias',
-                                style: TextStyle(
-                                    color: AppTema.primaryAmarelo,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: StackedBarGraficoDisciplinasPorGestao(
-                          todasAsFranquias: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )*/
           ],
         ),
       ),

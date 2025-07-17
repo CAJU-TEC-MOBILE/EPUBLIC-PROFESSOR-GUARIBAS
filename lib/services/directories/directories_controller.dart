@@ -229,7 +229,7 @@ class DirectoriesController {
       if (file is File) {
         String fileName = basename(file.path);
         if (fileName.contains('_$userId')) {
-          print("Imagem encontrada: ${file.path}");
+          // print("Imagem encontrada: ${file.path}");
           return file;
         }
       }

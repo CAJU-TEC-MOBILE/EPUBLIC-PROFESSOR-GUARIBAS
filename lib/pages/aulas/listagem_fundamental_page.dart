@@ -1,25 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:professor_acesso_notifiq/componentes/aulas/situacao_aula_componente.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
-import 'package:professor_acesso_notifiq/constants/emojis.dart';
 import 'package:professor_acesso_notifiq/functions/aplicativo/converter_data_america_para_brasil.dart';
-import 'package:professor_acesso_notifiq/functions/retornar_horario_selecionado.dart';
 import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/pages/aulas/aula_atualizar_page.dart';
 import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_offline_page.dart';
 import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_online_page.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offlines_listar_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_service_adapter.dart';
-import 'dart:async';
-import 'package:professor_acesso_notifiq/services/http/aulas/aulas_offline_sincronizar_service.dart';
 import '../../componentes/appbar/custom_appbar.dart';
 import '../../componentes/card/custom_fundamental_card.dart';
 import '../../componentes/dialogs/custom_sync_dialog.dart';
+import '../../componentes/dialogs/custom_sync_padrao_dialog.dart';
+import '../../componentes/global/preloader.dart';
 import '../../models/disciplina_aula_model.dart';
 import '../../models/disciplina_model.dart';
-import '../../models/horario_model.dart';
+import '../../repository/aula_repository.dart';
 import '../../services/controller/aula_controller.dart';
 import '../../services/controller/disciplina_aula_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
@@ -32,19 +29,16 @@ import '../aula_page_controller.dart';
 class ListagemFundamentalPage extends StatefulWidget {
   final String? instrutorDisciplinaTurmaId;
   const ListagemFundamentalPage({super.key, this.instrutorDisciplinaTurmaId});
-
   @override
   State<ListagemFundamentalPage> createState() => _ListagemAulasPageState();
 }
 
 class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
   GestaoAtiva? gestaoAtivaModel;
-  // ignore: non_constant_identifier_names
   List<Aula> aulas_offlines = AulasOfflinesListarServiceAdapter().executar();
   final horarioConfiguracaoController = HorarioConfiguracaoController();
-  // ignore: prefer_final_fields
+  final aulaRepository = AulaRepository();
   Box _gestaoAtivaBox = Hive.box('gestao_ativa');
-  // ignore: non_constant_identifier_names
   Map<dynamic, dynamic>? gestao_ativa_data;
   List<Disciplina> disciplinas = [];
   List<DisciplinaAula> disciplinasAula = [];
@@ -56,7 +50,6 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
   int currentPage = 0;
   List<Aula> paginatedItems = [];
   int totalPages = 0;
-
   int getTotalPages() {
     return (aulas_offlines.length / itemsPerPage).ceil();
   }
@@ -95,16 +88,14 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
     setState(() {
       isLoading = true;
     });
-    //await carregarDadosExtras();
-    await horarioConfiguracaoController.init();
     await carregarDados();
+    await horarioConfiguracaoController.init();
     await getAulas();
     await fetchDisciplinas();
     await fetchDisciplinasAula();
     await fetchDisciplinaHorarios();
     await fetchHorarios();
     await Future.delayed(const Duration(seconds: 3));
-
     setState(() {
       isLoading = false;
       disciplinasAula;
@@ -137,7 +128,6 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
       gestao_ativa_data = await _gestaoAtivaBox.get('gestao_ativa');
       List<Aula> dados =
           await AulasOfflineOnlineServiceAdapter().todasAsAulas(context);
-
       if (dados.isEmpty) {
         debugPrint('Nenhum dado disponível no momento');
         if (mounted) {
@@ -147,12 +137,10 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
         }
         return;
       }
-
       for (final item in dados) {
         item.disciplinas ??= [];
         item.horarios_extras_formatted ??= [];
       }
-
       if (mounted) {
         setState(() {
           aulas_offlines = dados;
@@ -167,13 +155,10 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
     try {
       DisciplinaController disciplinaController = DisciplinaController();
       await disciplinaController.init();
-
       List<Disciplina> fetchedDisciplinas =
           disciplinaController.getAllDisciplinas();
-
       disciplinas = fetchedDisciplinas;
     } catch (e) {
-      // print('Erro ao buscar horários: $e');
       return;
     }
   }
@@ -182,11 +167,8 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
     try {
       DisciplinaAulaController disciplinaAulaController =
           DisciplinaAulaController();
-
       await disciplinaAulaController.init();
-
       disciplinasAula = disciplinaAulaController.getAllAulas();
-
       return disciplinasAula;
     } catch (e) {
       print('Erro ao buscar horários: $e');
@@ -201,11 +183,9 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
       await disciplinaAulaController.init();
       List<Map<String, dynamic>> fetchedHorarios =
           await disciplinaAulaController.getHorariosExtrasAll();
-
       setState(() {
         disciplinaHorarios = fetchedHorarios;
       });
-
       return disciplinaHorarios;
     } catch (e) {
       print('Erro ao buscar horários: $e');
@@ -217,9 +197,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
     try {
       HorarioController horarioController = HorarioController();
       await horarioController.init();
-
       horarios = await horarioController.getAllHorario();
-
       return horarios;
     } catch (e) {
       print('Erro ao buscar horários: $e');
@@ -236,7 +214,6 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
         } else if ((a.id ?? '').isNotEmpty && (b.id ?? '').isEmpty) {
           return 1;
         }
-
         if (a.dataDaAula != null && b.dataDaAula != null) {
           return a.dataDaAula.compareTo(b.dataDaAula);
         } else if (a.dataDaAula != null) {
@@ -246,7 +223,6 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
         }
         return 0;
       });
-
       totalPages = getTotalPages();
     });
   }
@@ -269,7 +245,24 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
       child: Scaffold(
         backgroundColor: AppTema.backgroundColorApp,
         appBar: CustomAppBar(
-          onPressedSynchronizer: () async => await iniciando(),
+          onPressedSynchronizer: () async {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return CustomSyncPadraoDialog(
+                  message:
+                      "Tem certeza de que deseja prosseguir com a atualização destas aulas?",
+                  onCancel: () => Navigator.of(context).pop(false),
+                  onConfirm: () async {
+                    showLoading(context);
+                    await iniciando();
+                    hideLoading(context);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            );
+          },
         ),
         body: isLoading != true
             ? Column(
@@ -291,7 +284,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                           child: CustomFundamentalCard(
                                             paginatedItems: aula,
                                             onSync: () async {
-                                              showDialog(
+                                              await showDialog(
                                                 context: context,
                                                 builder:
                                                     (BuildContext context) {
@@ -300,17 +293,19 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                                           Navigator.of(context)
                                                               .pop(false),
                                                       onConfirm: () async {
-                                                        await AulasOfflineSincronizarService()
-                                                            .executar(
-                                                          context,
-                                                          aula,
-                                                          aula.experiencias,
-                                                          aula.series ?? [],
+                                                        await aulaRepository
+                                                            .sincronizar(
+                                                          context: context,
+                                                          aula: aula,
+                                                          experiencias:
+                                                              aula.experiencias,
+                                                          seriesSelecionadas:
+                                                              aula.series ?? [],
                                                         );
-                                                        await carregarDados();
                                                       });
                                                 },
                                               );
+                                              carregarDados();
                                             },
                                             onFrequencia: () async {
                                               if (aula.id.toString().isEmpty) {
@@ -349,16 +344,24 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                               );
                                             },
                                             onEdit: () async {
-                                              Navigator.push(
+                                              bool status = await aulaRepository
+                                                  .selecionar(
+                                                model: aula,
+                                              );
+                                              if (status != true) {
+                                                return;
+                                              }
+                                              await Navigator.pushNamed(
                                                 context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AulaAtualizarPage(
-                                                    aulaLocalId: aula
-                                                        .criadaPeloCelular
-                                                        .toString(),
-                                                  ),
-                                                ),
+                                                '/atualizarAula',
+                                                arguments: {
+                                                  'aulaLocalId': aula
+                                                      .criadaPeloCelular
+                                                      .toString(),
+                                                  'instrutorDisciplinaTurmaId': aula
+                                                      .instrutorDisciplinaTurma_id
+                                                      .toString(),
+                                                },
                                               );
                                             },
                                           ),
@@ -426,9 +429,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                         backgroundColor:
                                             AppTema.primaryDarkBlue,
                                       ),
-                                      child:
-                                          // Text('Anterior (Página ${currentPage})'),
-                                          const Icon(
+                                      child: const Icon(
                                         Icons.arrow_circle_left,
                                         color: Colors.white,
                                       ),
@@ -451,9 +452,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                             backgroundColor:
                                                 AppTema.primaryDarkBlue,
                                           ),
-                                          child:
-                                              // Text('Próxima (${currentPage + 2})'),
-                                              const Icon(
+                                          child: const Icon(
                                             Icons.arrow_circle_right,
                                             color: Colors.white,
                                           ),

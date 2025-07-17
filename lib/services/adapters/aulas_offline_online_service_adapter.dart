@@ -28,8 +28,6 @@ class AulasOfflineOnlineServiceAdapter {
       Map<dynamic, dynamic>? gestao_ativa_data;
       gestao_ativa_data = await gestaoAtivaBox.get('gestao_ativa');
 
-      // !! Aulas Off-line !!
-
       List<Aula> aulas = caixaAulas.values
           .map((valor) => Aula(
                 id: valor.id,
@@ -68,13 +66,6 @@ class AulasOfflineOnlineServiceAdapter {
 
       showLoading(context);
 
-      /*print('==================================');
-    print('idt_instrutor_id: ${gestao_ativa_data?['idt_instrutor_id'].toString()}');
-    print('idt_disciplina_id: ${gestao_ativa_data?['idt_disciplina_id'].toString()}');
-    print('idt_turma_id: ${gestao_ativa_data?['idt_turma_id'].toString()}');
-    print('instrutorDisciplinaTurma_id: ${gestao_ativa_data?['idt_id'].toString()}');
-    print('==================================');*/
-
       List<Aula> aulasFiltradasPorGestaoAtiva =
           await filtrarAulasPorGestaoAtivaInstrutorDisciplinaTurmaId(
         lista_de_objetos: aulas,
@@ -85,10 +76,9 @@ class AulasOfflineOnlineServiceAdapter {
 
       dynamic isConnected = await checkInternetConnection();
       if (isConnected) {
-        // !! Aulas On-line !!
         AulasListarTodasHttp apiService = AulasListarTodasHttp();
         http.Response response = await apiService.executar();
-        //print('response: ${response.body.toString()}');
+
         if (response.statusCode == 200) {
           dynamic data = jsonDecode(response.body);
           if (data['aulas'] != null) {
@@ -99,7 +89,6 @@ class AulasOfflineOnlineServiceAdapter {
             for (var aula in aulas) {
               var horariosInfantisConvertidosParaInteiro = <int>[];
 
-              // Check if 'horarios_infantis' exists and is a valid string
               if (aula['horarios_infantis'] != null &&
                   aula['horarios_infantis'].isNotEmpty) {
                 try {
@@ -117,8 +106,6 @@ class AulasOfflineOnlineServiceAdapter {
                   print('Error parsing horarios_infantis: $e');
                 }
               }
-              //print('horariosInfantisConvertidosParaInteiro: $horariosInfantisConvertidosParaInteiro');
-              // Add converted data to 'aulasFiltradasPorGestaoAtiva'
 
               aulasFiltradasPorGestaoAtiva.add(
                 Aula(
@@ -184,13 +171,12 @@ class AulasOfflineOnlineServiceAdapter {
           print('Erro => ${response.body}');
         }
       } else {
-        // ignore: use_build_context_synchronously
         hideLoading(context);
         aulasFiltradasPorGestaoAtiva
             .sort((a, b) => b.dataDaAula.compareTo(a.dataDaAula));
         return aulasFiltradasPorGestaoAtiva;
       }
-      // ignore: use_build_context_synchronously
+
       hideLoading(context);
 
       aulasFiltradasPorGestaoAtiva
@@ -294,7 +280,7 @@ class AulasOfflineOnlineServiceAdapter {
 
   void removerDadosAuth() {
     Box authBox = Hive.box('auth');
-    authBox.clear(); // Remove todos os dados do Box 'auth'
+    authBox.clear();
   }
 
   Future<void> remover(Aula aula) async {

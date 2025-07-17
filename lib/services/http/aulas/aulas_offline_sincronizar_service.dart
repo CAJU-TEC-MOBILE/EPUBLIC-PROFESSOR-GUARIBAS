@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -15,9 +14,7 @@ import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_
 import 'package:professor_acesso_notifiq/services/adapters/faltas_offlines_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/api_base_url_service.dart';
 import 'dart:convert';
-
 import 'package:professor_acesso_notifiq/services/widgets/snackbar_service_widget.dart';
-
 import '../../../componentes/dialogs/custom_snackbar.dart';
 import '../../../componentes/global/preloader.dart';
 import '../../../models/historico_requencia_model.dart';
@@ -29,13 +26,13 @@ import '../../controller/disciplina_aula_controller.dart';
 import '../../controller/historico_requencia_controller.dart';
 import '../../controller/serie_aula_controller.dart';
 import '../../faltas/falta_controller.dart';
+import '../../shared_preference_service.dart';
 import '../faltas/faltas_da_aula_online_enviar_http.dart';
 
 class AulasOfflineSincronizarService {
-  // ignore: constant_identifier_names
+  final preference = SharedPreferenceService();
   static const String _prefix_url = 'notifiq-professor/aulas/sincronizar-aula';
   Box authBox = Hive.box('auth');
-
   Future<Map<dynamic, dynamic>?> _getAuthData() async {
     return authBox.get('auth');
   }
@@ -43,98 +40,70 @@ class AulasOfflineSincronizarService {
   Future<dynamic> executar(BuildContext context, Aula aula,
       List<String> experiencias, List<Serie> seriesSelecionadas) async {
     final url = '${ApiBaseURLService.baseUrl}/$_prefix_url';
-
     GestaoAtiva? gestaoAtivaModel;
     gestaoAtivaModel = GestaoAtivaServiceAdapter().exibirGestaoAtiva();
-
     Map<dynamic, dynamic>? authData = await _getAuthData();
     List<Falta> faltasDaAula = await FaltasOfflinesServiceAdapter()
         .listarFaltasDeAulaEspecifica(
             criadaPeloCelular: aula.criadaPeloCelular.toString());
-
     DisciplinaAulaController disciplinaAulaController =
         DisciplinaAulaController();
     SerieAulaController serieAulaController = SerieAulaController();
     AulaController aulaController = AulaController();
-
     await aulaController.init();
     await disciplinaAulaController.init();
     await serieAulaController.init();
-
     List<Map<String, dynamic>> horariosExtras = [];
     List<Map<String, dynamic>> seriesExtras = [];
     List<String> conteudoPolivalencia = [];
     List<String> disciplinas = [];
     List<int> series = [];
-
     print(
         "-----------------FALTAS DA AULA A SER SINCRONIZADA----------------------");
-
     dynamic isConnected = await checkInternetConnection();
     if (isConnected) {
       List<Map<String, dynamic>> faltasDaAulaJson =
           faltasDaAula.map((falta) => falta.toMap()).toList();
-
       List<AulaSistemaBncc> aulaSitemaBnnccDessaAula =
           await AulaSistemaBnccServiceAdapter()
               .listarDeAulaEspecifica(aulaOfflineId: aula.criadaPeloCelular);
-      /*print('AULA BNCC DA AULA TOT: ' +
-          aulaSitemaBnnccDessaAula.length.toString());
-      aulaSitemaBnnccDessaAula.forEach((element) {
-      print(element.aula_id.toString() +
-            '-----' +
-            element.sistema_bncc_id.toString());
-      });*/
-
       List<Map<String, dynamic>> aulaSitemaBnnccDessaAulaJson =
           aulaSitemaBnnccDessaAula.map((sistema) => sistema.toMap()).toList();
-      // ignore: avoid_print
-      //print('--------------------------------');
-      // ignore: avoid_print
-      //print("instrutorDisciplinaTurma_id: ${aula.instrutorDisciplinaTurma_id}");
-      // ignore: avoid_print
-      //print('--------------------------------');
-
       if (experiencias.isEmpty) {
         debugPrint("Nenhuma experiência encontrada.");
       }
-
       print('disciplinas: $disciplinas');
-      //print(aula.e_aula_infantil == 0 ? jsonEncode([int.parse(aula.disciplina_id.toString())]) : jsonEncode(aula.horarios_infantis.toString()));
       print('disciplina_id: ${aula.disciplina_id.toString()}');
       print('e_aula_infantil: ${aula.e_aula_infantil.toString()}');
-      //print('-> ${aula.horarioID}');
-      // ignore: avoid_print
-      //print("token_atual: ${authData!['token_atual'].toString()}");
       print(
           'instrutorDisciplinaTurma_id: ${aula.instrutorDisciplinaTurma_id.toString()}');
       print('aula.horarioID: ${validateNull(aula.horarioID)}');
       print('horarios_infantis: ${jsonEncode(aula.horarios_infantis)}');
       print(
           'campos_de_experiencias: ${(aula.campos_de_experiencias.toString())}');
-
-      //print(authData!['token_atual']);
       if (aula.is_polivalencia == 1) {
         horariosExtras = await disciplinaAulaController.getHorariosExtras(
-            criadaPeloCelular: aula.criadaPeloCelular);
-        conteudoPolivalencia = await disciplinaAulaController
-            .getConteudoPolivalencia(criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
+        conteudoPolivalencia =
+            await disciplinaAulaController.getConteudoPolivalencia(
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
         disciplinas = await disciplinaAulaController.getDisciplinas(
-            criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
       }
-
-      // ignore: unrelated_type_equality_checks
       if (gestaoAtivaModel!.multi_etapa == 1) {
         series = await aulaController.getAulaSeries(
-            criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
       }
-
       if (gestaoAtivaModel.multi_etapa == 1 &&
           gestaoAtivaModel.is_polivalencia == 1) {
         seriesExtras = await serieAulaController.getSeriesExtras(
-            criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
       }
-
       print('series: $series');
       print('=======================');
       print('tipoDeAula: ${aula.tipoDeAula.toString()}');
@@ -143,11 +112,12 @@ class AulasOfflineSincronizarService {
       print('horariosExtras: $horariosExtras');
       print('disciplinas: $disciplinas');
       print('=======================');
-
+      await preference.init();
+      String? token = await preference.getToken();
       final response = await http.post(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer ${authData!['token_atual']}',
+          'Authorization': 'Bearer $token',
         },
         body: {
           'instrutorDisciplinaTurma_id': aula.instrutorDisciplinaTurma_id,
@@ -155,7 +125,6 @@ class AulasOfflineSincronizarService {
           'disciplina_id': aula.disciplina_id,
           'turma_id': aula.turma_id,
           'e_aula_infantil': jsonEncode(aula.e_aula_infantil),
-          //'horario_ids': aula.e_aula_infantil == 0 ? jsonEncode([int.parse(aula.disciplina_id.toString())]) : jsonEncode(aula.horarios_infantis),
           'horarios': aula.horarios_infantis.toString(),
           'horario_id': aula.horarioID,
           'is_polivalencia': jsonEncode(aula.is_polivalencia),
@@ -199,25 +168,10 @@ class AulasOfflineSincronizarService {
               : jsonEncode(null)
         },
       );
-
-      // ignore: avoid_print
-      //print("response.body.toString(): ${response.request.toString()}");
-      //print(response.request.toString());
-      //print(response.headers.toString());
-      //print(response.reasonPhrase.toString());
-      //print("aula: ${aula.instrutorDisciplinaTurma_id}");
-      // Map<String, dynamic> aulaMap = Map<String, dynamic>.from(aula as Map<String, dynamic>);
-      // // ignore: avoid_print
-      // print("aula: $aulaMap");
       try {
-        print('response.statusCode: ${response.statusCode.toString()}');
-        print('---->: ${response.body.toString()}');
-
         if (response.statusCode == 200) {
           final decodedResponse = jsonDecode(response.body);
           String aulaId = decodedResponse["aula_id"].toString();
-
-          //print('===> ${response.body.toString()}');
           await envioDeAnexo(
             context: context,
             criadaPeloCelular: aula.criadaPeloCelular.toString(),
@@ -231,9 +185,9 @@ class AulasOfflineSincronizarService {
           await AulasOfflineOnlineServiceAdapter().remover(aula);
           await FaltasOfflinesServiceAdapter()
               .removerFaltasSincronizadas(faltasDaAula);
-          await AulaSistemaBnccServiceAdapter()
-              .deletarDeAulaEspecifica(aulaOfflineID: aula.criadaPeloCelular);
-
+          await AulaSistemaBnccServiceAdapter().deletarDeAulaEspecifica(
+            aulaOfflineID: aula.criadaPeloCelular,
+          );
           Future.microtask(() {
             CustomSnackBar.showSuccessSnackBar(
               context,
@@ -247,12 +201,6 @@ class AulasOfflineSincronizarService {
               context,
               'Conexão expirada.',
             );
-
-            // SnackBarServiceWidget.mostrarSnackBar(context,
-            //     mensagem: 'Conexão expirada',
-            //     backgroundColor: Colors.red,
-            //     icon: Icons.error_outline,
-            //     iconColor: Colors.white);
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => const LoginPage()));
           });
@@ -262,12 +210,6 @@ class AulasOfflineSincronizarService {
               context,
               'Aula conflitada.',
             );
-            // ignore: use_build_context_synchronously
-            // SnackBarServiceWidget.mostrarSnackBar(context,
-            //     mensagem: 'Aula conflitada',
-            //     backgroundColor: Colors.indigo,
-            //     icon: Icons.error_outline,
-            //     iconColor: Colors.white);
           });
         } else {
           Future.microtask(() {
@@ -275,12 +217,6 @@ class AulasOfflineSincronizarService {
               context,
               'Erro de conexão.',
             );
-
-            // SnackBarServiceWidget.mostrarSnackBar(context,
-            //     mensagem: 'Erro de conexão',
-            //     backgroundColor: Colors.red,
-            //     icon: Icons.error_outline,
-            //     iconColor: Colors.white);
           });
         }
       } catch (error) {
@@ -289,12 +225,6 @@ class AulasOfflineSincronizarService {
             context,
             'Erro de conexão.',
           );
-
-          // SnackBarServiceWidget.mostrarSnackBar(context,
-          //     mensagem: 'Erro de conexão',
-          //     backgroundColor: Colors.red,
-          //     icon: Icons.error_outline,
-          //     iconColor: Colors.white);
         });
       }
     } else {
@@ -303,17 +233,8 @@ class AulasOfflineSincronizarService {
           context,
           'Erro de conexão.',
         );
-
-        //   SnackBarServiceWidget.mostrarSnackBar(context,
-        //       mensagem: 'Erro de conexão',
-        //       backgroundColor: Colors.red,
-        //       icon: Icons.error_outline,
-        //       iconColor: Colors.white);
       });
     }
-    /* esse context é do modal de confirmação da sincronização da aula
-     e não da page de criação de aula
-     */
     Navigator.of(context).pop();
   }
 
@@ -323,35 +244,27 @@ class AulasOfflineSincronizarService {
       debugPrint("ID criadaPeloCelularId é nulo.");
       return [];
     }
-
     AulaController aulaController = AulaController();
     List<Aula> aulas = await aulaController.getAulaCriadaPeloCelular(
         criadaPeloCelular: criadaPeloCelularId);
-
     if (aulas.isEmpty) {
       return [];
     }
-
     Set<String> experienciasSet = {};
-
     for (var aula in aulas) {
       experienciasSet.addAll(aula.experiencias);
     }
-
     return experienciasSet.toList();
   }
 
   dynamic validateNull(dynamic value) {
     if (value == null) return null;
-
     if (value is String) {
       return value.trim().isEmpty || value == 'null' ? null : value;
     }
-
     if (value is int) {
       return value == 0 ? null : value;
     }
-
     return value;
   }
 
@@ -365,7 +278,6 @@ class AulasOfflineSincronizarService {
           "Parâmetros inválidos. Criação pelo celular e aulaId são obrigatórios.");
       return;
     }
-
     try {
       final historicoPresencaController = HistoricoPresencaController();
       final faltas = FaltasDaAulaOnlineEnviarHttp();
@@ -377,14 +289,11 @@ class AulasOfflineSincronizarService {
       if (dados.isEmpty) {
         print(
             "Nenhum dado encontrado para a criadaPeloCelular: $criadaPeloCelular");
-
         return;
       }
-
       for (HistoricoPresenca item in dados) {
         if (item.anexo != null) {
           File aulaFile = File(item.anexo.toString());
-
           final envioTask = faltas.setJustificarFalta(
             context: context,
             matriculaId: item.id.toString(),
@@ -397,13 +306,10 @@ class AulasOfflineSincronizarService {
           }).catchError((e) {
             print('Erro ao enviar arquivo para o item ${item.id}: $e');
           });
-
           envioTasks.add(envioTask);
         }
       }
-
       await Future.wait(envioTasks);
-
       print('Todos os arquivos foram enviados com sucesso.');
     } catch (e) {
       print('Erro no envio de anexo: $e');
@@ -420,15 +326,12 @@ class AulasOfflineSincronizarService {
           "Parâmetros inválidos. Criação pelo celular e aulaId são obrigatórios.");
       return;
     }
-
     try {
       final historicoPresencaController = HistoricoPresencaController();
       final faltas = FaltasDaAulaOnlineEnviarHttp();
       final faltaController = FaltaController();
       await historicoPresencaController.init();
-
       final List<Future> envioTasks = [];
-
       print(
           "Nenhum dado encontrado para a criadaPeloCelular: $criadaPeloCelular");
       List<Matricula> matriculas =
@@ -448,12 +351,9 @@ class AulasOfflineSincronizarService {
         }).catchError((e) {
           print('Erro ao enviar arquivo para o item $e');
         });
-
         envioTasks.add(envioTask);
       }
-
       await Future.wait(envioTasks);
-
       print('Todos os arquivos foram enviados com sucesso.');
     } catch (e) {
       print('Erro no envio de anexo: $e');
