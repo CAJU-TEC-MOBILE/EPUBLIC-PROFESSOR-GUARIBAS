@@ -20,7 +20,7 @@ class GestaoAtiva {
   final String circuito_nota_id;
   final int? is_polivalencia;
   final List<RelacaoDiaHorario> relacoesDiasHorarios;
-  final Circuito circuito;
+  Circuito circuito;
   final String? instrutorDisciplinaTurma_id;
   late final bool is_infantil;
   final int multi_etapa;

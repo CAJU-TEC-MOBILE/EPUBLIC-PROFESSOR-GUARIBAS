@@ -67,6 +67,8 @@ class AuthProvider with ChangeNotifier {
     } catch (error) {
       enabledTextFormField = true;
       isLoading = false;
+      hideLoading(context);
+      notifyListeners();
       ConsoleLog.mensagem(
         titulo: 'auth-provider-login',
         mensagem: error.toString(),

@@ -83,20 +83,26 @@ class AulasOfflineSincronizarService {
           'campos_de_experiencias: ${(aula.campos_de_experiencias.toString())}');
       if (aula.is_polivalencia == 1) {
         horariosExtras = await disciplinaAulaController.getHorariosExtras(
-            criadaPeloCelular: aula.criadaPeloCelular);
-        conteudoPolivalencia = await disciplinaAulaController
-            .getConteudoPolivalencia(criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
+        conteudoPolivalencia =
+            await disciplinaAulaController.getConteudoPolivalencia(
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
         disciplinas = await disciplinaAulaController.getDisciplinas(
-            criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
       }
       if (gestaoAtivaModel!.multi_etapa == 1) {
         series = await aulaController.getAulaSeries(
-            criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
       }
       if (gestaoAtivaModel.multi_etapa == 1 &&
           gestaoAtivaModel.is_polivalencia == 1) {
         seriesExtras = await serieAulaController.getSeriesExtras(
-            criadaPeloCelular: aula.criadaPeloCelular);
+          criadaPeloCelular: aula.criadaPeloCelular,
+        );
       }
       print('series: $series');
       print('=======================');
@@ -179,8 +185,9 @@ class AulasOfflineSincronizarService {
           await AulasOfflineOnlineServiceAdapter().remover(aula);
           await FaltasOfflinesServiceAdapter()
               .removerFaltasSincronizadas(faltasDaAula);
-          await AulaSistemaBnccServiceAdapter()
-              .deletarDeAulaEspecifica(aulaOfflineID: aula.criadaPeloCelular);
+          await AulaSistemaBnccServiceAdapter().deletarDeAulaEspecifica(
+            aulaOfflineID: aula.criadaPeloCelular,
+          );
           Future.microtask(() {
             CustomSnackBar.showSuccessSnackBar(
               context,

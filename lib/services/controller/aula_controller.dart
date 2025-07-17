@@ -3,14 +3,11 @@ import '../../models/aula_model.dart';
 
 class AulaController {
   late Box<Aula> _aulaBox;
-
   Future<void> init() async {
     await Hive.initFlutter();
-
     if (!Hive.isAdapterRegistered(AulaAdapter().typeId)) {
       Hive.registerAdapter(AulaAdapter());
     }
-
     _aulaBox = await Hive.openBox<Aula>('aulas_offlines');
   }
 
@@ -52,7 +49,6 @@ class AulaController {
         .where((aula) =>
             aula.instrutorDisciplinaTurma_id == instrutorDisciplinaTurma_id)
         .toList();
-
     return aulasFiltradas;
   }
 
@@ -88,17 +84,13 @@ class AulaController {
   }) async {
     try {
       print('---BUSCANDO E ATUALIZANDO AULA LOCAL---');
-
       if (criadaPeloCelular == null) {
         print('Sem criadaPeloCelular');
         return false;
       }
-
-      // Localiza as aulas com o `criadaPeloCelular` fornecido
       final aulas = _aulaBox.values
           .where((aula) => aula.criadaPeloCelular == criadaPeloCelular)
           .toList();
-
       if (aulas.isNotEmpty) {
         for (var aula in aulas) {
           aula.id = '';
@@ -126,17 +118,11 @@ class AulaController {
           aula.experiencias = aulaAtualizada.experiencias;
           aula.campos_de_experiencias = aulaAtualizada.campos_de_experiencias;
           aula.series = aulaAtualizada.series;
-
-          // Obtém a chave real do item para atualizar
           final key =
               await _aulaBox.keyAt(_aulaBox.values.toList().indexOf(aula));
-
-          // Atualiza o item existente
           await _aulaBox.put(key, aula);
         }
         print('---AULA ATUALIZADA COM SUCESSO---');
-
-        // Verifica a aula atualizada
         final updatedAula = _aulaBox.values
             .where((aula) => aula.criadaPeloCelular == criadaPeloCelular)
             .first;
@@ -146,7 +132,6 @@ class AulaController {
         print('Turma ID: ${updatedAula.turma_id}');
         print('Tipo de Aula: ${updatedAula.tipoDeAula}');
         print('Data da Aula: ${updatedAula.dataDaAula}');
-
         return true;
       } else {
         print('Nenhuma aula encontrada para atualizar.');
@@ -160,18 +145,14 @@ class AulaController {
 
   Future<List<int>> getAulaSeries({required String? criadaPeloCelular}) async {
     List<int> dados = [];
-
     print('criadaPeloCelular === $criadaPeloCelular');
-
     if (criadaPeloCelular == null) {
       return dados;
     }
-
     List<Aula> aulas = _aulaBox.values
         .where((aula) =>
             aula.criadaPeloCelular?.toString() == criadaPeloCelular.toString())
         .toList();
-
     for (Aula aula in aulas) {
       if (aula.series != null) {
         for (var serie in aula.series!) {
@@ -183,7 +164,6 @@ class AulaController {
         }
       }
     }
-
     return dados;
   }
 
@@ -212,7 +192,6 @@ class AulaController {
               aula.criadaPeloCelular.toString() == criadaPeloCelular.toString(),
         )
         .toList();
-
     return aulas.first;
   }
 }

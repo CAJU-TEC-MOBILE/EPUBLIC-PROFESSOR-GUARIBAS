@@ -7,7 +7,6 @@ import '../models/auth_model.dart';
 import '../models/avaliador_model.dart';
 import '../models/instrutor_model.dart';
 import '../models/solicitacao_model.dart';
-import '../services/adapters/autorizacoes_service.dart';
 import '../services/adapters/gestoes_service_adpater.dart';
 import '../services/adapters/justificativas_service_adapter.dart';
 import '../services/adapters/matriculas_service_adapter.dart';
@@ -136,6 +135,8 @@ class AuthRepository {
     print("\n✅ Download avaliadores completo!");
     await _baixarSolicitacao();
     print("\n✅ Download solicitação completo!");
+    await configuracaoRepository.configEtapa();
+    print("\n✅ Download de etapas completo!");
   }
 
   Future<void> _baixarAvaliadores() async {

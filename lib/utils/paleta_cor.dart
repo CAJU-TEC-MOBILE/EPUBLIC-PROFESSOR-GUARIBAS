@@ -13,6 +13,8 @@ class PaletaCor {
   static const Color error = Color.fromARGB(255, 243, 76, 64);
   static const Color texto = Color.fromARGB(255, 0, 0, 0);
   static const double fontSize = 16.0;
+  static const Color grey = Colors.grey;
+
   static const FontWeight fontWeight = FontWeight.normal;
   static const List<Color> coresParaGraficos = [
     Colors.amber,

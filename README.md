@@ -29,7 +29,7 @@ flutter pub run flutter_launcher_icons:main
 ```
 
 ```
-cd build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib/mergeReleaseNativeLibs/out/lib 
+cd build/app/intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib
 ```
 
 ```

@@ -1,4 +1,3 @@
-import 'package:dart_console/dart_console.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../enums/status_console.dart';
 import '../../helpers/console_log.dart';

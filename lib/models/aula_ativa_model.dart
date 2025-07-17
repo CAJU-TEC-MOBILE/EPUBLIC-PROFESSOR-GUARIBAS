@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:professor_acesso_notifiq/models/aula_model.dart';
 import 'package:professor_acesso_notifiq/models/horario_model.dart';
 import '../constants/app_tema.dart';
 import '../services/controller/config_horario_configuracao.dart';
@@ -12,7 +13,7 @@ import 'disciplina_aula_model.dart';
 import 'disciplina_model.dart';
 import 'serie_model.dart';
 
-class Aula {
+class AulaAtivaModel {
   var id;
   var instrutor_id;
   var disciplina_id;
@@ -46,9 +47,7 @@ class Aula {
   String? disciplinas_formatted;
   String? horarios_formatted;
   bool? status_frequencia;
-  String? circuito_nota_id;
-
-  Aula({
+  AulaAtivaModel({
     this.id = '',
     required this.instrutor_id,
     required this.disciplina_id,
@@ -82,7 +81,6 @@ class Aula {
     this.horarios_formatted,
     this.disciplinas_formatted,
     this.status_frequencia,
-    this.circuito_nota_id,
   });
 
   Map<String, dynamic> toMap() {
@@ -121,7 +119,6 @@ class Aula {
       'series': series ?? [],
       'horarios_formatted': horarios_formatted,
       'status_frequencia': status_frequencia,
-      'circuito_nota_id': circuito_nota_id,
     };
   }
 
@@ -336,8 +333,8 @@ class Aula {
     );
   }
 
-  factory Aula.fromJson(Map<dynamic, dynamic> json) {
-    return Aula(
+  factory AulaAtivaModel.fromJson(Map<dynamic, dynamic> json) {
+    return AulaAtivaModel(
       id: json['id'].toString(),
       disciplinas_formatted: json['disciplinas_formatted'].toString(),
       instrutor_id: json['instrutor_id'].toString(),
@@ -373,7 +370,82 @@ class Aula {
       series: json['series'] ?? [],
       horarios_formatted: json['horarios_formatted'].toString(),
       status_frequencia: false,
-      circuito_nota_id: '0',
+    );
+  }
+
+  factory AulaAtivaModel.vazio() {
+    return AulaAtivaModel(
+      id: '',
+      disciplinas_formatted: '',
+      instrutor_id: '',
+      disciplina_id: '',
+      turma_id: '',
+      tipoDeAula: '',
+      dataDaAula: '',
+      horarioID: '',
+      horarios_infantis: [],
+      conteudo: '',
+      metodologia: '',
+      saberes_conhecimentos: '',
+      dia_da_semana: '',
+      situacao: '',
+      criadaPeloCelular: '',
+      etapa_id: '',
+      instrutorDisciplinaTurma_id: '',
+      eixos: '',
+      estrategias: '',
+      recursos: '',
+      atividade_casa: '',
+      atividade_classe: '',
+      observacoes: '',
+      e_aula_infantil: 0,
+      is_polivalencia: 0,
+      campos_de_experiencias: '',
+      experiencias: [],
+      horarios_extras_formatted: [],
+      disciplinas: [],
+      multi_etapa: 0,
+      series: [],
+      horarios_formatted: '',
+      status_frequencia: false,
+    );
+  }
+
+  factory AulaAtivaModel.selected(Aula model) {
+    return AulaAtivaModel(
+      id: model.id,
+      disciplinas_formatted: model.disciplinas_formatted,
+      instrutor_id: model.instrutor_id,
+      disciplina_id: model.disciplina_id,
+      turma_id: model.turma_id,
+      tipoDeAula: model.tipoDeAula,
+      dataDaAula: model.dataDaAula,
+      horarioID: model.horarioID,
+      horarios_infantis: model.horarios_infantis,
+      conteudo: model.conteudo,
+      metodologia: model.metodologia,
+      saberes_conhecimentos: model.saberes_conhecimentos,
+      dia_da_semana: model.dia_da_semana,
+      situacao: model.situacao,
+      criadaPeloCelular: model.criadaPeloCelular,
+      etapa_id: model.etapa_id,
+      instrutorDisciplinaTurma_id: model.instrutorDisciplinaTurma_id,
+      eixos: model.eixos,
+      estrategias: model.estrategias,
+      recursos: model.recursos,
+      atividade_casa: model.atividade_casa,
+      atividade_classe: model.atividade_classe,
+      observacoes: model.observacoes,
+      e_aula_infantil: model.e_aula_infantil,
+      is_polivalencia: model.is_polivalencia,
+      campos_de_experiencias: model.campos_de_experiencias,
+      experiencias: model.experiencias,
+      horarios_extras_formatted: model.horarios_extras_formatted,
+      disciplinas: model.disciplinas,
+      multi_etapa: model.multi_etapa ?? 0,
+      series: model.series ?? [],
+      horarios_formatted: model.horarios_formatted,
+      status_frequencia: false,
     );
   }
 
@@ -382,19 +454,19 @@ class Aula {
     return 'Aula(id: $id, instrutor_id: $instrutor_id, disciplina_id: $disciplina_id, turma_id: $turma_id, '
         'tipoDeAula: $tipoDeAula, dataDaAula: $dataDaAula, horarioID: $horarioID, horarios_infantis: $horarios_infantis, horarios_extras_formatted: $horarios_extras_formatted,'
         'conteudo: $conteudo, metodologia: $metodologia, saberes_conhecimentos: $saberes_conhecimentos, is_polivalencia: $is_polivalencia, horarios_formatted: $horarios_formatted'
-        'dia_da_semana: $dia_da_semana, situacao: $situacao, criadaPeloCelular: $criadaPeloCelular, etapa_id: $etapa_id, disciplinas: $disciplinas, circuito_nota_id: $circuito_nota_id'
+        'dia_da_semana: $dia_da_semana, situacao: $situacao, criadaPeloCelular: $criadaPeloCelular, etapa_id: $etapa_id, disciplinas: $disciplinas,'
         'instrutorDisciplinaTurma_id: $instrutorDisciplinaTurma_id, eixos: $eixos, estrategias: $estrategias, campos_de_experiencias: $campos_de_experiencias, disciplinas_formatted: $disciplinas_formatted'
         'recursos: $recursos, series: $series multi_etapa: $multi_etapa, atividade_casa: $atividade_casa, atividade_classe: $atividade_classe, e_aula_infantil: $e_aula_infantil observacoes: $observacoes, experiencias: $experiencias, status_frequencia: $status_frequencia)';
   }
 }
 
-class AulaAdapter extends TypeAdapter<Aula> {
+class AulaAtivaAdapter extends TypeAdapter<AulaAtivaModel> {
   @override
-  final typeId = 3;
+  final typeId = 46;
 
   @override
-  Aula read(BinaryReader reader) {
-    return Aula(
+  AulaAtivaModel read(BinaryReader reader) {
+    return AulaAtivaModel(
       id: reader.readString(),
       instrutor_id: reader.readString(),
       disciplina_id: reader.readString(),
@@ -424,12 +496,11 @@ class AulaAdapter extends TypeAdapter<Aula> {
       multi_etapa: reader.readInt(),
       series: (reader.readList()).map((item) => item as Serie).toList(),
       status_frequencia: reader.readBool(),
-      circuito_nota_id: reader.readString(),
     );
   }
 
   @override
-  void write(BinaryWriter writer, Aula obj) {
+  void write(BinaryWriter writer, AulaAtivaModel obj) {
     writer.writeString(obj.id);
     writer.writeString(obj.instrutor_id);
     writer.writeString(obj.disciplina_id);
@@ -459,6 +530,5 @@ class AulaAdapter extends TypeAdapter<Aula> {
     writer.writeInt(obj.multi_etapa ?? 0);
     writer.writeList(obj.series ?? []);
     writer.writeBool(obj.status_frequencia ?? false);
-    writer.writeString(obj.circuito_nota_id ?? '');
   }
 }

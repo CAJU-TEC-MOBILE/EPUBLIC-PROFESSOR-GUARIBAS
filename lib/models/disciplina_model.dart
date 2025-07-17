@@ -7,7 +7,11 @@ class Disciplina {
   final String idtTurmaId;
   final String idt_id;
   bool checkbox;
-  List<dynamic>? data;
+  List<dynamic> data;
+
+  static const List<dynamic> defaultData = [
+    {'conteudo': '', 'metodologia': '', 'horarios': []}
+  ];
 
   Disciplina({
     required this.id,
@@ -16,23 +20,34 @@ class Disciplina {
     required this.idtTurmaId,
     required this.idt_id,
     required this.checkbox,
-    List<dynamic>? data, // Adicione um parâmetro aqui
-  });
+    List<dynamic>? data,
+  }) : data = (data == null || data.isEmpty) ? defaultData : data;
 
-  // From JSON
   factory Disciplina.fromJson(Map<String, dynamic> json) {
+    var dataList = json['data'];
+    List<dynamic> parsedData = defaultData;
+
+    if (dataList is List) {
+      parsedData = dataList.map((item) {
+        if (item is Map<String, dynamic>) {
+          return item;
+        } else {
+          return {'conteudo': '', 'metodologia': '', 'horarios': []};
+        }
+      }).toList();
+    }
+
     return Disciplina(
       id: json['id'].toString(),
       codigo: json['codigo'].toString(),
       descricao: json['descricao'].toString(),
       idtTurmaId: json['idt_turma_id'].toString(),
       idt_id: json['idt_id'].toString(),
-      checkbox: json['checkbox'] ?? false, // Valor padrão se não existir
-      data: json['data'] ?? [], // Iniciar como lista vazia se não existir
+      checkbox: json['checkbox'] ?? false,
+      data: parsedData,
     );
   }
 
-  // To JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -46,7 +61,7 @@ class Disciplina {
   }
 
   void clearData() {
-    data = [];
+    data = defaultData;
   }
 
   factory Disciplina.vazia() {
@@ -61,7 +76,6 @@ class Disciplina {
     );
   }
 
-  // ToString method
   @override
   String toString() {
     return 'Disciplina(id: $id, codigo: $codigo, descricao: $descricao, idtTurmaId: $idtTurmaId, idt_id: $idt_id, checkbox: $checkbox, data: $data)';
@@ -81,6 +95,7 @@ class DisciplinaAdapter extends TypeAdapter<Disciplina> {
       idtTurmaId: reader.readString(),
       idt_id: reader.readString(),
       checkbox: reader.readBool(),
+      data: reader.readList(),
     );
   }
 
@@ -92,5 +107,9 @@ class DisciplinaAdapter extends TypeAdapter<Disciplina> {
     writer.writeString(obj.idtTurmaId);
     writer.writeString(obj.idt_id);
     writer.writeBool(obj.checkbox);
+    writer.writeList(obj.data ??
+        [
+          {'conteudo': '', 'metodologia': '', 'horarios': []}
+        ]);
   }
 }

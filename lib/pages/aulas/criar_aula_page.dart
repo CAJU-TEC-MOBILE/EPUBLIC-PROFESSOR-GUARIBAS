@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
@@ -27,6 +27,7 @@ import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_
 import 'package:professor_acesso_notifiq/services/adapters/regras_logicas/autorizacoes/listar_unica_autorizacao_por_etapa_e_gestao_e_ultimoItem_regra_logica.dart';
 import 'package:professor_acesso_notifiq/services/http/autorizacoes/autorizacoes_listar_http.dart';
 import '../../componentes/button/custom_calendario_button.dart';
+import '../../componentes/dialogs/custom_disciplinas_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../componentes/global/preloader.dart';
 import '../../help/data_time.dart';
@@ -42,6 +43,7 @@ import '../../utils/constants.dart';
 import '../../utils/datetime_utils.dart';
 import '../../wigets/cards/custom_solicitar_showbottomsheet.dart';
 import '../../wigets/custom_periodo_card.dart';
+import '../../wigets/polivalencia/custom_conteudo_polivalencia.dart';
 
 class CriarAulaPage extends StatefulWidget {
   final String? instrutorDisciplinaTurmaId;
@@ -282,6 +284,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
         experiencias:
             selectedExperiencias.isNotEmpty ? selectedExperiencias : [],
         observacoes: '',
+        circuito_nota_id: gestaoAtivaModel!.circuito_nota_id.toString(),
       );
       bool status = await AulasOfflineOnlineServiceAdapter().salvar(
         novaAula: aula,
@@ -1078,206 +1081,66 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                                       1
                                                   ? Column(
                                                       children: [
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  top: 8.0,
-                                                                  bottom: 8.0),
-                                                          child: TextButton(
-                                                            onPressed: () =>
-                                                                _showMultiSelectDialog(
-                                                                    context),
-                                                            style:
-                                                                OutlinedButton
-                                                                    .styleFrom(
-                                                              backgroundColor:
-                                                                  AppTema
-                                                                      .primaryAmarelo,
-                                                              fixedSize:
-                                                                  const Size(
-                                                                      400.0,
-                                                                      48.0),
-                                                              side: const BorderSide(
-                                                                  width: 1.0,
-                                                                  color: AppTema
-                                                                      .primaryAmarelo),
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            8.0),
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            await showDialog(
+                                                              context: context,
+                                                              builder: (context) =>
+                                                                  CustomDisciplinasDialog(
+                                                                selectedDisciplinas:
+                                                                    selectedDisciplinas,
+                                                                onSelectedDisciplinas:
+                                                                    (disciplinas) {
+                                                                  setState(() {
+                                                                    selectedDisciplinas =
+                                                                        disciplinas;
+                                                                  });
+                                                                },
+                                                              ),
+                                                            );
+                                                          },
+                                                          style: OutlinedButton
+                                                              .styleFrom(
+                                                            backgroundColor: AppTema
+                                                                .primaryAmarelo,
+                                                            fixedSize:
+                                                                const Size(
+                                                                    400.0,
+                                                                    48.0),
+                                                            side:
+                                                                const BorderSide(
+                                                              width: 1.0,
+                                                              color: AppTema
+                                                                  .primaryAmarelo,
+                                                            ),
+                                                            shape:
+                                                                RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                8.0,
                                                               ),
                                                             ),
-                                                            child: const Text(
-                                                              'Selecione as disciplinas dessa aula',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .black),
+                                                          ),
+                                                          child: const Text(
+                                                            'Selecione as disciplinas dessa aula',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
                                                             ),
                                                           ),
                                                         ),
-                                                        Container(
-                                                          margin:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  bottom: 10,
-                                                                  top: 15),
-                                                          child: const Align(
-                                                            alignment: Alignment
-                                                                .centerLeft,
-                                                            child: Text(
-                                                              'Conteúdos',
-                                                              style: TextStyle(
-                                                                  fontSize: 16,
-                                                                  color: Colors
-                                                                      .black),
-                                                            ),
-                                                          ),
+                                                        const SizedBox(
+                                                          height: 18.0,
                                                         ),
-                                                        selectedDisciplinas
-                                                                .isNotEmpty
-                                                            ? Card(
-                                                                color: AppTema
-                                                                    .backgroundColorApp,
-                                                                elevation: 8.0,
-                                                                child: Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          8.0),
-                                                                  child: Column(
-                                                                    children:
-                                                                        selectedDisciplinas
-                                                                            .map((item) {
-                                                                      return Column(
-                                                                        crossAxisAlignment:
-                                                                            CrossAxisAlignment.start,
-                                                                        children: [
-                                                                          Padding(
-                                                                            padding:
-                                                                                const EdgeInsets.symmetric(vertical: 4.0),
-                                                                            child:
-                                                                                Column(
-                                                                              children: item.data!.map((elemente) {
-                                                                                List<int> horarios = (elemente['horarios'] ?? []).cast<int>();
-                                                                                return Column(
-                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                  children: [
-                                                                                    _buildLabel('${item.descricao.toString()}:'),
-                                                                                    TextFormField(
-                                                                                      maxLines: 8,
-                                                                                      decoration: InputDecoration(
-                                                                                        focusedBorder: OutlineInputBorder(
-                                                                                          borderSide: const BorderSide(color: Colors.grey),
-                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                        ),
-                                                                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                                                        border: OutlineInputBorder(
-                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                        ),
-                                                                                      ),
-                                                                                      onChanged: (value) {
-                                                                                        setState(() {
-                                                                                          elemente['conteudo'] = value;
-                                                                                        });
-                                                                                      },
-                                                                                      validator: (value) {
-                                                                                        if (value!.isEmpty) {
-                                                                                          return 'Por favor, preencha o campo';
-                                                                                        }
-                                                                                        return null;
-                                                                                      },
-                                                                                    ),
-                                                                                    Padding(
-                                                                                      padding: const EdgeInsets.only(top: 8.0),
-                                                                                      child: Text(
-                                                                                        'Horário de ${item.descricao.toString()}:',
-                                                                                        style: const TextStyle(
-                                                                                          fontWeight: FontWeight.w800,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                    Padding(
-                                                                                      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                                                                      child: Container(
-                                                                                        decoration: BoxDecoration(
-                                                                                          borderRadius: BorderRadius.circular(8.0),
-                                                                                          border: Border.all(
-                                                                                            color: Colors.grey,
-                                                                                            width: 1.0,
-                                                                                          ),
-                                                                                        ),
-                                                                                        child: MultiSelectDialogField<int>(
-                                                                                          items: removeHorariosRepetidos(listaOriginal: listaFiltradaDeHorariosPorHorariosDaColunaDaGestao!)!
-                                                                                              .map(
-                                                                                                (objeto) => MultiSelectItem<int>(
-                                                                                                  int.parse(objeto.horario.id),
-                                                                                                  objeto.horario.descricao,
-                                                                                                ),
-                                                                                              )
-                                                                                              .toList(),
-                                                                                          listType: MultiSelectListType.CHIP,
-                                                                                          initialValue: horarios,
-                                                                                          searchIcon: const Icon(Icons.search),
-                                                                                          title: const Text('Horários'),
-                                                                                          searchHint: 'Pesquisar',
-                                                                                          cancelText: const Text(
-                                                                                            'Cancelar',
-                                                                                            style: TextStyle(
-                                                                                              fontWeight: FontWeight.bold,
-                                                                                              color: AppTema.primaryAzul,
-                                                                                            ),
-                                                                                          ),
-                                                                                          confirmText: const Text(
-                                                                                            'Confirmar',
-                                                                                            style: TextStyle(
-                                                                                              fontWeight: FontWeight.bold,
-                                                                                              color: AppTema.primaryAzul,
-                                                                                            ),
-                                                                                          ),
-                                                                                          buttonText: const Text('Selecione'),
-                                                                                          buttonIcon: const Icon(Icons.arrow_drop_down),
-                                                                                          selectedColor: AppTema.secondaryAmarelo,
-                                                                                          selectedItemsTextStyle: const TextStyle(
-                                                                                            color: Colors.white,
-                                                                                          ),
-                                                                                          onConfirm: (List<int> selected) async {
-                                                                                            bool status = await validatePolivalenciaHorarios(
-                                                                                              context,
-                                                                                              selected,
-                                                                                            );
-                                                                                            if (!status) {
-                                                                                              return;
-                                                                                            }
-                                                                                            setState(() {
-                                                                                              horarios = selected;
-                                                                                              elemente['horarios'] = selected;
-                                                                                            });
-                                                                                          },
-                                                                                          validator: (selected) {
-                                                                                            if (selected == null || selected.isEmpty) {
-                                                                                              return 'Por favor, selecione ao menos um horário';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                );
-                                                                              }).toList(),
-                                                                            ),
-                                                                          ),
-                                                                          const Divider(),
-                                                                        ],
-                                                                      );
-                                                                    }).toList(),
-                                                                  ),
-                                                                ),
-                                                              )
-                                                            : const SizedBox(),
+                                                        CustomConteudoPolivalencia(
+                                                          context: context,
+                                                          items:
+                                                              selectedDisciplinas,
+                                                          relacaoDiaHorario:
+                                                              listaFiltradaDeHorariosPorHorariosDaColunaDaGestao ??
+                                                                  [],
+                                                        ),
                                                       ],
                                                     )
                                                   : const SizedBox(),
@@ -1445,7 +1308,7 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                                             ],
                                           )
                                         ])
-                                  : const Text('')
+                                  : const SizedBox()
                             ],
                           ),
                         ),
@@ -1455,23 +1318,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _buildDisciplinaFields(
-      Disciplina item, Map<String, dynamic> elemente) {
-    TextEditingController conteudoController =
-        TextEditingController(text: elemente['conteudo']);
-
-    conteudoController.addListener(() {
-      elemente['conteudo'] = conteudoController.text;
-    });
-
-    return Column(
-      children: [
-        _buildLabel('${item.descricao}:'),
-        _buildTextField(conteudoController, 'Por favor, preencha o conteúdo'),
-      ],
     );
   }
 
@@ -1487,35 +1333,6 @@ class _CriarAulaPageState extends State<CriarAulaPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField(
-      TextEditingController controller, String validationMessage) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: controller,
-          maxLines: 8,
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-          validator: (value) {
-            if (value!.isEmpty) {
-              return validationMessage;
-            }
-            return null;
-          },
-        ),
-      ],
     );
   }
 }

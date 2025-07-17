@@ -57,11 +57,14 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: dotenv.env['NAME_APP'] ?? 'Default App Name',
             color: Colors.white,
-            builder: (context, child) {
+            builder: (BuildContext context, Widget? child) {
               ErrorWidget.builder = (errorDetails) {
                 return CustomFlutterErrorWidget(errorDetails: errorDetails);
               };
-              return child!;
+              return SafeArea(
+                top: false,
+                child: child ?? const SizedBox.shrink(),
+              );
             },
             initialRoute: nextRoute,
             routes: Routes.routes,

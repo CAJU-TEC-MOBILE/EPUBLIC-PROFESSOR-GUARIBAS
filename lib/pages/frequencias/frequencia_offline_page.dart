@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:professor_acesso_notifiq/componentes/dialogs/custom_justificativa_offline_dialog.dart';
 import 'package:professor_acesso_notifiq/componentes/gestoes/dados_gestao_card_componente.dart';
@@ -12,16 +11,19 @@ import 'package:professor_acesso_notifiq/services/adapters/faltas_offlines_servi
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/justificativas_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/matriculas_da_turma_ativa_service_adapter.dart';
+// import 'package:share_plus/share_plus.dart';
 import '../../componentes/button/custom_anexo_download_button.dart';
 import '../../componentes/dialogs/custom_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
 import '../../componentes/dialogs/custom_padrao_dialog.dart';
+import '../../componentes/global/preloader.dart';
 import '../../models/aula_model.dart';
 import '../../models/historico_requencia_model.dart';
 import '../../repository/matricula_repository.dart';
 import '../../services/controller/aula_controller.dart';
 import '../../services/controller/historico_requencia_controller.dart';
 import '../../services/faltas/falta_controller.dart';
+import 'package:open_filex/open_filex.dart';
 
 class FrequenciaOfflinePage extends StatefulWidget {
   final String aula_id;
@@ -48,21 +50,17 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
   final aulaController = AulaController();
   final historicoPresencaController = HistoricoPresencaController();
   final repository = MatriculaRepository();
-
   Future<void> _aula() async {
     await aulaController.init();
-
     aula = await aulaController.aula(
       criadaPeloCelular: widget.aula_id.toString(),
     );
-
     setState(() => aula);
   }
 
   Future<void> carregarDados() async {
     await _aula();
     await carregarJustificativas();
-
     List<Matricula> response =
         await MatriculasDaTurmaAtivaServiceAdapter().listar();
     await carregarDadosCasoJaTenhaFaltaSalva();
@@ -160,10 +158,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
     return presenca;
   }
 
-  // Future<void> getAula() async {
-  //   print(widget.aula.toString());
-  // }
-
   Future<void> salvarFaltas(BuildContext context) async {
     print("============================================");
     try {
@@ -171,7 +165,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
       bool status = await aulaController.registrarFrequencia(
         criadaPeloCelular: widget.aula_id.toString(),
       );
-
       if (!status) {
         CustomSnackBar.showSuccessSnackBarFalta(
           context,
@@ -179,14 +172,12 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
         );
         return;
       }
-
       await FaltasOfflinesServiceAdapter().salvar(
         criadaPeloCelular: widget.aula_id,
         matriculasDaTurmaAtiva: matriculas_da_gestao_da_turma_ativa,
         isLiked: _isLiked,
         justificavasDaMatricula: justificavasDaMatricula,
       );
-
       CustomSnackBar.showSuccessSnackBarFalta(
         context,
         'Frequência salva com sucesso!',
@@ -201,7 +192,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
   void initState() {
     super.initState();
     carregarDados();
-    // getAula();
     faltaController.getFaltaPorAulaId(aula_id: widget.aula_id.toString());
   }
 
@@ -306,7 +296,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
         historicoPresenca!.criadaPeloCelular.toString(),
         historicoPresenca!.alunoId.toString(),
       );
-      // debugPrint("existe: $existe");
       if (historicoPresenca == null) {
         return;
       }
@@ -324,23 +313,44 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
     required String? alunoId,
     required BuildContext context,
   }) async {
-    await aulaController.init();
-    await historicoPresencaController.init();
-
-    await aulaController.registrarFrequencia(
-      criadaPeloCelular: widget.aula_id.toString(),
-    );
-
-    String? caminho = await historicoPresencaController.getAnexoeAulaPorAula(
-        widget.aula!.criadaPeloCelular.toString(), alunoId);
-    if (caminho == null) {
+    try {
+      showLoading(context);
+      await aulaController.init();
+      await historicoPresencaController.init();
+      await aulaController.registrarFrequencia(
+        criadaPeloCelular: widget.aula_id.toString(),
+      );
+      String? caminho = await historicoPresencaController.getAnexoeAulaPorAula(
+        widget.aula!.criadaPeloCelular.toString(),
+        alunoId,
+      );
+      if (caminho == null) {
+        CustomSnackBar.showErrorSnackBar(
+          context,
+          'Nenhum anexo disponível no momento. Tente novamente mais tarde.',
+        );
+        hideLoading(context);
+        return;
+      }
+      // await OpenFilex.open(tempFilePath);
+      // final params = ShareParams(
+      //   text: 'Great picture',
+      //   files: [XFile(caminho)],
+      // );
+      // final result = await SharePlus.instance.share(params);
+      // if (result.status == ShareResultStatus.success) {
+      //   hideLoading(context);
+      //   return;
+      // }
+      await OpenFilex.open(caminho);
+      hideLoading(context);
+    } catch (error) {
+      hideLoading(context);
       CustomSnackBar.showErrorSnackBar(
         context,
-        'Nenhum anexo disponível no momento. Tente novamente mais tarde.',
+        error.toString(),
       );
-      return;
     }
-    await OpenFilex.open(caminho);
   }
 
   Future<void> verificarPermissaoEBaixar({
@@ -542,7 +552,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                               value: _isLiked[index]!,
                                               onChanged: (value) async {
                                                 if (value != false) {
-                                                  // print('value: $value');
                                                   await deleteAnexo(
                                                       widget.aula!
                                                           .criadaPeloCelular

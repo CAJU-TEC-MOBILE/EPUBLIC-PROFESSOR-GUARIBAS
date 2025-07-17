@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
@@ -8,8 +9,6 @@ import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_offline_pa
 import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_online_page.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offlines_listar_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_service_adapter.dart';
-import 'dart:async';
-import 'package:professor_acesso_notifiq/services/http/aulas/aulas_offline_sincronizar_service.dart';
 import '../../componentes/appbar/custom_appbar.dart';
 import '../../componentes/card/custom_fundamental_card.dart';
 import '../../componentes/dialogs/custom_sync_dialog.dart';
@@ -17,6 +16,7 @@ import '../../componentes/dialogs/custom_sync_padrao_dialog.dart';
 import '../../componentes/global/preloader.dart';
 import '../../models/disciplina_aula_model.dart';
 import '../../models/disciplina_model.dart';
+import '../../repository/aula_repository.dart';
 import '../../services/controller/aula_controller.dart';
 import '../../services/controller/disciplina_aula_controller.dart';
 import '../../services/controller/disciplina_controller.dart';
@@ -37,6 +37,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
   GestaoAtiva? gestaoAtivaModel;
   List<Aula> aulas_offlines = AulasOfflinesListarServiceAdapter().executar();
   final horarioConfiguracaoController = HorarioConfiguracaoController();
+  final aulaRepository = AulaRepository();
   Box _gestaoAtivaBox = Hive.box('gestao_ativa');
   Map<dynamic, dynamic>? gestao_ativa_data;
   List<Disciplina> disciplinas = [];
@@ -283,7 +284,7 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                           child: CustomFundamentalCard(
                                             paginatedItems: aula,
                                             onSync: () async {
-                                              showDialog(
+                                              await showDialog(
                                                 context: context,
                                                 builder:
                                                     (BuildContext context) {
@@ -292,17 +293,19 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                                           Navigator.of(context)
                                                               .pop(false),
                                                       onConfirm: () async {
-                                                        await AulasOfflineSincronizarService()
-                                                            .executar(
-                                                          context,
-                                                          aula,
-                                                          aula.experiencias,
-                                                          aula.series ?? [],
+                                                        await aulaRepository
+                                                            .sincronizar(
+                                                          context: context,
+                                                          aula: aula,
+                                                          experiencias:
+                                                              aula.experiencias,
+                                                          seriesSelecionadas:
+                                                              aula.series ?? [],
                                                         );
-                                                        await carregarDados();
                                                       });
                                                 },
                                               );
+                                              carregarDados();
                                             },
                                             onFrequencia: () async {
                                               if (aula.id.toString().isEmpty) {
@@ -341,16 +344,24 @@ class _ListagemAulasPageState extends State<ListagemFundamentalPage> {
                                               );
                                             },
                                             onEdit: () async {
-                                              Navigator.push(
+                                              bool status = await aulaRepository
+                                                  .selecionar(
+                                                model: aula,
+                                              );
+                                              if (status != true) {
+                                                return;
+                                              }
+                                              await Navigator.pushNamed(
                                                 context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AulaAtualizarPage(
-                                                    aulaLocalId: aula
-                                                        .criadaPeloCelular
-                                                        .toString(),
-                                                  ),
-                                                ),
+                                                '/atualizarAula',
+                                                arguments: {
+                                                  'aulaLocalId': aula
+                                                      .criadaPeloCelular
+                                                      .toString(),
+                                                  'instrutorDisciplinaTurmaId': aula
+                                                      .instrutorDisciplinaTurma_id
+                                                      .toString(),
+                                                },
                                               );
                                             },
                                           ),

@@ -70,4 +70,25 @@ class ConfiguracaoHttp {
 
     return response;
   }
+
+  Future<http.Response> etapas() async {
+    final preference = SharedPreferenceService();
+
+    await preference.init();
+
+    String? token = await preference.getToken();
+
+    String endpoint = 'notifiq-professor/configuracao/etapas';
+
+    final uri = Uri.parse('${ApiBaseURLService.baseUrl}/$endpoint');
+
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    final response = await http.get(uri, headers: headers);
+
+    return response;
+  }
 }

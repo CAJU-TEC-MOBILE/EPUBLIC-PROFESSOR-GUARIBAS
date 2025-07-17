@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:professor_acesso_notifiq/data/adapters/etapa_adapter.dart';
 
 import '../../enums/status_console.dart';
 import '../../helpers/console_log.dart';
 import '../../models/ano_selecionado_model.dart';
+import '../../models/aula_ativa_model.dart';
 import '../../models/aula_model.dart';
 import '../../models/aula_sistema_bncc_model.dart';
 import '../../models/aula_totalizador_model.dart';
@@ -13,6 +15,7 @@ import '../../models/auth_model.dart';
 import '../../models/autorizacao_model.dart';
 import '../../models/avaliador_model.dart';
 import '../../models/config_horario_model.dart';
+import '../../models/etapa_model.dart';
 import '../../models/faltas_model.dart';
 import '../../models/historico_requencia_model.dart';
 import '../../models/justificativa_model.dart';
@@ -79,6 +82,8 @@ class HiveConfig {
       Hive.registerAdapter(AvaliadorAdapter());
       Hive.registerAdapter(SolicitacaoAdapter());
       Hive.registerAdapter(AutorizacaoAdapter());
+      Hive.registerAdapter(AulaAtivaAdapter());
+      Hive.registerAdapter(EtapaAdapter());
 
       await Future.wait([
         Hive.openBox('auth'),
@@ -115,6 +120,8 @@ class HiveConfig {
         Hive.openBox<AvaliadorModel>('avaliadores'),
         Hive.openBox<SolicitacaoModel>('solicitacoes'),
         Hive.openBox<AutorizacaoModel>('autorizacoes'),
+        Hive.openBox<AulaAtivaModel>('aulas_ativas'),
+        Hive.openBox<Etapa>('etapas')
       ]);
     } catch (error) {
       ConsoleLog.mensagem(

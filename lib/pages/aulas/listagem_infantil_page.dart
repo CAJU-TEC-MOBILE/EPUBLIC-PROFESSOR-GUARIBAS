@@ -173,6 +173,7 @@ class _ListagemInfantilPageState extends State<ListagemInfantilPage> {
                                                   Navigator.of(context)
                                                       .pop(false),
                                               onConfirm: () async {
+                                                showLoading(context);
                                                 AulaController aulaController =
                                                     AulaController();
 
@@ -201,6 +202,7 @@ class _ListagemInfantilPageState extends State<ListagemInfantilPage> {
                                                 );
 
                                                 await carregarDados();
+                                                hideLoading(context);
                                               },
                                             );
                                           },

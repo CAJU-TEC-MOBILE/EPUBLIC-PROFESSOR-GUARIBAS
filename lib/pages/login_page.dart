@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String appVerso = '';
   String numeroBuild = '';
-  PackageInfo _packageInfo = PackageInfo(
+  PackageInfo packageInfo = PackageInfo(
     appName: 'Unknown',
     packageName: 'Unknown',
     version: 'Unknown',
@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
     numeroBuild = info.buildNumber;
     setState(() {
       numeroBuild;
-      _packageInfo = info;
+      packageInfo = info;
     });
   }
 
@@ -46,8 +46,8 @@ class _LoginPageState extends State<LoginPage> {
         Provider.of<AuthProvider>(context, listen: false);
       }
     });
-    _usernameController.text = '12121212121';
-    _passwordController.text = '07121999';
+    // _usernameController.text = '12121212121';
+    // _passwordController.text = '07121999';
   }
 
   Future<void> configuracaoEnv() async {
@@ -74,154 +74,160 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, top: 220),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/logo.png',
-                        width: 250,
-                        height: 150,
-                      ),
-                      Card(
-                        color: AppTema.primaryWhite.withValues(alpha: 0.3),
-                        elevation: 0.0,
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.only(left: 14.0, right: 14.0),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 16.0),
-                              TextFormField(
-                                key: const Key('cpf_field'),
-                                keyboardType: TextInputType.number,
-                                enabled: provider.enabledTextFormField,
-                                controller: _usernameController,
-                                decoration: InputDecoration(
-                                  labelText: 'CPF',
-                                  prefixIcon: const Icon(Icons.person),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  labelStyle: const TextStyle(
-                                    color: AppTema.primaryDarkBlue,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(
-                                      color: AppTema.primaryAmarelo,
-                                      width: 2.0,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors.grey,
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return 'Por favor, insira um CPF, por favor';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16.0),
-                              CustomPasswordField(
-                                key: const Key('senha_field'),
-                                controller: _passwordController,
-                                labelText: 'Senha',
-                                prefixIcon: Icons.lock_outline,
-                                fillColor: Colors.grey.shade50,
-                                validator: (value) =>
-                                    Validador.validarPassword(value),
-                              ),
-                              const SizedBox(height: 16.0),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: ElevatedButton(
-                                  key: const Key('btn_login'),
-                                  onPressed: () async {
-                                    FocusManager.instance.primaryFocus
-                                        ?.unfocus();
-                                    if (_formKey.currentState?.validate() ??
-                                        false) {
-                                      await provider.login(
-                                        context: context,
-                                        email: _usernameController.text,
-                                        password: _passwordController.text,
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTema.primaryAmarelo,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24.0,
-                                      vertical: 12.0,
-                                    ),
-                                    shape: RoundedRectangleBorder(
+            Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 15,
+                    right: 15,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/logo.png',
+                          width: 250,
+                        ),
+                        Card(
+                          color: AppTema.primaryWhite.withValues(alpha: 0.3),
+                          elevation: 0.0,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(left: 14.0, right: 14.0),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 16.0),
+                                TextFormField(
+                                  key: const Key('cpf_field'),
+                                  keyboardType: TextInputType.number,
+                                  enabled: provider.enabledTextFormField,
+                                  controller: _usernameController,
+                                  decoration: InputDecoration(
+                                    labelText: 'CPF',
+                                    prefixIcon: const Icon(Icons.person),
+                                    border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
+                                    labelStyle: const TextStyle(
+                                      color: AppTema.primaryDarkBlue,
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(
+                                        color: AppTema.primaryAmarelo,
+                                        width: 2.0,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(
+                                        color: Colors.grey,
+                                        width: 1.0,
+                                      ),
+                                    ),
                                   ),
-                                  child: provider.isLoading
-                                      ? const SizedBox(
-                                          width: 20.0,
-                                          height: 20.0,
-                                          child: CircularProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return 'Por favor, insira um CPF, por favor';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16.0),
+                                CustomPasswordField(
+                                  key: const Key('senha_field'),
+                                  controller: _passwordController,
+                                  enabled: provider.enabledTextFormField,
+                                  labelText: 'Senha',
+                                  prefixIcon: Icons.lock_outline,
+                                  fillColor: Colors.grey.shade50,
+                                  validator: (value) =>
+                                      Validador.validarPassword(value),
+                                ),
+                                const SizedBox(height: 16.0),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: ElevatedButton(
+                                    key: const Key('btn_login'),
+                                    onPressed: () async {
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                      if (_formKey.currentState?.validate() ??
+                                          false) {
+                                        await provider.login(
+                                          context: context,
+                                          email: _usernameController.text,
+                                          password: _passwordController.text,
+                                        );
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTema.primaryAmarelo,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24.0,
+                                        vertical: 12.0,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                    ),
+                                    child: provider.isLoading
+                                        ? const SizedBox(
+                                            width: 20.0,
+                                            height: 20.0,
+                                            child: CircularProgressIndicator(
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                              strokeWidth: 2.0,
                                             ),
-                                            strokeWidth: 2.0,
+                                          )
+                                        : const Text(
+                                            'Entrar',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                        )
-                                      : const Text(
-                                          'Entrar',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Versão:",
+                                        style: const TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black38,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Versão:",
-                                      style: const TextStyle(
-                                        fontSize: 12.0,
-                                        color: Colors.black38,
-                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      width: 4.0,
-                                    ),
-                                    Text(
-                                      "$numeroBuild ($appVerso)",
-                                      style: const TextStyle(
-                                        fontSize: 12.0,
-                                        color: Colors.black38,
-                                        fontWeight: FontWeight.bold,
+                                      const SizedBox(
+                                        width: 4.0,
                                       ),
-                                    )
-                                  ],
+                                      Text(
+                                        "$numeroBuild ($appVerso)",
+                                        style: const TextStyle(
+                                          fontSize: 12.0,
+                                          color: Colors.black38,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

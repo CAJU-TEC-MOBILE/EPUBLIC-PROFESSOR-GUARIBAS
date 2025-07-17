@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:professor_acesso_notifiq/constants/app_tema.dart';
@@ -9,7 +10,6 @@ import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_offline_pa
 import 'package:professor_acesso_notifiq/pages/frequencias/frequencia_online_page.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offlines_listar_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/aulas_offline_online_service_adapter.dart';
-import 'dart:async';
 import 'package:professor_acesso_notifiq/services/http/aulas/aulas_offline_sincronizar_service.dart';
 import '../../componentes/appbar/custom_appbar.dart';
 import '../../componentes/card/custom_fundamental_card.dart';

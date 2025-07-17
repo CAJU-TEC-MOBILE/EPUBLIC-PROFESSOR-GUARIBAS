@@ -134,22 +134,30 @@ class FaltasDaAulaOnlineEnviarHttp {
     required String observacao,
   }) async {
     try {
+      List<Map<String, String>> base64Files = [];
+
       final directoriesController = DirectoriesController();
+
       await preference.init();
+
       String? token = await preference.getToken();
+
       if (aulaId.isEmpty || matriculaId.isEmpty || justificativaId.isEmpty) {
         print('❌ Erro: Parâmetros obrigatórios ausentes.');
         CustomSnackBar.showErrorSnackBar(
-            context, 'Erro ao justificar falta: dados incompletos.');
+          context,
+          'Erro ao justificar falta: dados incompletos.',
+        );
         return false;
       }
-      final String url =
-          '${ApiBaseURLService.baseUrl}/aulas/justificar-falta-app';
+
+      String url = '${ApiBaseURLService.baseUrl}/aulas/justificar-falta-app';
+
       final Map<String, String> headers = {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       };
-      List<Map<String, String>> base64Files = [];
+
       if (files.isNotEmpty) {
         for (var file in files) {
           if (!await file.exists()) {
@@ -171,6 +179,7 @@ class FaltasDaAulaOnlineEnviarHttp {
       } else {
         print('ℹ️ Nenhum arquivo anexado.');
       }
+
       final Map<String, dynamic> requestBody = {
         'aula_id': aulaId,
         'matricula_id': matriculaId,
@@ -179,33 +188,37 @@ class FaltasDaAulaOnlineEnviarHttp {
         'documento_base64':
             base64Files.isNotEmpty ? base64Files.first['filedata'] : null,
       };
-      print('📤 Enviando justificativa...');
+
       final response = await http.post(
         Uri.parse(url),
         headers: headers,
         body: jsonEncode(requestBody),
       );
+
       await directoriesController.excluirTudoAnexos();
+
       final responseBody = jsonDecode(response.body);
-      print(responseBody.toString());
-      if (response.statusCode == 200) {
-        print('✅ Justificativa enviada com sucesso.');
-        return true;
-      } else {
+
+      if (response.statusCode != 200) {
         final errorMessage = responseBody['message'] ?? 'Erro desconhecido';
-        print(
-            '❌ Erro ao enviar justificativa: ${response.statusCode} - $errorMessage');
+
         if (errorMessage == 'Falta não encontrada.') {
           return false;
         }
+
         CustomSnackBar.showErrorSnackBar(context, errorMessage);
         return false;
       }
+
+      print('✅ Justificativa enviada com sucesso.');
+      return true;
     } catch (error, stackTrace) {
       print('❌ Erro inesperado durante a requisição: $error');
       print('📜 StackTrace: $stackTrace');
       CustomSnackBar.showErrorSnackBar(
-          context, 'Erro ao justificar falta. Tente novamente.');
+        context,
+        'Erro ao justificar falta. Tente novamente.',
+      );
       return false;
     }
   }
