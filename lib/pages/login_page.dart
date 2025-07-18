@@ -46,8 +46,8 @@ class _LoginPageState extends State<LoginPage> {
         Provider.of<AuthProvider>(context, listen: false);
       }
     });
-    // _usernameController.text = '12121212121';
-    // _passwordController.text = '07121999';
+    _usernameController.text = '12121212121';
+    _passwordController.text = '07121999';
   }
 
   Future<void> configuracaoEnv() async {
@@ -58,7 +58,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AuthProvider>(context, listen: true);
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         return false;

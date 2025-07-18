@@ -154,7 +154,7 @@ class _CustomDisciplinasDialogWidgetState
                   style: _buildButtonStyle(),
                   onPressed: () {
                     setState(() => statusValidate = false);
-                    disciplinas.forEach((disciplina) {
+                    for (var disciplina in disciplinas) {
                       if (disciplina.checkbox == false) {
                         disciplina.data = [];
                         disciplina.data.add({
@@ -163,7 +163,7 @@ class _CustomDisciplinasDialogWidgetState
                           'horarios': [],
                         });
                       }
-                    });
+                    }
                     final selecionadas =
                         disciplinas.where((d) => d.checkbox).toList();
                     widget.onSelectedDisciplinas(selecionadas);

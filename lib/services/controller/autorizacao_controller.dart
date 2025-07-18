@@ -41,7 +41,7 @@ class AutorizacaoController {
   Future<void> visualizar() async {
     List<AutorizacaoModel> data = box.values.toList();
     print("total: ${data.length.toString()}");
-    data.forEach((item) {
+    for (var item in data) {
       print("=======================");
       print("id: ${item.id.toString()}");
       print("userId: ${item.userId.toString()}");
@@ -55,7 +55,7 @@ class AutorizacaoController {
       print("status: ${item.status.toString()}");
       print("data: ${item.data.toString()}");
       print("mobile: ${item.mobile.toString()}");
-    });
+    }
   }
 
   Future<void> update(AutorizacaoModel model) async {

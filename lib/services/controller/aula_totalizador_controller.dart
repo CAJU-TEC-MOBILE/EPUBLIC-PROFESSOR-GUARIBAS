@@ -45,8 +45,8 @@ class AulaTotalizadorController {
   Future<void> visualizar() async {
     List<AulaTotalizador> data = box.values.toList();
     print("total: ${data.length.toString()}");
-    data.forEach((item) {
+    for (var item in data) {
       print(item);
-    });
+    }
   }
 }

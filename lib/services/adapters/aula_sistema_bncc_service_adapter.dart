@@ -8,16 +8,13 @@ class AulaSistemaBnccServiceAdapter {
     Box<AulaSistemaBncc> aulaSistemaBnccBox =
         Hive.box('aula_sistema_bncc_offline');
 
-    print('AULA BNCC BOX GERAL TOT: ' + aulaSistemaBnccBox.values.toString());
-
-    aulaSistemaBnccBox.values.forEach((element) {
+    for (var element in aulaSistemaBnccBox.values) {
       print('${element.aula_id}-----${element.sistema_bncc_id}');
-    });
+    }
 
     List<AulaSistemaBncc> aulaSistemaBnccSalvos = aulaSistemaBnccBox.values
         .where((aula) => aula.aula_id.toString() == aulaOfflineId.toString())
         .toList();
-    print('aulaSistemaBnccSalvos: $aulaSistemaBnccSalvos');
     return aulaSistemaBnccSalvos;
   }
 

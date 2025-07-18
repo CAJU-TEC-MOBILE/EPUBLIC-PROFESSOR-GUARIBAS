@@ -331,16 +331,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
         hideLoading(context);
         return;
       }
-      // await OpenFilex.open(tempFilePath);
-      // final params = ShareParams(
-      //   text: 'Great picture',
-      //   files: [XFile(caminho)],
-      // );
-      // final result = await SharePlus.instance.share(params);
-      // if (result.status == ShareResultStatus.success) {
-      //   hideLoading(context);
-      //   return;
-      // }
       await OpenFilex.open(caminho);
       hideLoading(context);
     } catch (error) {
@@ -387,6 +377,38 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
     super.build(context);
     return WillPopScope(
       onWillPop: () async {
+        await _aula();
+        if (aula!.status_frequencia == true) {
+          if (aula!.e_aula_infantil == 1) {
+            Navigator.pushNamed(context, '/index-infantil');
+          } else {
+            Navigator.pushNamed(context, '/index-fundamental');
+          }
+          return false;
+        }
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) => CustomPadraoDialog(
+            title: 'Aviso',
+            message:
+                "Você tem certeza que deseja sair sem salvar as frequência?",
+            onCancel: () => Navigator.of(context).pop(false),
+            onConfirm: () async {
+              await repository.removeArquivoDaFrequencia(
+                criadaPeloCelular: widget.aula_id,
+              );
+              Navigator.of(context).pop(true);
+            },
+          ),
+        );
+        if (shouldPop ?? false) {
+          if (aula!.e_aula_infantil == 1) {
+            Navigator.pushNamed(context, '/index-infantil');
+          } else {
+            Navigator.pushNamed(context, '/index-fundamental');
+          }
+          return false;
+        }
         return false;
       },
       child: Scaffold(
@@ -474,7 +496,8 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                           child: matricula.matricula_situacao == 'CURSANDO' ||
                                   matricula.matricula_situacao == "RECEBIDA" ||
                                   matricula.matricula_situacao == "APROVADO" ||
-                                  matricula.matricula_situacao == "REPROVADO"
+                                  matricula.matricula_situacao == "REPROVADO" ||
+                                  matricula.matricula_situacao == "0"
                               ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

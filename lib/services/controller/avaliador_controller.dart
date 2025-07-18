@@ -59,10 +59,10 @@ class AvaliadorController {
   Future<void> visualizar() async {
     List<AvaliadorModel> avaliadores = box.values.toList();
     print("total: ${avaliadores.length.toString()}");
-    avaliadores.forEach((item) {
+    for (var item in avaliadores) {
       print("=======================");
       print("id: ${item.id.toString()}");
       print("descricao: ${item.name.toString()}");
-    });
+    }
   }
 }
