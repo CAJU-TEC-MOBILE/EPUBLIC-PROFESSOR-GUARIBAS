@@ -46,8 +46,8 @@ class _LoginPageState extends State<LoginPage> {
         Provider.of<AuthProvider>(context, listen: false);
       }
     });
-    _usernameController.text = '12121212121';
-    _passwordController.text = '07121999';
+    // _usernameController.text = '12121212121';
+    // _passwordController.text = '07121999';
   }
 
   Future<void> configuracaoEnv() async {

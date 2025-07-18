@@ -1,9 +1,9 @@
 class ApiBaseURLService {
-  // static const String _baseUrl = 'https://guaribasapi.servidorcaju.com.br';
-  // static const String _baseParaDNS = 'guaribasapi.servidorcaju.com.br';
+  static const String _baseUrl = 'https://guaribasapi.servidorcaju.com.br';
+  static const String _baseParaDNS = 'guaribasapi.servidorcaju.com.br';
 
-  static const String _baseUrl = 'https://guaribashmgapi.servidorcaju.com.br';
-  static const String _baseParaDNS = 'guaribashmgapi.servidorcaju.com.br';
+  // static const String _baseUrl = 'https://guaribashmgapi.servidorcaju.com.br';
+  // static const String _baseParaDNS = 'guaribashmgapi.servidorcaju.com.br';
 
   //static const String _baseUrl = 'https://guaribasapi.servidorcaju.com.br';
   //static const String _baseParaDNS = 'guaribasapi.servidorcaju.com.br';
