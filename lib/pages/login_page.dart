@@ -58,7 +58,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AuthProvider>(context, listen: true);
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         return false;

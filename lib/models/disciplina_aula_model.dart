@@ -6,6 +6,7 @@ class DisciplinaAula {
   final String descricao;
   final String idtTurmaId;
   final String idt_id;
+  // ignore: prefer_typing_uninitialized_variables
   var criadaPeloCelular;
   bool checkbox;
   List<dynamic> data;

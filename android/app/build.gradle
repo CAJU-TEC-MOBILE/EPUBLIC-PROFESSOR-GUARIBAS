@@ -14,10 +14,10 @@ def getEnvVar(String key) {
         if (value != null && !value.isEmpty()) {
             return value
         } else {
-            throw new GradleException("A variável '$key' não foi encontrada ou está vazia no arquivo .env.")
+            throw new RuntimeException("A variável '$key' não foi encontrada ou está vazia no arquivo .env.")
         }
     } else {
-        throw new GradleException("O arquivo .env não foi encontrado na raiz do projeto.")
+        throw new RuntimeException("O arquivo .env não foi encontrado na raiz do projeto.")
     }
 }
 
@@ -31,7 +31,7 @@ def getLocalProperty(String key) {
         return value
     } else {
         println "Arquivo 'local.properties' não encontrado."
-        throw new GradleException("Arquivo 'local.properties' não encontrado.")
+        throw new RuntimeException("Arquivo 'local.properties' não encontrado.")
     }
 }
 
@@ -44,7 +44,7 @@ android {
         applicationId = 'br.com.servidorcaju.guaribas'
         minSdkVersion = 21
         targetSdkVersion = 35
-        versionCode 26
+        versionCode 29
         versionName "5.0.11.5949"
  
         multiDexEnabled true
@@ -74,13 +74,15 @@ android {
     release {
             signingConfig signingConfigs.release
             shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
             applicationVariants.all { variant ->
                 variant.outputs.all { output ->
                     def appName = getEnvVar("NAME_APP")
                     def appVersion = getEnvVar("VERSAO")
                     if (appName == null || appVersion == null) {
-                        throw new GradleException("As variáveis APP_TITLE e APP_VERSION não foram encontradas no arquivo .env.")
+                        throw new RuntimeException("As variáveis APP_TITLE e APP_VERSION não foram encontradas no arquivo .env.")
                     }
                     appName = appName.replaceAll("\"", "")
                     appVersion = appVersion.replaceAll("\"", "")

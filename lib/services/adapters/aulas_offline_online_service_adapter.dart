@@ -298,15 +298,15 @@ class AulasOfflineOnlineServiceAdapter {
     }
   }
 
-  Future<bool> atualizar(
-      {required Aula aula,
-      List<Disciplina>? disciplina,
-      isPolivalencia}) async {
+  Future<bool> atualizar({
+    required Aula aula,
+    List<Disciplina>? disciplina,
+    isPolivalencia,
+  }) async {
     try {
-      AulaController aulaController = AulaController();
-      DisciplinaAulaController disciplinaAulaController =
-          DisciplinaAulaController();
-      SerieAulaController serieAulaController = SerieAulaController();
+      final aulaController = AulaController();
+      final serieAulaController = SerieAulaController();
+      final disciplinaAulaController = DisciplinaAulaController();
 
       await aulaController.init();
       await disciplinaAulaController.init();

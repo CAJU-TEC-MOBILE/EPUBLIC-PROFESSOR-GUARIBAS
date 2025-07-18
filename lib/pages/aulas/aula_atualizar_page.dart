@@ -440,7 +440,7 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         saberes_conhecimentos: '',
         dia_da_semana: _diaDaSemana.toString(),
         situacao: 'Aguardando confirmação',
-        criadaPeloCelular: widget.aulaLocalId.toString(),
+        criadaPeloCelular: aulaAtiva.criadaPeloCelular,
         etapa_id: etapaSelecionada!.id.toString(),
         instrutorDisciplinaTurma_id: gestaoAtivaModel?.idt_id.toString(),
         campos_de_experiencias: selectedExperiencias.toString(),
@@ -453,12 +453,15 @@ class _AulaAtualizarPageState extends State<AulaAtualizarPage> {
         atividade_casa: '',
         atividade_classe: '',
         observacoes: '',
+        circuito_nota_id: gestaoAtivaModel!.circuito_nota_id,
       );
+
       bool sucesso = await aulasOfflineOnlineServiceAdapter.atualizar(
         aula: aulaAtualizada,
         isPolivalencia: gestaoAtivaModel!.is_polivalencia,
         disciplina: selectedDisciplinas,
       );
+
       await Future.delayed(durationDelay);
       hideLoading(context);
       setState(() => isStatus = false);

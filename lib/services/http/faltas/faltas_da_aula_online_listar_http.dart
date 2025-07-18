@@ -12,7 +12,7 @@ class FaltasDaAulaOnlineListarHttp {
     String? token = await preference.getToken();
     String prefix_url = 'notifiq-professor/aulas/todas-as-faltas-online/aula';
     var url = Uri.parse(
-      '${ApiBaseURLService.baseUrl}/$prefix_url/${aula_id}',
+      '${ApiBaseURLService.baseUrl}/$prefix_url/$aula_id',
     );
     try {
       var response = await http.get(

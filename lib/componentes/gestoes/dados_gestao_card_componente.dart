@@ -132,30 +132,30 @@ class DadosDaGestaoCardComponente extends StatelessWidget {
               ),
 
               // Disciplina
-              const SizedBox(height: 8.0),
-              Row(
-                children: [
-                  const Text(
-                    'Disciplina: ',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.bold,
-                      color: AppTema.primaryDarkBlue,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      gestaoAtivaModel!.disciplina_descricao.toString(),
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        color: AppTema.primaryDarkBlue,
-                      ),
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+              // const SizedBox(height: 8.0),
+              // Row(
+              //   children: [
+              //     const Text(
+              //       'Disciplina: ',
+              //       style: TextStyle(
+              //         fontSize: 14.0,
+              //         fontWeight: FontWeight.bold,
+              //         color: AppTema.primaryDarkBlue,
+              //       ),
+              //     ),
+              //     Expanded(
+              //       child: Text(
+              //         gestaoAtivaModel!.disciplina_descricao.toString(),
+              //         style: const TextStyle(
+              //           fontSize: 14.0,
+              //           color: AppTema.primaryDarkBlue,
+              //         ),
+              //         softWrap: true,
+              //         overflow: TextOverflow.ellipsis,
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),

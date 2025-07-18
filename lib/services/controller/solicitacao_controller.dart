@@ -48,10 +48,10 @@ class SolicitacaoController {
   Future<void> visualizar() async {
     List<SolicitacaoModel> etapas = box.values.toList();
     print("total: ${etapas.length.toString()}");
-    etapas.forEach((item) {
+    for (var item in etapas) {
       print("=======================");
       print("id: ${item.id.toString()}");
       print("descricao: ${item.descricao.toString()}");
-    });
+    }
   }
 }

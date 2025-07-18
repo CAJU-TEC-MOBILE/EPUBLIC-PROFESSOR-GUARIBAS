@@ -11,7 +11,6 @@ import 'package:professor_acesso_notifiq/services/adapters/faltas_offlines_servi
 import 'package:professor_acesso_notifiq/services/adapters/gestao_ativa_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/justificativas_service_adapter.dart';
 import 'package:professor_acesso_notifiq/services/adapters/matriculas_da_turma_ativa_service_adapter.dart';
-// import 'package:share_plus/share_plus.dart';
 import '../../componentes/button/custom_anexo_download_button.dart';
 import '../../componentes/dialogs/custom_dialogs.dart';
 import '../../componentes/dialogs/custom_snackbar.dart';
@@ -332,16 +331,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
         hideLoading(context);
         return;
       }
-      // await OpenFilex.open(tempFilePath);
-      // final params = ShareParams(
-      //   text: 'Great picture',
-      //   files: [XFile(caminho)],
-      // );
-      // final result = await SharePlus.instance.share(params);
-      // if (result.status == ShareResultStatus.success) {
-      //   hideLoading(context);
-      //   return;
-      // }
       await OpenFilex.open(caminho);
       hideLoading(context);
     } catch (error) {
@@ -388,6 +377,38 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
     super.build(context);
     return WillPopScope(
       onWillPop: () async {
+        await _aula();
+        if (aula!.status_frequencia == true) {
+          if (aula!.e_aula_infantil == 1) {
+            Navigator.pushNamed(context, '/index-infantil');
+          } else {
+            Navigator.pushNamed(context, '/index-fundamental');
+          }
+          return false;
+        }
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) => CustomPadraoDialog(
+            title: 'Aviso',
+            message:
+                "Você tem certeza que deseja sair sem salvar as frequência?",
+            onCancel: () => Navigator.of(context).pop(false),
+            onConfirm: () async {
+              await repository.removeArquivoDaFrequencia(
+                criadaPeloCelular: widget.aula_id,
+              );
+              Navigator.of(context).pop(true);
+            },
+          ),
+        );
+        if (shouldPop ?? false) {
+          if (aula!.e_aula_infantil == 1) {
+            Navigator.pushNamed(context, '/index-infantil');
+          } else {
+            Navigator.pushNamed(context, '/index-fundamental');
+          }
+          return false;
+        }
         return false;
       },
       child: Scaffold(
@@ -402,7 +423,6 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
           leading: IconButton(
             onPressed: () async {
               await _aula();
-              print("e_aula_infantil: ${aula!.e_aula_infantil.toString()}");
               if (aula!.status_frequencia == true) {
                 if (aula!.e_aula_infantil == 1) {
                   Navigator.pushNamed(context, '/index-infantil');
@@ -473,7 +493,11 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                               ),
                             ),
                           ),
-                          child: matricula.matricula_situacao != 'TRANSFERIDO'
+                          child: matricula.matricula_situacao == 'CURSANDO' ||
+                                  matricula.matricula_situacao == "RECEBIDA" ||
+                                  matricula.matricula_situacao == "APROVADO" ||
+                                  matricula.matricula_situacao == "REPROVADO" ||
+                                  matricula.matricula_situacao == "0"
                               ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -671,9 +695,9 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                                 child: Text(
                                                   '${matricula.aluno_nome.substring(0, 35).toUpperCase()}...',
                                                   style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               )
                                             : Text(
@@ -681,16 +705,17 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                                     .toString()
                                                     .toUpperCase(),
                                                 style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                       ),
                                       Container(
                                         decoration: BoxDecoration(
-                                            color: AppTema.error,
-                                            borderRadius:
-                                                BorderRadius.circular(5)),
+                                          color: AppTema.error,
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
                                         margin: const EdgeInsets.only(
                                             left: 5, top: 5),
                                         padding: const EdgeInsets.only(
@@ -699,7 +724,8 @@ class _FrequenciaOfflinePageState extends State<FrequenciaOfflinePage>
                                             right: 10,
                                             bottom: 5),
                                         child: Text(
-                                          'TRANSFERIDO'.toUpperCase(),
+                                          matricula.matricula_situacao
+                                              .toUpperCase(),
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 12,

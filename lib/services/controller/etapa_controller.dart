@@ -40,7 +40,7 @@ class EtapaController {
   Future<void> visualizar() async {
     List<Etapa> etapas = box.values.toList();
     print("total: ${etapas.length.toString()}");
-    etapas.forEach((item) {
+    for (var item in etapas) {
       print("=======================");
       print("id: ${item.id.toString()}");
       print("circuito_nota_id: ${item.circuito_nota_id.toString()}");
@@ -49,6 +49,6 @@ class EtapaController {
       print("periodo_final: ${item.periodo_final.toString()}");
       print("periodo_final: ${item.periodo_final.toString()}");
       print("etapa_global: ${item.etapa_global.toString()}");
-    });
+    }
   }
 }
